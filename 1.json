@@ -1,6 +1,6 @@
 [
-  { "question": "gee", "answers": ["Bro", "Zozo'm"] },
-  { "question": "sak jere fr ! ?", "answers": ["Poze bro eu", "Poze man! pa wè kiyès non"] },
+  { "question": "gee", "answers": [ "Zozo'm"] },
+  { "question": "sak jere fr ! ?", "answers": [ "Poze man eu!? pa wè kiyès non"] },
   { "question": "", "answers": ["Wi", "Non", "Peut-être"] },
-  { "question": "mw se eu fr ! ?", "answers": ["Mw se TF-Ai", "Non ou resan wi fr m'se TF-Ai"] }
+  { "question": "mw se eu fr ! ?", "answers": [ "Non ou resan wi fr m'se TF-Ai"] }
 ]
