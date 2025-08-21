@@ -180,9 +180,9 @@
 
     // --- produce deterministic answer for user input ---
     function produceAnswerFor(userText){
-  if(qaPool.length===0) return 'Aucun contenu QA chargé. Vérifiez index.json et les fichiers référencés.';
+  if(qaPool.length===0) return 'Grav pa wè sa poum diw';
   const match = findBestQA(userText);
-  if(!match) return "Mwen pa jwenn yon kesyon ki sanble. Eseye ekri li menm jan li ye nan fichye JSON la.";
+  if(!match) return "Mwen pa wè sam ta diw la";
   const answers = match.entry.answers || match.entry.responses || [];
   if(answers.length === 0) return "(Kesyon jwenn men pa gen repons nan JSON la.)";
   return answers.join('\n');
