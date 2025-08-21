@@ -1,8 +1,9 @@
-<!DOCTYPE html><html lang="ht">
+<!DOCTYPE html>
+<html lang="ht">
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>TF-Ai</title>
+  <title>TF-Chat</title>
   <style>
     /* UI Styles */
     body { font-family: Arial, sans-serif; background-color: #f2f2f2; margin:0; padding:0; }
@@ -45,17 +46,19 @@
 <body>
   <header>
     <div class="menu-btn" onclick="toggleSidebar()">☰</div>
-    TF-Ai
+    TF-Chat
   </header>
   <div class="sidebar" id="sidebar">
-    <div class="menu-header"><h3>Chats</h3><button onclick="newChat()">🆕</button></div>
+    <div class="menu-header"><h3>Chats</h3><button onclick="newChat()">Nouveau Chat</button></div>
     <ul class="chat-list" id="chatList"></ul>
   </div>
   <div class="chat-box" id="chatBox"></div>
   <form id="chatForm">
-    <textarea id="userInput" placeholder="Ekri deskripsyon sit la..."></textarea>
+    <textarea id="userInput" placeholder="TF-chat le meilleiur asistence"></textarea>
     <button type="submit">➤</button>
-  </form>  <script>
+  </form>
+
+  <script>
     // Request notifications permission
     if (Notification && Notification.permission !== 'granted') Notification.requestPermission();
 
@@ -70,9 +73,9 @@
     function toggleSidebar(){document.getElementById('sidebar').classList.toggle('active');}
     function newChat(){sessions.unshift({title:'Nouveau Chat',messages:[]});currentSession=0;save();renderList();renderBox();toggleSidebar();}
     function renderList(){const l=document.getElementById('chatList');l.innerHTML='';sessions.forEach((s,i)=>{let li=document.createElement('li');li.textContent=s.title;li.onclick=()=>{currentSession=i;renderBox();toggleSidebar();};l.appendChild(li);});}
-    function renderBox(){const box=document.getElementById('chatBox');box.innerHTML='';if(currentSession===null){box.innerHTML='<div style="padding:20px;color:#666">Aucun chat — cliquez 🆕 pour commencer</div>';return;}const sess=sessions[currentSession];sess.messages.forEach(m=>{let wrap=document.createElement('div');wrap.className=m.sender==='thinking'? 'thinking' : 'message '+m.sender; if(m.sender==='thinking'){wrap.textContent=m.text;} else if(typeof m.text==='string' && m.text.startsWith('```')&&m.text.endsWith('```')){let content=m.text.slice(3,-3);let modal=document.createElement('div');modal.className='code-modal';modal.textContent=content;let btn=document.createElement('button');btn.className='copy-btn';btn.textContent='📋 Copy';btn.onclick=()=>{navigator.clipboard.writeText(content);btn.textContent='✔️';setTimeout(()=>btn.textContent='📋 Copy',1000);} ;modal.appendChild(btn);wrap.appendChild(modal);} else{let c=document.createElement('div');c.className='content';c.textContent=m.text;wrap.appendChild(c);if(m.sender==='bot'&&m.ts){let ts=document.createElement('div');ts.className='timestamp';ts.textContent=`${Math.floor((Date.now()-m.ts)/1000)}s`;wrap.appendChild(ts);} }box.appendChild(wrap);});box.scrollTop=box.scrollHeight;}
+    function renderBox(){const box=document.getElementById('chatBox');box.innerHTML='';if(currentSession===null){box.innerHTML='<div style="padding:20px;color:#666">Aucun chat — cliquez Nouveau Chat pour commencer</div>';return;}const sess=sessions[currentSession];sess.messages.forEach(m=>{let wrap=document.createElement('div');wrap.className=m.sender==='thinking'? 'thinking' : 'message '+m.sender; if(m.sender==='thinking'){wrap.textContent=m.text;} else if(typeof m.text==='string' && m.text.startsWith('```')&&m.text.endsWith('```')){let content=m.text.slice(3,-3);let modal=document.createElement('div');modal.className='code-modal';modal.textContent=content;let btn=document.createElement('button');btn.className='copy-btn';btn.textContent='Copy';btn.onclick=()=>{navigator.clipboard.writeText(content);btn.textContent='✔️';setTimeout(()=>btn.textContent=' Copy',1000);} ;modal.appendChild(btn);wrap.appendChild(modal);} else{let c=document.createElement('div');c.className='content';c.textContent=m.text;wrap.appendChild(c);if(m.sender==='bot'&&m.ts){let ts=document.createElement('div');ts.className='timestamp';ts.textContent=`${Math.floor((Date.now()-m.ts)/1000)}s`;wrap.appendChild(ts);} }box.appendChild(wrap);});box.scrollTop=box.scrollHeight;}
 
-    // Utility: pick random element
+    // Utility: pick random element (kept for dev use)
     function rand(arr){return arr[Math.floor(Math.random()*arr.length)];}
 
     // Load index.json and all listed json files
@@ -82,23 +85,19 @@
         const res = await fetch('./index.json', {cache: 'no-store'});
         if(!res.ok) throw new Error('Impossible de charger index.json: '+res.status);
         const idx = await res.json();
-        // index.json may be either an array or { files: [...] }
         const files = Array.isArray(idx) ? idx : (Array.isArray(idx.files) ? idx.files : []);
         if(files.length===0) return console.warn('index.json vide ou mal formaté');
-        // fetch each file
         await Promise.all(files.map(async (f) => {
           try{
             const r = await fetch('./'+f, {cache: 'no-store'});
             if(!r.ok) { console.warn('Fichier non chargé', f); return; }
             const data = await r.json();
-            // Accept either: array of objects or object with key 'qa' or similar
             let items = [];
             if(Array.isArray(data)) items = data;
             else if(Array.isArray(data.qa)) items = data.qa;
             else if(Array.isArray(data.questions)) items = data.questions;
             else return;
 
-            // normalize items to {question, answers:[]}
             items.forEach(it => {
               if(!it) return;
               const question = it.question || it.q || it.prompt || it.text;
@@ -115,16 +114,83 @@
       }catch(err){console.error('Erreur loadIndexAndQA', err);}    
     }
 
-    // pick a random QA and produce a bot message in the chat
-    function produceRandomQA(){
-      if(qaPool.length===0) return 'Aucun contenu QA chargé. Vérifiez index.json et les fichiers référencés.';
-      const entry = rand(qaPool);
-      const q = entry.question || 'Question inconnue';
-      const a = rand(entry.answers || ['(pas de réponses)']);
-      return `${a}`;
+    // --- Normalization & Levenshtein (for fuzzy matching) ---
+    function normalizeText(s){
+      if(!s) return '';
+      return s
+        .toString()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // retire aksan
+        .toLowerCase()
+        .replace(/[^a-z0-9\s]/g,'') // retire ponktiyasyon
+        .replace(/\s+/g,' ') // collapse spaces
+        .trim();
     }
 
-    // Form submit handler now uses local QA pool instead of backend
+    function levenshtein(a, b) {
+      if (a === b) return 0;
+      const al = a.length, bl = b.length;
+      if (al === 0) return bl;
+      if (bl === 0) return al;
+      let v0 = new Array(bl + 1), v1 = new Array(bl + 1);
+      for (let i = 0; i <= bl; i++) v0[i] = i;
+      for (let i = 0; i < al; i++) {
+        v1[0] = i + 1;
+        for (let j = 0; j < bl; j++) {
+          const cost = a[i] === b[j] ? 0 : 1;
+          v1[j + 1] = Math.min(v1[j] + 1, v0[j + 1] + 1, v0[j] + cost);
+        }
+        [v0, v1] = [v1, v0];
+      }
+      return v0[bl];
+    }
+
+    // --- Find best matching QA entry (exact first, then include, then fuzzy) ---
+    function findBestQA(userText){
+      if(!userText || qaPool.length===0) return null;
+      const normInput = normalizeText(userText);
+
+      // 1) exact match
+      for(const e of qaPool){
+        const qnorm = normalizeText(e.question || '');
+        if(qnorm && qnorm === normInput) return { entry: e, type: 'exact' };
+      }
+
+      // 2) includes (question contains input or input contains question)
+      for(const e of qaPool){
+        const qnorm = normalizeText(e.question || '');
+        if(qnorm.includes(normInput) || normInput.includes(qnorm)) return { entry: e, type: 'include' };
+      }
+
+      // 3) fuzzy via Levenshtein similarity
+      let best = null;
+      let bestScore = -1;
+      for(const e of qaPool){
+        const qnorm = normalizeText(e.question || '');
+        if(!qnorm) continue;
+        const dist = levenshtein(normInput, qnorm);
+        const maxLen = Math.max(normInput.length, qnorm.length);
+        const sim = maxLen === 0 ? 1 : (1 - dist / maxLen); // 0..1
+        if(sim > bestScore){ bestScore = sim; best = e; }
+      }
+
+      // threshold for fuzzy (adjustable)
+      if(best && bestScore >= 0.50) return { entry: best, type: 'fuzzy', score: bestScore };
+      return null;
+    }
+
+    // --- produce deterministic answer for user input ---
+    function produceAnswerFor(userText){
+      if(qaPool.length===0) return 'Aucun contenu QA chargé. Vérifiez index.json et les fichiers référencés.';
+      const match = findBestQA(userText);
+      if(!match) return "Mpa wè sam ta diw";
+      const answers = match.entry.answers || match.entry.responses || [];
+      const header = match.type === 'exact' ? '' : `(match ${match.type}${match.score?(' — sim:'+Math.round(match.score*100)+'%') : ''})\n`;
+      if(answers.length === 0) return header + "(Mw pa wè sam ta diw)";
+      // return all answers (deterministic). If you prefer only first answer use answers[0].
+      return header + answers.join('\n');
+    }
+
+    // Form submit handler now uses deterministic produceAnswerFor
     document.getElementById('chatForm').addEventListener('submit',async e=>{
       e.preventDefault();
       let ta=document.getElementById('userInput'),text=ta.value.trim();
@@ -132,35 +198,41 @@
       if(currentSession===null) newChat();
       let sess=sessions[currentSession];
       sess.messages.push({sender:'user',text,ts:Date.now()});
-      sess.title=sess.messages[0].text;
+      // set title from first message if present
+      if(sess.messages[0] && typeof sess.messages[0].text === 'string') sess.title = sess.messages[0].text.slice(0,100);
       save();renderList();renderBox();ta.value='';
 
-      let thinking={sender:'thinking',text:'*AI ap panse...*'};
+      let thinking={sender:'thinking',text:'*TF-Chat*'};
       sess.messages.push(thinking);renderBox();
-      // small delay for UX
       await new Promise(r=>setTimeout(r,700));
       // remove thinking
       sess.messages = sess.messages.filter(m=>m!==thinking);
 
-      // produce random QA from loaded pool
-      let botText = produceRandomQA();
+      // produce deterministic answer for user input
+      let botText = produceAnswerFor(text);
       let botMsg = {sender:'bot',text:botText,ts:Date.now()};
       sess.messages.push(botMsg);
       save();renderBox();
-      if(document.hidden&&Notification.permission==='granted') new Notification('TF-Chat',{body:'Nouvo mesaj AI'});
+      if(document.hidden&&Notification.permission==='granted') new Notification('TF-Chat',{body:'Nouvo mesaj TF-Chat'});
     });
 
-    // Allow Enter to insert newline; Shift+Enter to send is common but we keep previous behavior
-    document.getElementById('userInput').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();let t=e.target,s=t.selectionStart;let v=t.value; t.value=v.slice(0,s)+'\n'+v.slice(s);t.selectionStart=t.selectionEnd=s+1;}});
+    // Allow Enter to insert newline; keep previous behaviour (Enter inserts newline)
+    document.getElementById('userInput').addEventListener('keydown',e=>{
+      if(e.key==='Enter'&&!e.shiftKey){
+        e.preventDefault();
+        let t=e.target,s=t.selectionStart;let v=t.value;
+        t.value=v.slice(0,s)+'\n'+v.slice(s);t.selectionStart=t.selectionEnd=s+1;
+      }
+    });
 
     // Initial render
     if(sessions.length) renderList(), renderBox();
 
-    // Load index and QA on startup and watch file changes if needed
+    // Load index and QA on startup
     loadIndexAndQA();
 
     // Optional: expose a reload button via console for devs
     window.reloadQA = loadIndexAndQA;
   </script>
 </body>
-</html>
+  </html>
