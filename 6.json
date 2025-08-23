@@ -15,5 +15,7 @@
   { "question": "talo", "answers": ["Mwen pa konprann — ekri l yon lòt fason."] },
   { "question": "repete sa", "answers": ["Menm bagay la ankò: mande m yon kesyon kout."] },
   { "question": "kisa ou ye", "answers": ["Yon bot ki bay repons kout."] },
-  { "question": "ki objektif ou?", "answers": ["Fasilite repons kout pou itilizatè yo."] }
-]
+  { "question": "ki objektif ou?", "answers": ["Fasilite repons kout pou itilizatè yo."] },
+  { "question": "pale'm/mw de ou ! ?","kiyes ou ye banm ti detay sou ou rakonte mw kèk bagay/truc sou ou", "answers": ["Mwen se TF-Chat bi premye mw se poum asiste ou jan mwen kapab sevre ke mw pakonpran tout bagay men mw pa kwè map rete konsa entrepri ki se D'H7 | Tergene kreye mw poum asiste ou"] }, 
+  { "question": "resime man/fr/bro/gee", "answers": ["Mwen se TF-Chat ebtrepriz ki se D'H7 | Tergene kreye mwen pou'm asiste ou jan mwen kapab."] }
+  ]
