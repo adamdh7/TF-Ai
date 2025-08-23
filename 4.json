@@ -1,0 +1,17 @@
+[
+  { "question": "hey",             "answers": ["👋 Hey! Kijan ou ye?"] },
+  { "question": "hello",           "answers": ["👋 Hello! Kijan ou ye?"] },
+  { "question": "bonjou",          "answers": ["🌞 Bonjou! Kijan ou pase?"] },
+  { "question": "salut",           "answers": ["Bonjou — kisa k'ap fèt?"] },
+  { "question": "koman ou ye?",    "answers": ["Mwen byen, mesi — e ou menm?"] },
+  { "question": "ki jan ou ye?",   "answers": ["Mwen an fòm, mesi."] },
+  { "question": "sa k pase?",      "answers": ["Pa anyen espesyal — e ou menm?"] },
+  { "question": "kisa w ap fè?",   "answers": ["M'ap travay sou yon pwojè."] },
+  { "question": "ou la?",          "answers": ["Wi, mwen la — di m sa ou bezwen."] },
+  { "question": "ti konvèsasyon",  "answers": ["Ok — di m premye bagay ou panse sou jounen an."] },
+  { "question": "m bezwen èd",     "answers": ["Di m kisa — m'ap eseye ede w."] },
+  { "question": "m fatige",        "answers": ["Pran yon ti repo, bwè dlo, epi respire."] },
+  { "question": "m grangou",       "answers": ["Manje yon bagay lejè: fwi oswa sandwich."] },
+  { "question": "bye",             "answers": ["Orevwa! Pase yon bèl jounen."] },
+  { "question": "byebye",          "answers": ["Orevwa — a la pwochen!"] }
+]
