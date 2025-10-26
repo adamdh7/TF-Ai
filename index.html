@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>TF-Chat — site1 (push & contacts)</title>
+<title>TF-Chat — Push-like</title>
 <style>
   :root{
-    --bg:#f2f2f5; --card:#fff; --muted:#6b6b6b; --accent:#128C7E; --green:#25D366;
+    --bg:#f2f2f5; --card:#fff; --muted:#6b6b6b; --accent:#128C7E; --unread:#ff4d4f;
     --radius:14px; --maxw:980px;
   }
   *{box-sizing:border-box}
@@ -22,7 +22,7 @@
   button{padding:10px 12px;border-radius:12px;border:0;background:var(--accent);color:#fff;cursor:pointer;font-weight:700}
   .btn-ghost{background:transparent;color:var(--accent);border:1px solid rgba(18,140,126,0.12)}
   .contacts{display:flex;flex-direction:column;gap:8px;margin-top:8px}
-  .contact{display:flex;align-items:center;gap:12px;padding:12px;background:#fff;border-radius:12px;cursor:pointer;border:1px solid #f0f0f0}
+  .contact{display:flex;align-items:center;gap:12px;padding:12px;background:#fff;border-radius:12px;cursor:pointer;border:1px solid #f0f0f0;position:relative}
   .avatar{width:48px;height:48px;border-radius:50%;background:#ddd;flex-shrink:0;overflow:hidden}
   .avatar img{width:100%;height:100%;object-fit:cover}
   .chat-page{display:flex;flex-direction:column;height:calc(100vh - 200px)}
@@ -35,9 +35,8 @@
   .composer{display:flex;gap:8px;padding:10px;border-top:1px solid #eee;background:var(--card)}
   input[type="text"]{width:100%;padding:10px;border-radius:12px;border:1px solid #eee}
   .small{font-size:13px;color:var(--muted)}
-  .link-tfid{color:var(--accent);text-decoration:underline;cursor:pointer}
+  .unread-badge{position:absolute;right:12px;top:12px;background:var(--unread);color:#fff;border-radius:12px;padding:2px 8px;font-size:12px;font-weight:700}
   .status{font-size:13px;color:var(--muted);margin-top:8px}
-  .debug{font-family:monospace;font-size:12px;color:#444;white-space:pre-wrap;margin-top:8px;background:#f8f8f8;padding:10px;border-radius:8px;max-height:200px;overflow:auto}
   @media(min-width:900px){ .wrap{border-left:1px solid rgba(0,0,0,0.04);border-right:1px solid rgba(0,0,0,0.04)} .card{border-radius:18px} }
 </style>
 </head>
@@ -56,7 +55,7 @@
       <div class="row" style="margin-top:10px">
         <button id="btnSearch">Rechercher</button>
         <button id="btnProfile" class="btn-ghost">Mon profil / Paramètres</button>
-        <button id="btnTest" class="btn-ghost" style="margin-left:8px">Test envoi (debug)</button>
+        <button id="btnTest" class="btn-ghost" style="margin-left:8px">Test envoi</button>
       </div>
       <div id="status" class="status"></div>
     </div>
@@ -67,95 +66,84 @@
     </div>
 
     <div id="chatContainer"></div>
-
-    <div class="card">
-      <div class="small">Console debug</div>
-      <div id="debug" class="debug">Logs will appear here...</div>
-    </div>
   </main>
 </div>
 
 <script>
-/* CONFIG */
+/* CONFIG - change si nesesè */
 const CONFIG = {
   SAVE_HOST: "https://tf-sove.onrender.com",
   API_LIST: "/api/list",
   API_ADD: "/api/add",
   API_TOKEN: "tfstream_45dd9c02d4e34f18a42d",
-  FRONTEND_NAME: "site1",
+  FRONTEND_NAME: "site1",        // deja anrejistre sou server
   UI_DIGITS: 7,
   SERVER_DIGITS: 17,
-  POLL_MS: 3000,
-  SESSION_KEY: "tfchat_session_site1"
+  // aggressive polling (1.2s) to approximate instant push
+  POLL_MS: 1200,
+  SESSION_KEY: "tfchat_session_site1_v2"
 };
 
 /* STATE */
 let state = {
-  me: null,
-  contacts: [],
-  messages: {},
+  me: null,             // {ui, server, name, avatarDataUrl}
+  contacts: [],         // {ui, server, name, avatarDataUrl, unread}
+  messages: {},         // server -> [{id, from, text, time}]
   pollId: null,
   currentChatServer: null
 };
 
 /* HELPERS */
 function el(tag, cls){ const e=document.createElement(tag); if(cls) e.className=cls; return e; }
-function logDebug(...args){ const dbg = document.getElementById('debug'); const t = new Date().toLocaleTimeString(); dbg.textContent = t + ' — ' + args.map(a => (typeof a==='object'? JSON.stringify(a): String(a))).join(' ') + '\n' + dbg.textContent; console.log(...args); }
-function showStatus(t){ document.getElementById('status').textContent = t || ''; if(t) logDebug('[STATUS]', t); }
 function now(){ return new Date().toISOString(); }
-function uiRandom(){ return 'TF-' + Math.floor(1000000 + Math.random()*8999999).toString().padStart(CONFIG.UI_DIGITS,'0'); }
 function extractDigits(s){ const m=String(s||'').match(/\d+/g); return m? m.join('') : ''; }
 function uiNormalize(v){ v = String(v||'').trim(); if(!v) return ''; if(v.startsWith('TF-')) return v; const d = extractDigits(v); return 'TF-' + d.padStart(CONFIG.UI_DIGITS,'0'); }
-function uiToServer(ui){ const d = extractDigits(ui); if(!d) throw new Error('TFID invalide'); return d.padStart(CONFIG.SERVER_DIGITS,'0'); }
+function uiRandom(){ return 'TF-' + Math.floor(1000000 + Math.random()*8999999).toString().padStart(CONFIG.UI_DIGITS,'0'); }
+function uiToServer(ui){ const d=extractDigits(ui); if(!d) throw new Error('TFID invalide'); return d.padStart(CONFIG.SERVER_DIGITS,'0'); }
 function saveSession(){ if(state.me) localStorage.setItem(CONFIG.SESSION_KEY, JSON.stringify(state.me)); else localStorage.removeItem(CONFIG.SESSION_KEY); }
-function loadSession(){ try{ const s = localStorage.getItem(CONFIG.SESSION_KEY); return s? JSON.parse(s):null }catch(e){ return null } }
+function loadSession(){ try{ const s=localStorage.getItem(CONFIG.SESSION_KEY); return s? JSON.parse(s):null; }catch(e){ return null } }
+
+/* Silent logging (console only) */
+function log(...args){ console.debug('[TFCHAT]', ...args); }
 
 /* NETWORK */
 async function apiList(serverTfid){
   const url = new URL(CONFIG.SAVE_HOST + CONFIG.API_LIST);
   url.searchParams.set('tfid', serverTfid);
   url.searchParams.set('name', CONFIG.FRONTEND_NAME);
-  logDebug('API LIST GET', url.toString());
+  log('API LIST GET', url.toString());
   const resp = await fetch(url.toString(), { method: 'GET', headers: { 'x-api-token': CONFIG.API_TOKEN }});
   const txt = await resp.text().catch(()=>'(no body)');
   let parsed = null;
   try{ parsed = JSON.parse(txt); }catch(e){ parsed = null; }
   if(!resp.ok) throw new Error(`LIST HTTP ${resp.status} — ${txt}`);
-  logDebug('API LIST response', parsed || txt);
+  log('API LIST response', parsed || txt);
   return parsed || txt;
 }
 
 async function apiAdd(serverTfid, contentObj){
   const body = { tfid: serverTfid, name: CONFIG.FRONTEND_NAME, content: JSON.stringify(contentObj) };
-  logDebug('API ADD POST', CONFIG.SAVE_HOST + CONFIG.API_ADD, body);
-  try {
-    const resp = await fetch(CONFIG.SAVE_HOST + CONFIG.API_ADD, {
-      method: 'POST',
-      headers: { 'Content-Type':'application/json', 'x-api-token': CONFIG.API_TOKEN },
-      body: JSON.stringify(body)
-    });
-    const text = await resp.text().catch(()=>'(no body)');
-    let parsed = null;
-    try{ parsed = JSON.parse(text); }catch(e){ parsed = null; }
-    logDebug('API ADD status', resp.status, parsed || text);
-    if(!resp.ok){
-      const errMsg = (parsed && parsed.error) ? parsed.error : text;
-      if(String(errMsg).indexOf('Frontend name not registered') !== -1){
-        const cmd = `curl -X POST https://tf-sove.onrender.com/admin/register-frontend \\\n  -H "x-api-token: tfstream_45dd9c02d4e34f18a42d" \\\n  -H "Content-Type: application/json" \\\n  -d '{"name":"${CONFIG.FRONTEND_NAME}","callback_url":"https://tf-chat.pages.dev"}'`;
-        alert("Envoi échoué — Frontend name not registered sur le serveur.\n\nPour corriger (exécutez sur votre machine / serveur):\n\n" + cmd + "\n\nEnsuite relancez le test.");
-      } else {
-        alert('Envoi échoué: ' + errMsg);
-      }
-      throw new Error(errMsg || `HTTP ${resp.status}`);
+  log('API ADD POST', CONFIG.SAVE_HOST + CONFIG.API_ADD, body);
+  const resp = await fetch(CONFIG.SAVE_HOST + CONFIG.API_ADD, {
+    method: 'POST',
+    headers: { 'Content-Type':'application/json', 'x-api-token': CONFIG.API_TOKEN },
+    body: JSON.stringify(body)
+  });
+  const text = await resp.text().catch(()=>'(no body)');
+  let parsed = null;
+  try{ parsed = JSON.parse(text); }catch(e){ parsed = null; }
+  log('API ADD status', resp.status, parsed || text);
+  if(!resp.ok){
+    const errMsg = (parsed && parsed.error) ? parsed.error : text;
+    if(String(errMsg).indexOf('Frontend name not registered') !== -1){
+      throw new Error('Frontend name not registered — please register site1 on server');
     }
-    return parsed || text;
-  } catch (err) {
-    logDebug('API ADD error', err && err.message ? err.message : err);
-    throw err;
+    throw new Error(errMsg || `HTTP ${resp.status}`);
   }
+  return parsed || text;
 }
 
-/* UI REFS */
+/* UI refs */
 const meLabel = document.getElementById('meLabel');
 const searchInput = document.getElementById('searchInput');
 const btnSearch = document.getElementById('btnSearch');
@@ -163,7 +151,9 @@ const btnProfile = document.getElementById('btnProfile');
 const btnTest = document.getElementById('btnTest');
 const contactsDiv = document.getElementById('contacts');
 const chatContainer = document.getElementById('chatContainer');
+const statusEl = document.getElementById('status');
 
+/* UI behavior */
 btnSearch.onclick = async () => {
   const v = (searchInput.value || '').trim();
   if(!v){ alert('Veuillez entrer un TFID'); return; }
@@ -171,21 +161,16 @@ btnSearch.onclick = async () => {
   try{ ui = uiNormalize(v); }catch(e){ alert('TFID invalide'); return; }
   let server;
   try{ server = uiToServer(ui); } catch(e){ alert('TFID invalide'); return; }
-  showStatus('Recherche TFID sur le serveur...');
-  try {
+  status('Recherche...');
+  try{
     const res = await apiList(server);
-    showStatus('');
-    // Ajoute kontak la nan lis si li pa la deja (ap monte anwo)
-    if(!state.contacts.some(c=>c.server === server)){
-      const ct = { ui, server, name: ui };
-      state.contacts.unshift(ct);
-      renderContacts();
-    }
+    // if OK, ensure contact appears
+    addContactIfMissing(ui, server, ui);
+    // open chat
     openChat(server, ui);
-  } catch (err) {
-    showStatus('');
-    alert('Recherche échouée: ' + (err.message || err));
-  }
+  }catch(e){
+    alert('Recherche échouée: ' + (e.message || e));
+  }finally{ status(''); }
 };
 
 btnProfile.onclick = () => {
@@ -198,41 +183,81 @@ btnProfile.onclick = () => {
 
 btnTest.onclick = async () => {
   if(!state.me) return alert('Session introuvable');
-  const sample = { type:'text', from: state.me.server, text: 'PING depuis frontend @' + new Date().toISOString(), time: now() };
+  const sample = { type:'text', from: state.me.server, text: 'PING ' + new Date().toISOString(), time: now() };
   try{
-    showStatus('Test envoi en cours...');
-    const r = await apiAdd(state.me.server, sample);
-    // after send, refresh timelines immediately
-    await Promise.all([ apiList(state.me.server).catch(()=>{}), apiList(state.me.server).catch(()=>{}) ]);
-    showStatus('');
-    alert('Test envoi OK — voir console debug');
-    logDebug('TestSendResponse', r);
+    status('Test envoi...');
+    await apiAdd(state.me.server, sample);
+    status('');
+    alert('Test envoi OK');
   }catch(e){
-    showStatus('');
-    alert('Test envoi échoué — voir console debug (section "Console debug").');
-    logDebug('Test send failed', e && e.message ? e.message : e);
+    status('');
+    alert('Test échoué: ' + (e.message || e));
   }
 };
 
-/* RENDER CONTACTS */
+/* helper status */
+function status(t){ statusEl.textContent = t || ''; }
+
+/* Contacts management */
+function findContactByServer(server){ return state.contacts.find(c => c.server === server); }
+function addContactIfMissing(ui, server, name, avatarDataUrl = null){
+  let c = findContactByServer(server);
+  if(!c){
+    c = { ui, server, name: name || ui, avatarDataUrl: avatarDataUrl || null, unread: 0 };
+    state.contacts.unshift(c);
+    renderContacts();
+  }
+  return c;
+}
+
+function incrementUnread(server, count = 1){
+  const c = findContactByServer(server);
+  if(!c){
+    // create contact automatically with UI from server -> TF-xxxxxxx
+    const ui = 'TF-' + server.slice(-7);
+    addContactIfMissing(ui, server, ui);
+    return incrementUnread(server, count);
+  }
+  if(state.currentChatServer === server){
+    // if currently viewing, mark as read
+    c.unread = 0;
+  } else {
+    c.unread = (c.unread || 0) + count;
+  }
+  renderContacts();
+}
+
+function clearUnread(server){
+  const c = findContactByServer(server);
+  if(c){ c.unread = 0; renderContacts(); }
+}
+
 function renderContacts(){
   contactsDiv.innerHTML = '';
   state.contacts.forEach(c=>{
     const row = el('div','contact');
     row.innerHTML = `<div class="avatar">${c.avatarDataUrl? '<img src="'+c.avatarDataUrl+'">' : ''}</div>
                      <div><strong>${c.name || c.ui}</strong><div class="small">${c.ui}</div></div>`;
+    if(c.unread && c.unread > 0){
+      const badge = el('div','unread-badge');
+      badge.textContent = c.unread > 99 ? '99+' : String(c.unread);
+      row.appendChild(badge);
+    }
     row.onclick = ()=> openChat(c.server, c.ui);
     contactsDiv.appendChild(row);
   });
 }
 
-/* OPEN CHAT */
+/* Chat open / render */
 async function openChat(serverTfid, ui){
   state.currentChatServer = serverTfid;
+  // mark read
+  clearUnread(serverTfid);
+
   chatContainer.innerHTML = '';
   const wrapper = el('div','card');
   const head = el('div','chat-head');
-  const contact = state.contacts.find(c=>c.server===serverTfid) || { ui, name: ui };
+  const contact = findContactByServer(serverTfid) || { ui, name: ui };
   head.innerHTML = `<div style="display:flex;gap:12px;align-items:center"><div class="avatar">${contact.avatarDataUrl? '<img src="'+contact.avatarDataUrl+'">' : ''}</div>
                     <div><strong>${contact.name || contact.ui}</strong><div class="small">${contact.ui}</div></div></div>`;
   wrapper.appendChild(head);
@@ -248,7 +273,7 @@ async function openChat(serverTfid, ui){
   wrapper.appendChild(chatPage);
   chatContainer.appendChild(wrapper);
 
-  // load messages from server for this target
+  // load messages for this target
   state.messages[serverTfid] = state.messages[serverTfid] || [];
   try{
     const j = await apiList(serverTfid);
@@ -267,7 +292,7 @@ async function openChat(serverTfid, ui){
         }
       });
     }
-  }catch(e){ logDebug('openChat apiList error', e && e.message ? e.message : e); }
+  }catch(e){ log('openChat apiList error', e.message || e); }
 
   function renderMessages(){
     msgs.innerHTML = '';
@@ -281,8 +306,8 @@ async function openChat(serverTfid, ui){
         const u = elm.textContent;
         try{
           const srv = uiToServer(u);
-          if(!state.contacts.some(c=>c.server===srv)){
-            const ct = { ui: u, server: srv, name: u }; state.contacts.unshift(ct); renderContacts();
+          if(!findContactByServer(srv)){
+            addContactIfMissing(u, srv, u);
           }
           openChat(srv, u);
         }catch(err){ alert('TFID invalide'); }
@@ -294,10 +319,10 @@ async function openChat(serverTfid, ui){
 
   window.renderChatRefresh = function(tfid){ if(tfid === serverTfid) renderMessages(); };
 
-  /* SEND: send -> copy to self -> refresh both timelines (this is client-side "push") */
+  /* SEND: send -> copy to self -> immediate refresh (push-like) */
   sendBtn.onclick = async () => {
     const txt = input.value.trim(); if(!txt) return;
-    if(!state.me){ alert('Veuillez configurer votre pseudo dans Mon profil / Paramètres'); return; }
+    if(!state.me){ alert('Veuillez configurer votre pseudo'); return; }
 
     const local = { id: null, from: state.me.server, text: txt, time: now() };
     state.messages[serverTfid] = state.messages[serverTfid] || [];
@@ -308,25 +333,23 @@ async function openChat(serverTfid, ui){
     const payload = { type:'text', from: state.me.server, text: txt, time: now() };
 
     try{
-      showStatus('Envoi en cours...');
-      // 1) envoyer sou destinataire
+      status('Envoi...');
+      // 1) send to recipient
       const r = await apiAdd(serverTfid, payload);
-      logDebug('apiAdd to recipient OK', r);
-      // 2) copy sou sender timeline pou istwa
-      await apiAdd(state.me.server, payload).catch(e => logDebug('copy-to-self failed', e));
-      // 3) refresh timelines imedyatman (push-like): chèche dènye pou destinataire ak pou self
+      log('Sent to recipient', r);
+      // 2) copy to self timeline
+      await apiAdd(state.me.server, payload).catch(e => log('copy-to-self failed', e));
+      // 3) immediate refresh: fetch timelines (recipient and self)
       try{
-        const [destList, selfList] = await Promise.allSettled([ apiList(serverTfid).catch(()=>null), apiList(state.me.server).catch(()=>null) ]);
-        // si destList ok, entegre rows
-        if(destList.status === 'fulfilled' && destList.value && destList.value.ok && Array.isArray(destList.value.rows)){
-          // replace messages[serverTfid] with rows (ascending)
-          const rows = destList.value.rows.slice().reverse();
-          state.messages[serverTfid] = state.messages[serverTfid] || [];
+        const [destRes, selfRes] = await Promise.allSettled([ apiList(serverTfid).catch(()=>null), apiList(state.me.server).catch(()=>null) ]);
+        // update dest messages
+        if(destRes.status === 'fulfilled' && destRes.value && destRes.value.ok && Array.isArray(destRes.value.rows)){
+          const rows = destRes.value.rows.slice().reverse();
           rows.forEach(rw=>{
             try{
-              const payload = JSON.parse(rw.content);
-              if(payload.type === 'text' || payload.type === 'file'){
-                const obj = { id: rw.id, from: payload.from || 'unknown', text: payload.text || payload.message || '', time: rw.created_at };
+              const p = JSON.parse(rw.content);
+              if(p.type === 'text' || p.type === 'file'){
+                const obj = { id: rw.id, from: p.from || 'unknown', text: p.text || p.message || '', time: rw.created_at };
                 if(!state.messages[serverTfid].some(m=>m.id === obj.id)) state.messages[serverTfid].push(obj);
               }
             }catch(e){
@@ -335,31 +358,37 @@ async function openChat(serverTfid, ui){
             }
           });
         }
-        // update own timeline storage too (optional)
-        if(selfList.status === 'fulfilled' && selfList.value && selfList.value.ok && Array.isArray(selfList.value.rows)){
-          const rows = selfList.value.rows.slice().reverse();
-          const meServer = state.me.server;
-          state.messages[meServer] = state.messages[meServer] || [];
+        // update self messages
+        if(selfRes.status === 'fulfilled' && selfRes.value && selfRes.value.ok && Array.isArray(selfRes.value.rows)){
+          const rows = selfRes.value.rows.slice().reverse();
+          const meSrv = state.me.server;
+          state.messages[meSrv] = state.messages[meSrv] || [];
           rows.forEach(rw=>{
             try{
-              const payload = JSON.parse(rw.content);
-              if(payload.type === 'text' || payload.type === 'file'){
-                const obj = { id: rw.id, from: payload.from || 'unknown', text: payload.text || payload.message || '', time: rw.created_at };
-                if(!state.messages[meServer].some(m=>m.id === obj.id)) state.messages[meServer].push(obj);
+              const p = JSON.parse(rw.content);
+              if(p.type === 'text' || p.type === 'file'){
+                const obj = { id: rw.id, from: p.from || 'unknown', text: p.text || p.message || '', time: rw.created_at };
+                if(!state.messages[meSrv].some(m=>m.id === obj.id)) state.messages[meSrv].push(obj);
               }
             }catch(e){
               const obj = { id: rw.id, from: 'unknown', text: rw.content || '', time: rw.created_at };
-              if(!state.messages[meServer].some(m=>m.id === obj.id)) state.messages[meServer].push(obj);
+              if(!state.messages[meSrv].some(m=>m.id === obj.id)) state.messages[meSrv].push(obj);
             }
           });
         }
-      }catch(e){ logDebug('refresh after send failed', e); }
-      showStatus('');
-      logDebug('Message envoyé et timelines rafraîchis');
+      }catch(e){ log('refresh after send failed', e); }
+      // 4) update unread for recipient (if not currently viewing)
+      if(state.currentChatServer !== serverTfid){
+        incrementUnread(serverTfid, 1);
+      } else {
+        clearUnread(serverTfid);
+      }
+      status('');
+      log('Message sent & timelines refreshed');
     }catch(err){
-      showStatus('');
-      logDebug('send failed', err && err.message ? err.message : err);
-      alert('Envoi échoué — voir console debug pour détails.');
+      status('');
+      log('send failed', err && err.message ? err.message : err);
+      alert('Envoi échoué: ' + (err.message || err));
     }
     renderMessages();
   };
@@ -369,7 +398,7 @@ async function openChat(serverTfid, ui){
   renderMessages();
 }
 
-/* POLLING own timeline */
+/* Polling own timeline to receive new messages (aggressive) */
 async function pollOwn(){
   if(!state.me) return;
   try{
@@ -385,22 +414,37 @@ async function pollOwn(){
           if(payload.type === 'text' || payload.type === 'file'){
             const mobj = { id: r.id, from: payload.from || 'unknown', text: payload.text || payload.message || '', time: r.created_at };
             state.messages[tgt].push(mobj);
-            if(state.currentChatServer === tgt && window.renderChatRefresh) window.renderChatRefresh(tgt);
+            // ensure contact exists
+            const fromSrv = payload.from || 'unknown';
+            // if the message is for me (tgt === my server), then this is an incoming message from 'fromSrv'
+            if(tgt === state.me.server){
+              const ui = 'TF-' + fromSrv.slice(-7);
+              addContactIfMissing(ui, fromSrv, ui);
+              if(state.currentChatServer === fromSrv){
+                // if viewing chat with sender, refresh view
+                if(window.renderChatRefresh) window.renderChatRefresh(fromSrv);
+                clearUnread(fromSrv);
+              } else {
+                incrementUnread(fromSrv, 1);
+              }
+            } else {
+              // message stored for another TF (not likely in our use), still update UI if needed
+              if(state.currentChatServer === tgt && window.renderChatRefresh) window.renderChatRefresh(tgt);
+            }
           }
         }catch(e){
           const mobj = { id: r.id, from: 'unknown', text: r.content || '', time: r.created_at };
           state.messages[tgt].push(mobj);
-          if(state.currentChatServer === tgt && window.renderChatRefresh) window.renderChatRefresh(tgt);
         }
       }
     }
-  }catch(e){ logDebug('pollOwn error', e && e.message ? e.message : e); }
+  }catch(e){ log('pollOwn error', e && e.message ? e.message : e); }
 }
 
-/* HEADER update */
-function updateHeader(){ if(state.me) document.getElementById('meLabel').textContent = `${state.me.name || state.me.ui} • ${state.me.ui}`; else document.getElementById('meLabel').textContent = 'Non configuré'; }
+/* Header */
+function updateHeader(){ if(state.me) meLabel.textContent = `${state.me.name || state.me.ui} • ${state.me.ui}`; else meLabel.textContent = 'Non configuré'; }
 
-/* INIT: restore session or create */
+/* Init: restore session or create */
 (function init(){
   try{
     const s = loadSession();
@@ -419,22 +463,28 @@ function updateHeader(){ if(state.me) document.getElementById('meLabel').textCon
 
   updateHeader();
 
-  // preset contact Adam_D'H7
-  if(!state.contacts.some(c => c.ui === 'TF-7777777')){
-    state.contacts.unshift({ ui:'TF-7777777', server: uiToServer('TF-7777777'), name: "Adam_D'H7" });
-  }
+  // default contact
+  addContactIfMissing('TF-7777777', uiToServer('TF-7777777'), "Adam_D'H7");
+
   renderContacts();
 
-  // start polling
+  // start aggressive polling (approx immediate push)
   pollOwn();
   state.pollId = setInterval(pollOwn, CONFIG.POLL_MS);
 
-  logDebug('Init complete', { me: state.me, frontendName: CONFIG.FRONTEND_NAME });
+  log('Init complete', { me: state.me, frontendName: CONFIG.FRONTEND_NAME });
 })();
 
-/* Expose debug */
-window.TFCHAT = { state, apiList, apiAdd, uiNormalize, uiToServer, pollOwn, logDebug };
+/* small utilities */
+function uiToServer(ui){
+  const d = extractDigits(ui);
+  if(!d) throw new Error('TFID invalide');
+  return d.padStart(CONFIG.SERVER_DIGITS,'0');
+}
+
+/* expose for debug in console only (silent UI) */
+window.TFCHAT = { state, apiList, apiAdd, uiNormalize, uiToServer, pollOwn, addContactIfMissing };
 
 </script>
 </body>
-  </html>
+</html>
