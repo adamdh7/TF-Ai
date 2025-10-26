@@ -289,22 +289,26 @@ async function pollOwn(){
 }
 
 /* init */
-(function init(){
-  // load or create session
+
+  (function init(){
   const s = loadSession();
   if(s){
     state.me = s;
   } else {
     const ui = uiRandom();
     const server = uiToServer(ui);
-    state.me = { ui, server, name: ui };
+    // 👇 default name = "Moi"
+    state.me = { ui, server, name: "Moi" };
     saveSession();
   }
-  meLabel.textContent = `${state.me.name || state.me.ui} • ${state.me.ui}`;
-  // ensure default contact
-  if(!state.contacts.some(c=>c.ui === 'TF-7777777')) state.contacts.unshift({ ui:'TF-7777777', server: uiToServer('TF-7777777'), name:"Adam_D'H7" });
+  // ✅ Update header net
+  meLabel.textContent = `TF-ID : ${state.me.ui}`;
+  // Add contact Adam_D'H7 si pa egziste
+  if(!state.contacts.some(c=>c.ui === 'TF-7777777')) {
+    state.contacts.unshift({ ui:'TF-7777777', server: uiToServer('TF-7777777'), name:"Adam_D'H7" });
+  }
   renderContacts();
-  // initial poll and start polling
+  // Start polling
   pollOwn();
   state.pollId = setInterval(pollOwn, CONFIG.POLL_MS);
 })();
