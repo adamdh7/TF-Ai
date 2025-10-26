@@ -1,34 +1,45 @@
 {
-  "appName": "TF Chat iOS",
-  "lang": "fr",
-  "endpoints": {
-    "streamHost": "https://tf-stream-url.onrender.com",
-    "saveHost": "https://tf-sove.onrender.com",
-    "uploadPath": "/upload",
-    "apiAdd": "/api/add",
-    "apiList": "/api/list",
-    "apiAi": "/api/ai",
-    "health": "/health",
-    "adminRegisterFrontend": "/admin/register-frontend"
+  "appTitle": "TF Chat",
+  "home": {
+    "searchPlaceholder": "Rechercher",
+    "contactsTitle": "Liste de contacts",
+    "contactsCountLabel": "Contacts",
+    "addButton": "➕",
+    "createContact": "Créer un contact",
+    "createGroup": "Créer un groupe",
+    "noContacts": "Aucun contact",
+    "predefinedContactName": "Adam_D'H7",
+    "predefinedContactTfid": "TF-7777777"
   },
-  "apiToken": "tfstream_45dd9c02d4e34f18a42d",
-  "frontendName": "web-ios",
-  "fileUpload": {
-    "maxBytes": 77000000,
-    "maxMB": 77,
-    "formFieldName": "file"
-  },
-  "tfid": {
-    "uiFormat": "TF-#######",
-    "uiDigits": 7,
-    "serverDigits": 17,
-    "padChar": "0"
-  },
-  "uiStrings": {
+  "login": {
     "createAccount": "Créer un compte",
+    "reconnect": "Se reconnecter",
+    "tfidLabel": "TFID (cliquer pour copier)",
     "password": "Mot de passe",
     "confirmPassword": "Confirmer mot de passe",
-    "nameLabel": "Nom / Pseudo",
-    "searchPlaceholder": "Rechercher"
+    "next": "Suivant",
+    "finish": "Terminer",
+    "tfidClickNote": "Vous devez cliquer sur le TFID affiché pour continuer."
+  },
+  "settings": {
+    "title": "Paramètres",
+    "profile": "Profil",
+    "language": "Langue",
+    "notifications": "Notifications",
+    "storage": "Gestion du stockage",
+    "privacy": "Confidentialité & sécurité",
+    "help": "Aide",
+    "about": "À propos",
+    "logout": "Se déconnecter"
+  },
+  "file": {
+    "attach": "Joindre",
+    "fileTooBig": "Fichier trop grand (max 77 MB)",
+    "uploading": "Téléchargement..."
+  },
+  "actions": {
+    "copy": "Copier",
+    "cancel": "Annuler",
+    "ok": "OK"
   }
 }
