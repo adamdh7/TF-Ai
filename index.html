@@ -1,541 +1,553 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ht">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
-<title>TF-Chat</title>
-<meta name="apple-mobile-web-app-capable" content="yes" />
-<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;600;700&display=swap" rel="stylesheet">
-<style>
-:root{
-  --bg:#000;
-  --panel:#000;
-  --primary:#e6eefb;
-  --muted:#9aa6bf;
-  --card:#0b0b0b;
-  --accent:#0b81ff;
-  --header-h:56px;
-  --radius:12px;
-}
-*{box-sizing:border-box}
-html,body{height:100%;margin:0;padding:0;background:var(--bg);color:var(--primary);font-family:Roboto,Arial,Helvetica,sans-serif;-webkit-text-size-adjust:100%}
-header{height:var(--header-h);display:flex;align-items:center;justify-content:center;position:fixed;left:0;right:0;top:0;background:var(--panel);z-index:1200;border-bottom:1px solid rgba(255,255,255,0.02)}
-.header-left{position:absolute;left:12px;display:flex;align-items:center;gap:8px}
-.header-right{position:absolute;right:12px;display:flex;align-items:center;gap:8px}
-.app-title{font-weight:700;font-size:18px}
-.icon-btn{background:transparent;border:none;color:var(--primary);padding:8px;border-radius:10px;cursor:pointer}
-.home{position:fixed;left:0;right:0;top:var(--header-h);bottom:0;overflow:auto;padding:12px}
-.search{padding:8px 0}
-.search-box{display:flex;align-items:center;gap:8px;background:var(--card);padding:10px;border-radius:999px;border:1px solid rgba(255,255,255,0.03)}
-.search-box svg{opacity:0.6}
-.search-box input{flex:1;background:transparent;border:none;outline:none;color:var(--primary);font-size:15px}
-.list{margin-top:12px}
-.contact{display:flex;gap:12px;align-items:center;padding:12px;border-radius:12px;cursor:pointer}
-.contact:hover{background:rgba(255,255,255,0.02)}
-.avatar{width:56px;height:56px;border-radius:50%;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;color:var(--primary);flex-shrink:0}
-.meta{flex:1;min-width:0}
-.meta-top{display:flex;justify-content:space-between;align-items:flex-start}
-.name{font-weight:600;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.time{font-size:12px;color:var(--muted)}
-.meta-bottom{display:flex;justify-content:space-between;margin-top:6px;align-items:center;gap:8px}
-.snippet{font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.badge{background:var(--accent);color:white;padding:4px 8px;border-radius:999px;font-weight:600;font-size:13px}
-.fab{position:fixed;right:18px;bottom:22px;width:62px;height:62px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;color:white;border:none;box-shadow:0 10px 30px rgba(11,129,255,0.22);cursor:pointer}
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>TF-Chat</title>
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg: #000000;
+      --panel: #000000;
+      --primary-text: #e6eefb;
+      --muted: #9aa6bf;
+      --card: #0b0b0b;
+      --accent: #0b81ff;
+      --header-h: 56px;
+      --radius: 12px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;padding:0;background:var(--bg);color:var(--primary-text);font-family:Roboto, Arial, Helvetica, sans-serif;-webkit-text-size-adjust:100%;-webkit-overflow-scrolling:touch}
 
-/* modal fullscreen */
-.modal{position:fixed;inset:0;background:rgba(0,0,0,0.96);display:none;z-index:1500}
-.modal.show{display:block}
-.modal .full{height:100%;display:flex;flex-direction:column}
-.modal-header{height:56px;display:flex;align-items:center;padding:8px 12px;border-bottom:1px solid rgba(255,255,255,0.02)}
-.modal-body{overflow:auto;padding:12px;flex:1}
-.modal-footer{padding:12px;border-top:1px solid rgba(255,255,255,0.02)}
+    header{height:var(--header-h);display:flex;align-items:center;justify-content:center;position:fixed;left:0;right:0;top:0;background:var(--panel);z-index:1200;border-bottom:1px solid rgba(255,255,255,0.02)}
+    .header-left{position:absolute;left:12px;display:flex;align-items:center;gap:8px}
+    .header-right{position:absolute;right:12px;display:flex;align-items:center;gap:8px}
+    .app-title{font-weight:700;font-size:18px;letter-spacing:0.2px}
+    .icon-btn{background:transparent;border:none;color:var(--primary-text);padding:8px;border-radius:10px;cursor:pointer}
 
-.messages{padding:12px;height:calc(100% - 56px - 84px);overflow:auto;display:flex;flex-direction:column;gap:8px}
-.msg{max-width:74%;padding:10px;border-radius:12px;margin-bottom:6px;word-break:break-word;white-space:pre-wrap}
-.msg.bot{background:#121212;color:var(--primary);align-self:flex-start}
-.msg.user{background:linear-gradient(180deg,var(--accent),#0563c9);color:white;align-self:flex-end}
-.chat-input{display:flex;gap:8px;align-items:center}
-.input{flex:1;padding:12px;border-radius:999px;border:1px solid rgba(255,255,255,0.03);background:var(--card);color:var(--primary);outline:none}
-.send-btn{background:transparent;border:none;padding:8px;border-radius:10px;cursor:pointer;color:var(--accent)}
-.send-btn svg{width:22px;height:22px}
+    .home{position:fixed;left:0;right:0;top:var(--header-h);bottom:0;overflow:auto;padding:12px}
+    .search{padding:8px 0}
+    .search-box{display:flex;align-items:center;gap:8px;background:var(--card);padding:10px;border-radius:999px;border:1px solid rgba(255,255,255,0.03)}
+    .search-box svg{opacity:0.6}
+    .search-box input{flex:1;background:transparent;border:none;outline:none;color:var(--primary-text);font-size:15px}
 
-.settings{display:flex;flex-direction:column;gap:12px}
-.settings .item{padding:12px;border-radius:12px;background:transparent;border:1px solid rgba(255,255,255,0.02);display:flex;justify-content:space-between;align-items:center;cursor:pointer}
+    .list{margin-top:12px}
+    /* simplified contact row (no snippet text) */
+    .contact{display:flex;gap:12px;align-items:center;padding:12px;border-radius:12px;cursor:pointer}
+    .contact:hover{background:rgba(255,255,255,0.02)}
+    .avatar{width:56px;height:56px;border-radius:50%;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;color:var(--primary-text);flex-shrink:0}
+    .meta{flex:1;min-width:0}
+    .meta-top{display:flex;justify-content:space-between;align-items:flex-start}
+    .name{font-weight:600;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .time{font-size:12px;color:var(--muted)}
+    .badge{background:var(--accent);color:white;padding:4px 8px;border-radius:999px;font-weight:600;font-size:13px}
 
-/* small center modal for profile/lang/tfid (ti fond) */
-.small-panel{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);background:var(--panel);border-radius:12px;padding:14px;min-width:260px;max-width:92%;box-shadow:0 10px 40px rgba(0,0,0,0.6);border:1px solid rgba(255,255,255,0.03);z-index:1600;display:none}
-.small-panel.show{display:block}
-.small-panel h4{margin:0 0 8px 0}
-.small-panel .row{margin-bottom:8px}
-.small-panel .actions{display:flex;justify-content:flex-end;gap:8px;margin-top:8px}
+    .fab{position:fixed;right:18px;bottom:22px;width:62px;height:62px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;color:white;border:none;box-shadow:0 10px 30px rgba(11,129,255,0.22);cursor:pointer}
 
-/* Create group enhanced */
-.group-contacts{display:flex;flex-direction:column;gap:8px;max-height:40vh;overflow:auto;padding:6px}
-.group-row{display:flex;align-items:center;gap:8px;padding:8px;border-radius:8px}
-.group-row label{flex:1;cursor:pointer}
+    .modal{position:fixed;inset:0;background:rgba(0,0,0,0.96);display:none;z-index:1500}
+    .modal.show{display:block}
+    .modal .full{height:100%;display:flex;flex-direction:column}
+    .modal .modal-header{height:56px;display:flex;align-items:center;padding:8px 12px;border-bottom:1px solid rgba(255,255,255,0.02)}
+    .modal .modal-body{overflow:auto;padding:12px;flex:1}
+    .modal .modal-footer{padding:12px;border-top:1px solid rgba(255,255,255,0.02)}
 
-/* confirm V button */
-.confirm-v{position:fixed;right:24px;bottom:24px;background:var(--accent);color:white;border:none;border-radius:999px;padding:14px 18px;font-weight:700;box-shadow:0 10px 30px rgba(11,129,255,0.2);cursor:pointer}
+    .messages{padding:12px;height:calc(100% - 56px - 84px);overflow:auto;display:flex;flex-direction:column;gap:8px}
+    .msg{max-width:74%;padding:10px;border-radius:12px;margin-bottom:6px;word-break:break-word;white-space:pre-wrap}
+    .msg.bot{background:#121212;color:var(--primary-text);align-self:flex-start}
+    .msg.user{background:linear-gradient(180deg,var(--accent),#0563c9);color:white;align-self:flex-end}
+    .chat-input{display:flex;gap:8px;align-items:center}
+    .input{flex:1;padding:12px;border-radius:999px;border:1px solid rgba(255,255,255,0.03);background:var(--card);color:var(--primary-text);outline:none}
+    .send-btn{background:transparent;border:none;padding:8px;border-radius:10px;cursor:pointer;color:var(--accent)}
+    .send-btn svg{width:22px;height:22px}
 
-/* responsive center */
-@media(min-width:900px){ .home{max-width:520px;margin:0 auto} }
-</style>
+    .settings{display:flex;flex-direction:column;gap:12px}
+    .settings .item{padding:12px;border-radius:12px;background:transparent;border:1px solid rgba(255,255,255,0.02);display:flex;justify-content:space-between;align-items:center;cursor:pointer}
+
+    .group-contacts{display:flex;flex-direction:column;gap:10px}
+    .checkbox-row{display:flex;gap:8px;align-items:center}
+    .file-input{padding:8px;border-radius:8px;background:var(--card);border:1px solid rgba(255,255,255,0.03)}
+
+    /* FAB modal choices (centered options) */
+    .fab-actions { display:flex; flex-direction:column; gap:12px; align-items:center; justify-content:center; height:100%; }
+    .fab-action-btn { width:80%; max-width:360px; padding:14px 18px; border-radius:14px; background:var(--card); color:var(--primary-text); border:1px solid rgba(255,255,255,0.03); font-weight:700; font-size:16px; cursor:pointer; }
+    .fab-action-btn.primary { background:var(--accent); color:#fff; border:none; box-shadow:0 8px 20px rgba(11,129,255,0.14); }
+
+    @media (min-width:900px){ .home{max-width:520px;margin:0 auto} }
+  </style>
 </head>
 <body>
-<header>
-  <div class="header-left">
-    <button id="homeBtn" class="icon-btn" title="Home">🏠</button>
-  </div>
-  <div class="app-title" id="appTitle">TF-Chat</div>
-  <div class="header-right">
-    <div id="wsStatus" style="font-size:13px;color:var(--muted);margin-right:8px">WS: off</div>
-    <button id="settingsBtn" class="icon-btn" title="Paramètres">⚙️</button>
-  </div>
-</header>
+  <header>
+    <div class="header-left">
+      <button id="homeBtn" class="icon-btn" title="Home">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 11.5L12 4l9 7.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+    <div class="app-title" id="appTitle">TF-Chat</div>
+    <div class="header-right">
+      <div id="wsStatus" style="font-size:13px;color:var(--muted);margin-right:8px">WS: off</div>
+      <button id="settingsBtn" class="icon-btn" title="Paramètres">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+  </header>
 
-<main class="home">
-  <div class="search">
-    <div class="search-box">
-      <svg viewBox="0 0 24 24" width="16" height="16"><path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="11" cy="11" r="6" stroke="currentColor" stroke-width="1.6"/></svg>
-      <input id="searchInput" placeholder="Recherche (nom / TFID)" aria-label="Recherche" inputmode="search" enterkeyhint="search">
-      <button id="clearSearch" class="icon-btn" style="display:none">✖</button>
+  <main class="home" id="home">
+    <div class="search">
+      <div class="search-box">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="11" cy="11" r="6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <input id="searchInput" placeholder="Recherche (nom / TFID)" aria-label="Recherche" />
+        <button id="clearSearch" class="icon-btn" style="display:none">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="list" id="contactsList"></div>
+
+    <button class="fab" id="fab" title="Ajouter"> 
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 5v14M5 12h14" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+  </main>
+
+  <!-- FAB choice Modal (remplace prompt) -->
+  <div class="modal" id="fabModal" aria-hidden="true">
+    <div class="full">
+      <div class="modal-header">
+        <button class="icon-btn" onclick="closeModal('fabModal')">Retour</button>
+        <div style="flex:1;text-align:center;font-weight:700">Choisir une action</div>
+        <div style="width:44px"></div>
+      </div>
+      <div class="modal-body fab-actions">
+        <button class="fab-action-btn primary" id="fabAddContact">Ajouter contact</button>
+        <button class="fab-action-btn" id="fabCreateGroup">Créer groupe</button>
+      </div>
     </div>
   </div>
 
-  <div class="list" id="contactsList"></div>
+  <!-- Chat Modal (fullscreen) -->
+  <div class="modal" id="chatModal" aria-hidden="true">
+    <div class="full">
+      <div class="modal-header">
+        <button id="chatBack" class="icon-btn" title="Retour">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <div style="flex:1;display:flex;align-items:center;gap:12px">
+          <div id="chatAvatarSmall" class="avatar" style="width:44px;height:44px;font-size:16px"></div>
+          <div style="min-width:0">
+            <div id="chatTitle" style="font-weight:700;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></div>
+            <div id="chatSubtitle" style="font-size:12px;color:var(--muted)"></div>
+          </div>
+        </div>
+        <div style="width:44px"></div>
+      </div>
 
-  <button class="fab" id="fab" title="Ajouter">➕</button>
-</main>
+      <div class="modal-body">
+        <div class="messages" id="messages" aria-live="polite"></div>
+      </div>
 
-<!-- FAB modal with choices -->
-<div class="modal" id="fabModal" aria-hidden="true">
-  <div class="full">
-    <div class="modal-header"><button class="icon-btn" onclick="closeModal('fabModal')">Retour</button><div style="flex:1;text-align:center;font-weight:700">Que voulez-vous faire?</div><div style="width:44px"></div></div>
-    <div class="modal-body" style="display:flex;flex-direction:column;gap:12px;align-items:center;justify-content:center">
-      <button class="icon-btn" id="openAddModal" style="background:var(--card);padding:12px 18px;border-radius:10px;color:var(--primary);width:80%;max-width:420px">Ajouter un contact</button>
-      <button class="icon-btn" id="openGroupModal" style="background:var(--card);padding:12px 18px;border-radius:10px;color:var(--primary);width:80%;max-width:420px">Créer un groupe</button>
-    </div>
-  </div>
-</div>
-
-<!-- Chat Modal fullscreen -->
-<div class="modal" id="chatModal" aria-hidden="true">
-  <div class="full">
-    <div class="modal-header">
-      <button id="chatBack" class="icon-btn">←</button>
-      <div style="flex:1;display:flex;align-items:center;gap:12px">
-        <div id="chatAvatarSmall" class="avatar" style="width:44px;height:44px;font-size:16px"></div>
-        <div style="min-width:0">
-          <div id="chatTitle" style="font-weight:700;font-size:16px"></div>
-          <div id="chatSubtitle" style="font-size:12px;color:var(--muted)"></div>
+      <div class="modal-footer">
+        <div class="chat-input">
+          <input id="chatText" class="input" placeholder="Ekri mesaj..." autocomplete="off">
+          <button id="sendBtn" class="send-btn" title="Envoyer">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M2 21L23 12L2 3L8 12L2 21Z" fill="currentColor"/></svg>
+          </button>
         </div>
       </div>
-      <div style="width:44px"></div>
     </div>
-    <div class="modal-body">
-      <div class="messages" id="messages" aria-live="polite"></div>
-    </div>
-    <div class="modal-footer">
-      <div class="chat-input">
-        <input id="chatText" class="input" placeholder="Ekri mesaj..." autocomplete="off">
-        <button id="sendBtn" class="send-btn" title="Envoyer">➤</button>
+  </div>
+
+  <!-- Settings Modal fullscreen -->
+  <div class="modal" id="settingsModal" aria-hidden="true">
+    <div class="full">
+      <div class="modal-header">
+        <button id="settingsBackBtn" class="icon-btn" title="Retour">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <div style="flex:1;text-align:center;font-weight:700">Paramètres</div>
+        <div style="width:44px"></div>
       </div>
-    </div>
-  </div>
-</div>
+      <div class="modal-body">
+        <div style="display:flex;gap:12px;align-items:center;padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,0.02)">
+          <div id="settingsAvatar" class="avatar" style="width:72px;height:72px;font-size:22px"></div>
+          <div>
+            <div id="settingsName" style="font-weight:800">Utilisateur</div>
+            <div id="settingsTfid" style="color:var(--muted)">TF-000000</div>
+          </div>
+        </div>
 
-<!-- Settings small panel -->
-<div class="small-panel" id="profilePanel" aria-hidden="true">
-  <h4>Profil</h4>
-  <div class="row"><label>Non</label><input id="profileName" class="input" /></div>
-  <div class="row"><label>TFID</label><input id="profileTfid" class="input" placeholder="TF-..." /></div>
-  <div class="actions">
-    <button class="icon-btn" onclick="closeSmall('profilePanel')">Annuler</button>
-    <button class="icon-btn" id="saveProfileBtn">Enregistrer</button>
-  </div>
-</div>
-
-<div class="small-panel" id="langPanel" aria-hidden="true">
-  <h4>Langue</h4>
-  <div class="row"><button class="icon-btn langBtn" data-lang="ht">Kreyòl</button> <button class="icon-btn langBtn" data-lang="fr">Français</button> <button class="icon-btn langBtn" data-lang="en">English</button> <button class="icon-btn langBtn" data-lang="es">Español</button></div>
-  <div class="actions"><button class="icon-btn" onclick="closeSmall('langPanel')">Fermer</button></div>
-</div>
-
-<!-- Add contact modal -->
-<div class="modal" id="addModal" aria-hidden="true">
-  <div class="full">
-    <div class="modal-header"><button class="icon-btn" onclick="closeModal('addModal')">Retour</button><div style="flex:1;text-align:center;font-weight:700">Ajouter contact</div><div style="width:44px"></div></div>
-    <div class="modal-body">
-      <div style="margin-bottom:12px"><label>Nom (optionnel)</label><input id="newName" type="text" class="input"></div>
-      <div style="margin-bottom:12px"><label>tfid (ex: TF-7777777)</label><input id="newTfid" type="text" class="input"></div>
-    </div>
-    <div class="modal-footer" style="display:flex;gap:8px;justify-content:flex-end">
-      <button class="icon-btn" onclick="closeModal('addModal')">Annuler</button>
-      <button class="icon-btn" id="addConfirm">Ajouter et écrire</button>
-    </div>
-  </div>
-</div>
-
-<!-- Create group modal (improved) -->
-<div class="modal" id="groupModal" aria-hidden="true">
-  <div class="full">
-    <div class="modal-header"><button class="icon-btn" onclick="closeModal('groupModal')">Retour</button><div style="flex:1;text-align:center;font-weight:700">Créer un groupe</div><div style="width:44px"></div></div>
-    <div class="modal-body">
-      <div style="display:flex;gap:12px;align-items:center;margin-bottom:12px">
-        <div id="groupLogoPreview" class="avatar" style="width:64px;height:64px;font-size:18px">G</div>
-        <div style="flex:1">
-          <input id="groupName" class="input" placeholder="Nom du groupe" />
-          <div style="height:8px"></div>
-          <input id="groupLogo" type="file" accept="image/*" class="input" />
+        <div style="height:12px"></div>
+        <div class="settings">
+          <div class="item" id="profileOpen">Profil</div>
+          <div class="item" id="langOpen">Langue</div>
+          <div class="item" id="showTfid">tfid</div>
         </div>
       </div>
-      <div><label>Choisir contacts</label>
-        <div class="group-contacts" id="groupContactList"></div>
-      </div>
-    </div>
-    <div class="modal-footer" style="display:flex;justify-content:flex-end;gap:8px">
-      <button class="icon-btn" onclick="closeModal('groupModal')">Annuler</button>
-      <button class="confirm-v" id="createGroupConfirm">V</button>
     </div>
   </div>
-</div>
+
+  <!-- Add Contact Modal -->
+  <div class="modal" id="addModal" aria-hidden="true">
+    <div class="full">
+      <div class="modal-header">
+        <button class="icon-btn" onclick="closeModal('addModal')">Retour</button>
+        <div style="flex:1;text-align:center;font-weight:700">Ajouter un contact</div>
+        <div style="width:44px"></div>
+      </div>
+      <div class="modal-body">
+        <div style="margin-bottom:12px"><label>Nom (optionnel)</label><input id="newName" type="text" class="input" style="border-radius:8px;padding:10px"></div>
+        <div style="margin-bottom:12px"><label>tfid</label><input id="newTfid" type="text" class="input" value="TF-"></div>
+      </div>
+      <div class="modal-footer" style="display:flex;gap:8px;justify-content:flex-end">
+        <button class="icon-btn" onclick="closeModal('addModal')">Annuler</button>
+        <button class="icon-btn" id="addConfirm">Ajouter et écrire</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Create Group Modal -->
+  <div class="modal" id="groupModal" aria-hidden="true">
+    <div class="full">
+      <div class="modal-header">
+        <button class="icon-btn" onclick="closeModal('groupModal')">Retour</button>
+        <div style="flex:1;text-align:center;font-weight:700">Créer un groupe</div>
+        <div style="width:44px"></div>
+      </div>
+      <div class="modal-body">
+        <div style="margin-bottom:12px"><label>Nom du groupe</label><input id="groupName" type="text" class="input" placeholder="Nom du groupe"></div>
+        <div style="margin-bottom:12px"><label>Logo</label><input id="groupLogo" type="file" accept="image/*" class="file-input"></div>
+        <div><label>Choisir contacts</label>
+          <div class="group-contacts" id="groupContactList"></div>
+        </div>
+      </div>
+      <div class="modal-footer" style="display:flex;gap:8px;justify-content:flex-end">
+        <button class="icon-btn" onclick="closeModal('groupModal')">Annuler</button>
+        <button class="icon-btn" id="createGroupConfirm">Créer</button>
+      </div>
+    </div>
+  </div>
 
 <script>
-/* ---------------------- Config + storage keys ---------------------- */
-const BACKEND = 'https://tf-sove.onrender.com'; // adapte si bezwen
+/* ========================= CONFIG & STORAGE ========================= */
+const BACKEND = 'https://tf-sove.onrender.com';
 const FRONTEND_NAME = 'site1';
-const KEY_CONTACTS = 'tf_contacts_v4';
-const KEY_SESSIONS = 'tf_sessions_v4';
-const KEY_PROFILE = 'tf_profile_v4';
+const STORAGE_CONTACTS = 'tf_contacts_v3';
+const STORAGE_SESSIONS = 'tf_sessions_v3';
+const STORAGE_PROFILE = 'tf_profile_v3';
 
-let contacts = JSON.parse(localStorage.getItem(KEY_CONTACTS) || 'null');
-let sessions = JSON.parse(localStorage.getItem(KEY_SESSIONS) || '{}');
-let profile = JSON.parse(localStorage.getItem(KEY_PROFILE) || 'null');
+let contacts = JSON.parse(localStorage.getItem(STORAGE_CONTACTS) || '[]');
+let sessions = JSON.parse(localStorage.getItem(STORAGE_SESSIONS) || '{}');
+let profile = JSON.parse(localStorage.getItem(STORAGE_PROFILE) || 'null') || { name: "Adam_D'H7", tfid: null, avatar: null, lang: 'fr' };
 
-if (!profile) {
-  // genere TFID otomatikman 17 chif si pa egziste
-  function gen17(){
-    const r = String(Date.now()) + String(Math.floor(Math.random()*1000000));
-    return r.slice(-17).padStart(17, '0');
-  }
-  profile = { name: "Adam_D'H7", tfid: gen17(), lang: 'fr', avatar: null };
-  localStorage.setItem(KEY_PROFILE, JSON.stringify(profile));
-} else {
-  // si pa gen tfid, kreye youn
-  if (!profile.tfid) {
-    function gen17b(){ const r = String(Date.now()) + String(Math.floor(Math.random()*1000000)); return r.slice(-17).padStart(17,'0'); }
-    profile.tfid = gen17b(); localStorage.setItem(KEY_PROFILE, JSON.stringify(profile));
-  }
-}
-
-if (!contacts || !Array.isArray(contacts)){
-  // sèlman Adam_D'H7 kòm predefined
+/* seed contacts: ensure Adam_D'H7 exists as predefined contact */
+if (!contacts || contacts.length === 0) {
   contacts = [
-    { id:'c_me', name: "Adam_D'H7", tfid: profile.tfid, lastMsg:'Bonjou!', lastTs: Date.now(), unread:0 }
+    { id:'me', name:"Adam_D'H7", tfid:'00000000001234567', lastMsg:'', lastTs:Date.now(), unread:0 },
+    { id:'c1', name:'Marie Jean', tfid:'00000000001000001', lastMsg:'', lastTs:Date.now()-3600*1000, unread:2 },
+    { id:'c2', name:'Paul Raymond', tfid:'00000000001000002', lastMsg:'', lastTs:Date.now()-6*3600*1000, unread:0 },
+    { id:'c3', name:'Gwoup Fanmi', tfid:'G-2001', lastMsg:'', lastTs:Date.now()-20*60*1000, unread:5, isGroup:true },
+    { id:'c4', name:'Anna', tfid:'00000000001000003', lastMsg:'', lastTs:Date.now()-5*60*1000, unread:0 }
   ];
-  localStorage.setItem(KEY_CONTACTS, JSON.stringify(contacts));
+  localStorage.setItem(STORAGE_CONTACTS, JSON.stringify(contacts));
 }
 
-function saveContacts(){ localStorage.setItem(KEY_CONTACTS, JSON.stringify(contacts)); }
-function saveSessions(){ localStorage.setItem(KEY_SESSIONS, JSON.stringify(sessions)); }
-function saveProfile(){ localStorage.setItem(KEY_PROFILE, JSON.stringify(profile)); }
+function saveContacts(){ localStorage.setItem(STORAGE_CONTACTS, JSON.stringify(contacts)); }
+function saveSessions(){ localStorage.setItem(STORAGE_SESSIONS, JSON.stringify(sessions)); }
+function saveProfile(){ localStorage.setItem(STORAGE_PROFILE, JSON.stringify(profile)); }
 
-/* ---------------------- UI helpers ---------------------- */
 function initials(name){ if(!name) return 'U'; return name.split(' ').map(p=>p[0]).slice(0,2).join('').toUpperCase(); }
-function escapeHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function timeAgo(ts){ const diff = Math.floor((Date.now()-ts)/1000); if(diff<60) return diff+'s'; if(diff<3600) return Math.floor(diff/60)+'m'; if(diff<86400) return Math.floor(diff/3600)+'h'; return new Date(ts).toLocaleDateString(); }
-function padTfid(raw){ if(!raw) return null; const s = String(raw).replace(/^TF-?/i,'').replace(/\D/g,''); if(!s) return null; if (s.length>=17) return s.slice(-17); return s.padStart(17,'0'); }
-function displayShortTfid(p){ if(!p) return ''; return 'TF-' + p.slice(-7); }
+function escapeHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function padTfid(raw){
+  if (!raw) return null;
+  const s = String(raw).replace(/^TF-?/i,'').replace(/\D/g,'');
+  if (!s) return null;
+  if (s.length >= 17) return s.slice(-17);
+  return s.padStart(17,'0');
+}
+function displayTfidFromPadded(p){ if(!p) return ''; return 'TF-' + p.slice(-7); }
 
-/* ---------------------- render contacts (with last message) ---------------------- */
-const contactsList = document.getElementById('contactsList');
+/* ========================= RENDER CONTACTS (no snippet) ========================= */
+const contactsListEl = document.getElementById('contactsList');
 const searchInput = document.getElementById('searchInput');
-const clearSearch = document.getElementById('clearSearch');
+const clearSearchBtn = document.getElementById('clearSearch');
 
 function renderContacts(filter=''){
-  contactsList.innerHTML = '';
+  contactsListEl.innerHTML = '';
   const q = (filter||'').toLowerCase();
   const list = contacts.filter(c=>{
-    if(!q) return true;
+    if (!q) return true;
     return (c.name||'').toLowerCase().includes(q) || (c.tfid||'').toLowerCase().includes(q);
   });
-  list.forEach(c => {
-    const el = document.createElement('div'); el.className='contact';
-    el.innerHTML = `
+  list.forEach(c=>{
+    const row = document.createElement('div'); row.className='contact';
+    const lastTs = c.lastTs || Date.now();
+    row.innerHTML = `
       <div class="avatar">${escapeHtml(initials(c.name || c.tfid))}</div>
       <div class="meta">
         <div class="meta-top">
-          <div class="name">${escapeHtml(c.name || displayShortTfid(c.tfid))}${c.isGroup? ' • Groupe' : ''}</div>
-          <div class="time">${timeAgo(c.lastTs || Date.now())}</div>
-        </div>
-        <div class="meta-bottom">
-          <div class="snippet">${escapeHtml(c.lastMsg || '')}</div>
-          <div>${c.unread? '<span class="badge">'+c.unread+'</span>':''}</div>
+          <div class="name">${escapeHtml(c.name || displayTfidFromPadded(padTfid(c.tfid)||c.tfid))}</div>
+          <div class="time">${timeAgo(lastTs)}</div>
         </div>
       </div>
+      <div>${c.unread ? ('<span class="badge">'+c.unread+'</span>') : ''}</div>
     `;
-    el.addEventListener('click', ()=> openChatForContact(c));
-    contactsList.appendChild(el);
+    row.addEventListener('click', ()=> openChatForContact(c));
+    contactsListEl.appendChild(row);
   });
 }
 renderContacts();
-searchInput.addEventListener('input', e=>{ renderContacts(e.target.value); clearSearch.style.display = e.target.value ? 'inline-block':'none'; });
-clearSearch.addEventListener('click', ()=>{ searchInput.value=''; renderContacts(); clearSearch.style.display='none'; searchInput.focus(); });
 
-/* ---------------------- modals open/close helpers ---------------------- */
-function showModal(id){ const el=document.getElementById(id); if(!el) return; el.classList.add('show'); el.setAttribute('aria-hidden','false'); }
-function closeModal(id){ const el=document.getElementById(id); if(!el) return; el.classList.remove('show'); el.setAttribute('aria-hidden','true'); }
-function showSmall(id){ const el=document.getElementById(id); if(!el) return; el.classList.add('show'); el.style.display='block'; }
-function closeSmall(id){ const el=document.getElementById(id); if(!el) return; el.classList.remove('show'); el.style.display='none'; }
+searchInput.addEventListener('input', (e) => {
+  const v = e.target.value || '';
+  renderContacts(v);
+  clearSearchBtn.style.display = v ? 'inline-block' : 'none';
+});
+clearSearchBtn.addEventListener('click', ()=>{ searchInput.value=''; renderContacts(); clearSearchBtn.style.display='none'; searchInput.focus(); });
 
-/* ---------------------- FAB actions ---------------------- */
+/* ========================= MODALS & FAB (modal replaces prompt) ========================= */
+function showModal(id){ const m=document.getElementById(id); if(!m) return; m.classList.add('show'); m.setAttribute('aria-hidden','false'); }
+function closeModal(id){ const m=document.getElementById(id); if(!m) return; m.classList.remove('show'); m.setAttribute('aria-hidden','true'); }
+
 document.getElementById('fab').addEventListener('click', ()=> showModal('fabModal'));
-document.getElementById('openAddModal').addEventListener('click', ()=> { closeModal('fabModal'); showModal('addModal'); });
-document.getElementById('openGroupModal').addEventListener('click', ()=> { closeModal('fabModal'); openGroupModal(); });
+document.getElementById('fabAddContact').addEventListener('click', ()=> { closeModal('fabModal'); showModal('addModal'); });
+document.getElementById('fabCreateGroup').addEventListener('click', ()=> { closeModal('fabModal'); openCreateGroup(); });
 
-/* ---------------------- Create Group UI ---------------------- */
-function openGroupModal(){
-  const list = document.getElementById('groupContactList'); list.innerHTML = '';
-  contacts.forEach(c=>{
-    const row = document.createElement('div'); row.className='group-row';
-    row.innerHTML = `<input type="checkbox" value="${c.tfid||c.id}" id="g_${c.id}"> <label for="g_${c.id}">${escapeHtml(c.name||c.tfid)}</label>`;
-    list.appendChild(row);
-  });
-  document.getElementById('groupLogoPreview').textContent = 'G';
-  showModal('groupModal');
-}
-document.getElementById('groupLogo').addEventListener('change', (e)=>{
-  const f = e.target.files[0]; if(!f) return;
-  const r = new FileReader(); r.onload = ev => { document.getElementById('groupLogoPreview').style.backgroundImage = `url(${ev.target.result})`; document.getElementById('groupLogoPreview').textContent = ''; }; r.readAsDataURL(f);
-});
-document.getElementById('createGroupConfirm').addEventListener('click', ()=>{
-  const name = (document.getElementById('groupName').value || '').trim() || ('Groupe ' + (contacts.length+1));
-  const checked = Array.from(document.querySelectorAll('#groupContactList input[type=checkbox]:checked')).map(i=>i.value).filter(Boolean);
-  if (checked.length === 0){ alert('Chwazi omwen 1 kontak pou kreye gwoup'); return; }
-  const id = 'g_' + Date.now();
-  const group = { id, name, tfid: id, isGroup: true, members: checked, lastMsg:'Groupe kreye', lastTs: Date.now(), unread:0 };
-  contacts.unshift(group); saveContacts(); renderContacts();
-  closeModal('groupModal');
-});
-
-/* ---------------------- Add contact flow ---------------------- */
+/* Add contact confirm */
 document.getElementById('addConfirm').addEventListener('click', ()=>{
   const name = (document.getElementById('newName').value||'').trim();
-  let tfraw = (document.getElementById('newTfid').value||'').trim();
-  const padded = padTfid(tfraw);
-  if (!padded){ alert('TFID invalide. Eg TF-7777777'); return; }
-  const id = 'c_' + Date.now();
-  const c = { id, name: name || displayShortTfid(padded), tfid: padded, lastMsg:'', lastTs: Date.now(), unread:0 };
-  if (!contacts.some(x=> x.tfid === padded)) contacts.unshift(c);
-  saveContacts(); renderContacts();
+  let tf = (document.getElementById('newTfid').value||'').trim();
+  let padded = padTfid(tf);
+  if (!padded){ alert('TFID invalide (eg TF-7777777)'); return; }
+  const id = 'c_'+Date.now();
+  const contact = { id, name: name || displayTfidFromPadded(padded), tfid: padded, lastMsg:'', lastTs:Date.now(), unread:0 };
+  if (!contacts.some(c=>c.tfid === padded)){
+    contacts.unshift(contact);
+    saveContacts();
+    renderContacts(searchInput.value);
+  }
   closeModal('addModal');
-  setTimeout(()=> openChatForContact(c), 150);
+  setTimeout(()=> openChatForContact(contact), 150);
 });
 
-/* ---------------------- Chat open/render/send ---------------------- */
+/* Create group */
+function openCreateGroup(){
+  const list = document.getElementById('groupContactList');
+  list.innerHTML = '';
+  contacts.forEach(c=>{
+    const row = document.createElement('label'); row.className='checkbox-row';
+    row.innerHTML = `<input type="checkbox" value="${c.tfid||c.id}"> <div style="flex:1">${escapeHtml(c.name||c.tfid)}</div>`;
+    list.appendChild(row);
+  });
+  showModal('groupModal');
+}
+document.getElementById('createGroupConfirm').addEventListener('click', ()=>{
+  const name = (document.getElementById('groupName').value || '').trim() || ('Groupe ' + (contacts.length + 1));
+  const checked = Array.from(document.querySelectorAll('#groupContactList input[type=checkbox]:checked')).map(i=>i.value);
+  const id = 'g_'+Date.now(); const group = { id, name, tfid: id, lastMsg:'', lastTs:Date.now(), unread:0, isGroup:true, members:checked };
+  contacts.unshift(group); saveContacts(); renderContacts(); closeModal('groupModal');
+});
+
+/* ========================= CHAT: open/render/send ========================= */
+let activeChatTfid = null;
 const chatModal = document.getElementById('chatModal');
 const messagesEl = document.getElementById('messages');
-let activeContact = null;
-function openChatForContact(c){
-  activeContact = c;
-  document.getElementById('chatTitle').textContent = c.name || displayShortTfid(c.tfid);
-  document.getElementById('chatSubtitle').textContent = c.isGroup ? 'Groupe' : (c.tfid && c.tfid.length===17 ? displayShortTfid(c.tfid) : '');
-  document.getElementById('chatAvatarSmall').textContent = initials(c.name || c.tfid);
-  c.unread = 0; saveContacts(); renderContacts(searchInput.value);
-  const sessionKey = c.tfid || c.id;
-  sessions[sessionKey] = sessions[sessionKey] || [];
-  if (c.tfid && c.tfid.length === 17 && !c.isGroup){
-    // fetch from backend
-    fetchMessagesFromBackend(c.tfid);
+
+function openChatForContact(contact){
+  const raw = contact.tfid || contact.id;
+  const padded = padTfid(raw) || raw;
+  activeChatTfid = padded;
+  document.getElementById('chatTitle').textContent = contact.name || displayTfidFromPadded(padded);
+  document.getElementById('chatSubtitle').textContent = contact.isGroup ? 'Groupe' : (padded && padded.length===17 ? displayTfidFromPadded(padded) : '');
+  document.getElementById('chatAvatarSmall').textContent = initials(contact.name || contact.tfid);
+  contact.unread = 0; saveContacts(); renderContacts(searchInput.value);
+  sessions[padded] = sessions[padded] || [];
+  if (padded && padded.length === 17 && !contact.isGroup){
+    fetchMessagesFromBackend(padded);
   } else {
-    renderSession(sessionKey);
+    renderSession(padded);
   }
   showModal('chatModal');
-  setTimeout(()=> document.getElementById('chatText').focus(), 150);
+  setTimeout(()=> document.getElementById('chatText').focus(), 200);
 }
-document.getElementById('chatBack').addEventListener('click', ()=>{ closeModal('chatModal'); activeContact=null; });
+document.getElementById('chatBack').addEventListener('click', ()=> { closeModal('chatModal'); activeChatTfid = null; });
 
-function dedupeAndSort(tfid){
+function dedupeAndSortMessages(tfid){
   const arr = sessions[tfid] || [];
-  const seen = new Set(); const out = [];
+  const seen = new Set();
+  const out = [];
   arr.sort((a,b)=>{
     const ta = a.created_at ? new Date(a.created_at).getTime() : (a.ts||0);
     const tb = b.created_at ? new Date(b.created_at).getTime() : (b.ts||0);
     return ta - tb;
   });
-  for(const m of arr){
-    const k = (m.id ? 'id_'+m.id : 'ts_'+(m.created_at||'')+'_'+(m.text||'').slice(0,20));
+  for (const m of arr){
+    const k = (m.id ? 'id_'+m.id : 'ts_'+(m.created_at||'')+'_'+(m.text||'').slice(0,16));
     if (seen.has(k)) continue;
-    seen.add(k); out.push(m);
+    seen.add(k);
+    out.push(m);
   }
   sessions[tfid] = out; saveSessions(); return out;
 }
-
 function renderSession(tfid){
   messagesEl.innerHTML = '';
-  const msgs = dedupeAndSort(tfid);
-  if (!msgs.length){ messagesEl.innerHTML = '<div style="color:var(--muted);padding:8px">Pa gen mesaj</div>'; messagesEl.scrollTop = messagesEl.scrollHeight; return; }
-  for(const m of msgs){
+  const msgs = dedupeAndSortMessages(tfid);
+  if (!msgs.length){
+    messagesEl.innerHTML = '<div style="color:var(--muted);padding:8px">Pa gen mesaj</div>';
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+    return;
+  }
+  for (const m of msgs){
     const d = document.createElement('div');
+    // decide class by "from": if from equals my profile.tfid => user, else bot
     const senderClass = (profile.tfid && m.from && m.from === profile.tfid) ? 'user' : 'bot';
     d.className = 'msg ' + senderClass;
-    d.innerHTML = escapeHtml(m.text || m.content || '').replace(/\n/g,'<br>');
+    d.innerHTML = escapeHtml(m.text || (m.content || '')).replace(/\n/g,'<br>');
     messagesEl.appendChild(d);
   }
   messagesEl.scrollTop = messagesEl.scrollHeight;
 }
 
-async function fetchMessagesFromBackend(tfid){
+async function fetchMessagesFromBackend(tfidPadded){
   try {
-    const url = `${BACKEND}/api/list?tfid=${encodeURIComponent(tfid)}&name=${encodeURIComponent(FRONTEND_NAME)}`;
+    const url = `${BACKEND}/api/list?tfid=${encodeURIComponent(tfidPadded)}&name=${encodeURIComponent(FRONTEND_NAME)}`;
     const r = await fetch(url);
-    if (!r.ok) { renderSession(tfid); return; }
+    if (!r.ok) { renderSession(tfidPadded); return; }
     const j = await r.json().catch(()=>null);
     if (j && j.rows && Array.isArray(j.rows)){
-      sessions[tfid] = sessions[tfid] || [];
-      for(const row of j.rows){
-        let text = row.content; let from = null;
-        try { const maybe = JSON.parse(row.content); if (maybe){ text = maybe.text || row.content; from = maybe.from || null; } } catch(e){}
-        sessions[tfid].push({ id: row.id || null, from: from, text: text, created_at: row.created_at });
+      sessions[tfidPadded] = sessions[tfidPadded] || [];
+      for (const row of j.rows){
+        let text = row.content;
+        let from = null;
+        try {
+          const maybe = JSON.parse(row.content);
+          if (maybe && (maybe.text || maybe.from)) { text = maybe.text || row.content; from = maybe.from || null; }
+        } catch(e){}
+        const msg = { id: row.id || null, from: from, text: text, created_at: row.created_at };
+        sessions[tfidPadded].push(msg);
       }
-      dedupeAndSort(tfid); renderSession(tfid);
-    } else renderSession(tfid);
-  } catch(e){ console.warn('fetchMessages err', e); renderSession(tfid); }
-}
-
-document.getElementById('sendBtn').addEventListener('click', ()=> sendCurrent());
-document.getElementById('chatText').addEventListener('keydown', (e)=>{ if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); sendCurrent(); } });
-
-function sendCurrent(){
-  if(!activeContact) return alert('Ouvri chat');
-  const input = document.getElementById('chatText'); const txt = (input.value||'').trim(); if(!txt) return;
-  const now = new Date().toISOString();
-  const msg = { id:null, from: profile.tfid, text: txt, created_at: now };
-  const key = activeContact.tfid || activeContact.id;
-  sessions[key] = sessions[key] || []; sessions[key].push(msg); saveSessions(); renderSession(key);
-  // update contact preview
-  activeContact.lastMsg = txt; activeContact.lastTs = Date.now(); saveContacts(); renderContacts(searchInput.value);
-  input.value = '';
-  // send to backend:
-  if (activeContact.isGroup && Array.isArray(activeContact.members)){
-    // post for each member
-    for(const member of activeContact.members){
-      const padded = padTfid(member) || member;
-      if (!padded) continue;
-      postMessageToBackend(padded, JSON.stringify({ from: profile.tfid, text: txt, group: activeContact.id }));
+      dedupeAndSortMessages(tfidPadded);
+      renderSession(tfidPadded);
+    } else {
+      renderSession(tfidPadded);
     }
-  } else {
-    const recipient = padTfid(activeContact.tfid) || activeContact.tfid;
-    if (recipient && recipient.length===17) postMessageToBackend(recipient, JSON.stringify({ from: profile.tfid, text: txt }));
+  } catch(e){
+    console.warn('fetchMessagesFromBackend error', e);
+    renderSession(tfidPadded);
   }
 }
 
-/* ---------------------- POST to backend (api/add) ---------------------- */
-async function postMessageToBackend(tfidPadded, contentString){
-  try {
-    const payload = { tfid: tfidPadded, name: FRONTEND_NAME, content: contentString, source_url: window.location.href };
-    await fetch(BACKEND + '/api/add', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
-  } catch(e){ console.warn('postMessage err', e); }
+document.getElementById('sendBtn').addEventListener('click', ()=> sendCurrentMessage());
+document.getElementById('chatText').addEventListener('keydown', (e)=>{ if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendCurrentMessage(); } });
+
+function sendCurrentMessage(){
+  if (!activeChatTfid) { alert('Ouvri chat'); return; }
+  const input = document.getElementById('chatText');
+  const txt = (input.value || '').trim();
+  if (!txt) return;
+  const msg = { id:null, from: profile.tfid || null, text: txt, created_at: new Date().toISOString() };
+  sessions[activeChatTfid] = sessions[activeChatTfid] || [];
+  sessions[activeChatTfid].push(msg);
+  saveSessions(); renderSession(activeChatTfid);
+  input.value = '';
+  const contact = contacts.find(c => padTfid(c.tfid) === activeChatTfid || c.tfid === activeChatTfid);
+  if (contact){ contact.lastMsg = txt; contact.lastTs = Date.now(); saveContacts(); renderContacts(searchInput.value); }
+  if (activeChatTfid && activeChatTfid.length === 17) postMessageToBackend(activeChatTfid, txt);
 }
 
-/* ---------------------- WebSocket: subscribe to own tfid, receive messages ---------------------- */
-let ws = null; const wsStatus = document.getElementById('wsStatus');
+async function postMessageToBackend(tfidPadded, text){
+  const payload = { tfid: tfidPadded, name: FRONTEND_NAME, content: JSON.stringify({ from: profile.tfid || null, text: text, time: new Date().toISOString() }), source_url: window.location.href };
+  try {
+    await fetch(BACKEND + '/api/add', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+  } catch(e){ console.warn('postMessageToBackend err', e); }
+}
+
+/* ========================= WEBSOCKET (kept simple) ========================= */
+let ws = null;
+const wsStatusEl = document.getElementById('wsStatus');
 function connectWS(){
   try {
     let url = BACKEND.replace(/^http/, 'ws') + '/ws';
     if (url.startsWith('httpsws')) url = url.replace('httpsws','wss');
     ws = new WebSocket(url);
   } catch(e){ scheduleReconnect(); return; }
-  ws.onopen = ()=>{ wsStatus.textContent = 'WS: connected'; if (profile.tfid) ws.send(JSON.stringify({ type:'subscribe', tfid: profile.tfid })); };
-  ws.onclose = ()=>{ wsStatus.textContent='WS: disconnected'; scheduleReconnect(); };
-  ws.onerror = ()=>{ wsStatus.textContent='WS: error'; };
-  ws.onmessage = ev => {
+  ws.onopen = () => {
+    wsStatusEl.textContent = 'WS: connected';
+    if (profile.tfid) ws.send(JSON.stringify({ type: 'subscribe', tfid: profile.tfid }));
+  };
+  ws.onclose = ()=> { wsStatusEl.textContent='WS: disconnected'; scheduleReconnect(); };
+  ws.onerror = ()=> { wsStatusEl.textContent='WS: error'; };
+  ws.onmessage = (ev) => {
     try {
-      const d = JSON.parse(ev.data);
-      if (!d) return;
-      if (d.type === 'message' && d.tfid){
-        const tf = d.tfid;
-        let parsed = { text: d.content, from: null };
-        try { const maybe = JSON.parse(d.content); if (maybe){ parsed.text = maybe.text || d.content; parsed.from = maybe.from || parsed.from; } } catch(e){}
-        const fromPadded = padTfid(parsed.from) || parsed.from;
-        const msg = { id: d.id || null, from: fromPadded, text: parsed.text, created_at: d.created_at || new Date().toISOString() };
-        sessions[tf] = sessions[tf] || [];
-        // dedupe by id/text+time
-        const key = (msg.id ? 'id_'+msg.id : 'ts_'+msg.created_at+'_'+(msg.text||'').slice(0,20));
-        const exists = sessions[tf].some(m => {
-          const k = (m.id ? 'id_'+m.id : 'ts_'+(m.created_at||'')+'_'+(m.text||'').slice(0,20));
+      const data = JSON.parse(ev.data);
+      if (!data) return;
+      if (data.type === 'message' && data.tfid){
+        const tfid = data.tfid;
+        let parsed = { text: data.content, from: null };
+        try { const maybe = JSON.parse(data.content); if (maybe) { parsed.text = maybe.text || data.content; parsed.from = maybe.from || parsed.from; } } catch(e){}
+        const from = padTfid(parsed.from) || parsed.from || null;
+        const msg = { id: data.id || null, from: from, text: parsed.text || data.content, created_at: data.created_at || new Date().toISOString() };
+        sessions[tfid] = sessions[tfid] || [];
+        const key = (msg.id ? 'id_'+msg.id : 'ts_'+(msg.created_at||'')+'_'+(msg.text||'').slice(0,16));
+        const exists = sessions[tfid].some(m => {
+          const k = (m.id ? 'id_'+m.id : 'ts_'+(m.created_at||'')+'_'+(m.text||'').slice(0,16));
           return k === key;
         });
         if (!exists){
-          sessions[tf].push(msg); saveSessions();
-          // update contact preview or create contact if missing
-          let c = contacts.find(cc => padTfid(cc.tfid) === tf || cc.tfid === tf);
-          if (c){
-            c.lastMsg = parsed.text; c.lastTs = Date.now(); c.unread = (c.unread||0)+1; saveContacts(); renderContacts(searchInput.value);
-          } else {
-            const id = 'c_'+Date.now(); const name = displayShortTfid(tf); const nc = { id, name, tfid: tf, lastMsg: parsed.text, lastTs: Date.now(), unread:1 };
-            contacts.unshift(nc); saveContacts(); renderContacts(searchInput.value);
+          sessions[tfid].push(msg); saveSessions();
+          if (activeChatTfid === tfid) renderSession(tfid);
+          else {
+            const c = contacts.find(cc => padTfid(cc.tfid) === tfid || cc.tfid === tfid);
+            if (c){ c.lastMsg = parsed.text || c.lastMsg; c.lastTs = Date.now(); c.unread = (c.unread||0)+1; saveContacts(); renderContacts(searchInput.value); }
+            else { const id = 'c_'+Date.now(); const name = displayTfidFromPadded(tfid); const newc = { id, name, tfid, lastMsg: parsed.text, lastTs: Date.now(), unread:1 }; contacts.unshift(newc); saveContacts(); renderContacts(searchInput.value); }
           }
-          if (activeContact && (activeContact.tfid === tf || activeContact.id === tf)) renderSession(tf);
         }
       }
-    } catch(e){ console.warn('ws msg parse err', e); }
+    } catch(e){ console.warn('WS parse error', e); }
   };
 }
 let reconnectTimer = null;
 function scheduleReconnect(){ if (reconnectTimer) return; reconnectTimer = setTimeout(()=>{ reconnectTimer=null; connectWS(); }, 4000); }
-setTimeout(()=> connectWS(), 700);
+setTimeout(()=> connectWS(), 800);
 
-/* ---------------------- Settings small panels (profile/lang) ---------------------- */
-document.getElementById('settingsBtn').addEventListener('click', ()=>{
+/* ========================= SETTINGS (minimal) ========================= */
+document.getElementById('settingsBtn').addEventListener('click', ()=> {
+  document.getElementById('settingsAvatar').textContent = initials(profile.name || 'U');
   document.getElementById('settingsName').textContent = profile.name || 'Utilisateur';
-  document.getElementById('settingsTfid').textContent = profile.tfid ? displayShortTfid(profile.tfid) : 'TF-n/a';
-  // open small panel choices: show profilePanel as default small
-  document.getElementById('profileName').value = profile.name || '';
-  document.getElementById('profileTfid').value = profile.tfid ? displayShortTfid(profile.tfid) : '';
-  showSmall('profilePanel');
+  document.getElementById('settingsTfid').textContent = profile.tfid ? displayTfidFromPadded(profile.tfid) : 'TF-n/a';
+  showModal('settingsModal');
 });
-document.getElementById('saveProfileBtn').addEventListener('click', ()=>{
-  const newName = (document.getElementById('profileName').value||'').trim() || "Adam_D'H7";
-  const newTfidRaw = (document.getElementById('profileTfid').value||'').trim();
-  const padded = padTfid(newTfidRaw) || profile.tfid;
-  profile.name = newName; profile.tfid = padded; saveProfile();
-  alert('Profil mete ajou');
-  closeSmall('profilePanel');
-  // re-subscribe ws to new tfid
-  if (ws && ws.readyState === WebSocket.OPEN && profile.tfid) ws.send(JSON.stringify({ type:'subscribe', tfid: profile.tfid }));
-});
-document.querySelectorAll('.langBtn').forEach(b => b.addEventListener('click', (e)=>{
-  const l = e.currentTarget.dataset.lang; profile.lang = l; saveProfile(); alert('Lang chwazi: '+l); closeSmall('langPanel');
-}));
+document.getElementById('settingsBackBtn').addEventListener('click', ()=> closeModal('settingsModal'));
 
-/* ---------------------- initial hash open capability ---------------------- */
-(function initialHash(){
+document.getElementById('profileOpen').addEventListener('click', ()=> {
+  const newName = prompt('Nom', profile.name || '');
+  if (newName !== null){ profile.name = newName || "Adam_D'H7"; saveProfile(); alert('Profil mis à jour'); }
+});
+document.getElementById('langOpen').addEventListener('click', ()=> {
+  const pick = prompt('Lang (ht/fr/en/es)', profile.lang || 'fr');
+  if (pick) { profile.lang = pick; saveProfile(); alert('Lang modifié: ' + pick); }
+});
+document.getElementById('showTfid').addEventListener('click', ()=> {
+  const cur = profile.tfid ? displayTfidFromPadded(profile.tfid) : '';
+  const raw = prompt('Mete TFID ou (ex TF-1234567):', cur) || '';
+  const padded = padTfid(raw);
+  if (!padded){ alert('TFID invalid'); return; }
+  profile.tfid = padded; saveProfile(); alert('TFID enregistré: ' + displayTfidFromPadded(padded));
+  if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ type: 'subscribe', tfid: profile.tfid }));
+});
+
+/* ========================= INITIAL HASH OPEN ========================= */
+(function checkHash(){
   const h = location.hash || '';
   if (h.startsWith('#chat:')){
     const id = h.slice(6);
     const padded = padTfid(id) || id;
-    let c = contacts.find(x => padTfid(x.tfid) === padded || x.tfid === padded);
-    if (!c){ c = { id:'c_'+Date.now(), name: displayShortTfid(padded), tfid: padded, lastMsg:'', lastTs:Date.now(), unread:0 }; contacts.unshift(c); saveContacts(); renderContacts(); }
+    let c = contacts.find(c=> padTfid(c.tfid) === padded || c.tfid === padded);
+    if (!c){ c = { id:'c_'+Date.now(), name: displayTfidFromPadded(padded), tfid: padded, lastMsg:'', lastTs:Date.now(), unread:0 }; contacts.unshift(c); saveContacts(); renderContacts(); }
     setTimeout(()=> openChatForContact(c), 80);
   }
 })();
-
-/* ---------------------- small UI hookups ---------------------- */
-document.getElementById('homeBtn').addEventListener('click', ()=> { document.getElementById('appTitle').textContent = 'TF-Chat'; window.scrollTo({top:0,behavior:'smooth'}); });
-document.getElementById('chatBack').addEventListener('click', ()=> closeModal('chatModal'));
-
-document.getElementById('openAddModal').addEventListener('click', ()=> { closeModal('fabModal'); showModal('addModal'); });
-
-// close small panels when clicking outside
-document.addEventListener('click', (e)=> {
-  ['profilePanel','langPanel'].forEach(id=>{
-    const el = document.getElementById(id);
-    if (!el) return;
-    if (!el.classList.contains('show')) return;
-    if (!el.contains(e.target)) closeSmall(id);
-  });
-});
 </script>
 </body>
   </html>
