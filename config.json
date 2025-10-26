@@ -1,0 +1,49 @@
+{
+  "appName": "TF Chat iOS",
+  "lang": "fr",
+  "endpoints": {
+    "streamHost": "https://tf-stream-url.onrender.com",
+    "saveHost": "https://tf-sove.onrender.com",
+    "uploadPath": "/upload",
+    "apiAdd": "/api/add",
+    "apiList": "/api/list",
+    "apiAi": "/api/ai",
+    "health": "/health"
+  },
+  "apiToken": "tfstream_45dd9c02d4e34f18a42d",
+  "frontendName": "web-ios",
+  "fileUpload": {
+    "maxBytes": 77000000,
+    "maxMB": 77,
+    "formFieldName": "file",
+    "note": "Le serveur doit renvoyer JSON contenant au moins un identifiant/url du fichier (ex: {ok:true, url:'https://...'})"
+  },
+  "tfid": {
+    "uiFormat": "TF-#######",
+    "uiDigits": 7,
+    "serverDigits": 17,
+    "padChar": "0",
+    "note": "UI montre TF-XXXXXXX (7 chiffres). Avant appel API (qui exige 17 digits), on extrait la partie numérique et on left-pad à 17 chiffres."
+  },
+  "uiStrings": {
+    "createAccount": "Créer un compte",
+    "next": "Suivant",
+    "tfidLabel": "TFID (cliquer pour sélectionner)",
+    "password": "Mot de passe",
+    "confirmPassword": "Confirmer mot de passe",
+    "chooseProfilePhoto": "Choisir la photo de profil",
+    "nameLabel": "Nom / Pseudo",
+    "homeTitle": "Accueil",
+    "addContact": "Ajouter un contact",
+    "searchPlaceholder": "Rechercher",
+    "sendButton": "Envoyer",
+    "attachButton": "➕",
+    "logout": "Se déconnecter"
+  },
+  "behavior": {
+    "messageDelivery": "push_via_saveHost",
+    "messageStore": "https://tf-sove.onrender.com",
+    "filesVia": "https://tf-stream-url.onrender.com",
+    "maxMessageHistory": 500
+  }
+}
