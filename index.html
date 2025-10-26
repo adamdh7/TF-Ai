@@ -6,7 +6,7 @@
 <title>TF-Chat (site1)</title>
 <style>
   :root{
-    --bg:#f2f4f8;--card:#fff;--muted:#6b7280;--accent:#007aff;--incoming:#f1f3f5;--outgoing:#34c759;--text:#0b1220;--radius:14px;
+    --bg:#f2f4f8;--card:#fff;--muted:#6b7280;--accent:#007aff;--incoming:#f1f3f5;--outgoing:#34c759;--text:#0b1220;
   }
   html,body{height:100%;margin:0;font-family:-apple-system,"Helvetica Neue",Arial;background:linear-gradient(180deg,#edf2f7,#e6eefb);color:var(--text)}
   .app{max-width:1100px;margin:0 auto;height:100vh;display:grid;grid-template-columns:360px 1fr;gap:18px;padding:18px;box-sizing:border-box}
@@ -105,11 +105,12 @@ const WS_URL = (location.protocol === "https:" ? "wss://" : "ws://") + "tf-sove.
 
 /* ========== UTILS ========== */
 function normalizeInputToDigits(inp){ if(!inp) return null; const s=String(inp).trim().toUpperCase(); const digits=s.replace(/[^0-9]/g,""); return digits||null; }
-function to17(digitsString){ if(!digitsString) return null; const ds=String(digitsString); if(ds.length>17) return ds.slice(-17); return ds.padStart(17,"0"); }
+function to17(shortOrDigits){ if(!shortOrDigits) return null; const ds=String(shortOrDigits); if(ds.length>17) return ds.slice(-17); return ds.padStart(17,"0"); }
 function formatTFShort(digitsString){ if(!digitsString) return ""; const s=String(digitsString); const last7=s.slice(-7); return "TF-"+last7.padStart(7,"0"); }
 function nowISO(){ return (new Date()).toISOString(); }
-function fmtTime(iso){ const d=new Date(iso); return d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}); }
+function fmtTime(iso){ try{ const d=new Date(iso); return d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});}catch(e){return "";} }
 function escapeHtml(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+function makeCid(){ return String(Date.now()) + "-" + Math.floor(Math.random()*100000).toString(16); }
 
 /* ========== STATE ========== */
 let me = {
@@ -121,7 +122,7 @@ let me = {
 let contacts = JSON.parse(localStorage.getItem("tfchat.contacts") || "[]");
 let ws = null;
 let currentPartner = null;
-let conversationCache = {}; // key: me|other -> array messages
+let conversationCache = {}; // key => [{id,cid,from,text,created_at}]
 let reconnectTimer = null;
 
 /* ========== DOM ========== */
@@ -167,13 +168,10 @@ async function apiAdd(recipient17, contentObj){
   const url = `${API_BASE}/api/add`;
   const r = await callJSON(url, { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(body) });
   if(!r.ok) {
-    // if backend says frontend not registered, attempt to register then retry once
     const errMsg = r.json?.error || r.text || `HTTP ${r.status}`;
     if(String(errMsg).toLowerCase().includes("frontend name not registered")) {
-      // try register frontend (admin)
       const regOk = await registerFrontendIfNeeded();
       if(regOk) {
-        // retry
         const r2 = await callJSON(url, { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(body) });
         if(!r2.ok) throw new Error(r2.json?.error || r2.text || `HTTP ${r2.status}`);
         return r2.json;
@@ -186,57 +184,90 @@ async function apiAdd(recipient17, contentObj){
 
 /* ========== ADMIN: register frontend if missing ========== */
 async function registerFrontendIfNeeded(){
-  // Try /admin/register-frontend (INSERT OR REPLACE) -> safe to call multiple times.
   try {
     const url = `${API_BASE}/admin/register-frontend`;
     const payload = { name: FRONTEND_NAME, callback_url: location.origin };
     const r = await callJSON(url, { method:"POST", headers:{"Content-Type":"application/json","x-api-token": ADMIN_API_TOKEN}, body: JSON.stringify(payload) });
-    if(r.ok){
-      console.info("Frontend registered (or updated):", r.json);
-      return true;
-    } else {
-      console.warn("Register frontend failed:", r.status, r.json || r.text);
-      return false;
-    }
-  } catch(e){
-    console.warn("Register frontend exception:", e);
+    if(r.ok) return true;
     return false;
-  }
+  } catch(e){ return false; }
 }
 
-/* ========== CONVERSATIONS ========== */
-function keyForConv(a,b){ return `${a}|${b}`; }
+/* ========== CONVERSATIONS HELPERS ========== */
+function convKey(a,b){ return `${a}|${b}`; }
+
+function addOrUpdateMessageToCache(me17, other17, msg){
+  const key = convKey(me17, other17);
+  if(!conversationCache[key]) conversationCache[key] = [];
+  const list = conversationCache[key];
+
+  // Prefer cid dedupe, then id dedupe
+  if(msg.cid){
+    const idx = list.findIndex(x => x.cid && x.cid === msg.cid);
+    if(idx !== -1){
+      // update existing
+      list[idx] = Object.assign({}, list[idx], msg);
+      return;
+    }
+  }
+  if(msg.id){
+    const idx2 = list.findIndex(x => String(x.id) === String(msg.id));
+    if(idx2 !== -1){
+      list[idx2] = Object.assign({}, list[idx2], msg);
+      return;
+    }
+  }
+  // otherwise append
+  list.push(msg);
+  // sort by created_at asc
+  list.sort((a,b) => new Date(a.created_at) - new Date(b.created_at));
+}
 
 async function loadConversation(me17, other17){
-  const key = keyForConv(me17, other17);
-  conversationCache[key] = [];
-  // outgoing => messages saved with tfid == other17 (we sent)
+  const key = convKey(me17, other17);
+  conversationCache[key] = conversationCache[key] || [];
+
+  // get outgoing (we sent messages saved under recipient tfid)
   let outRows = [];
-  try { outRows = await apiList(other17); } catch(e){ console.warn("LIST out fail", e); outRows = []; }
-  const outParsed = (outRows||[]).map(r=>{ let p; try{ p=JSON.parse(r.content);}catch(e){ p={text:r.content,from:null}; } return { id:r.id, from:p.from||me17, text:p.text||r.content, created_at:r.created_at }; }).filter(x=>x.from===me17);
+  try{ outRows = await apiList(other17); } catch(e){ outRows = []; }
+  for(const r of outRows){
+    let parsed = null;
+    try{ parsed = JSON.parse(r.content); } catch(e){ parsed = { text: r.content }; }
+    const from = parsed.from || me17;
+    const msg = { id: r.id, cid: parsed.cid || null, from, text: parsed.text || r.content, created_at: r.created_at };
+    // only keep those whose from is me (outgoing) or parsed.from is present (we check later)
+    addOrUpdateMessageToCache(me17, other17, msg);
+  }
 
-  // incoming => messages saved with tfid == me17 (they sent to me)
+  // get incoming (messages saved under my tfid)
   let inRows = [];
-  try { inRows = await apiList(me17); } catch(e){ console.warn("LIST in fail", e); inRows = []; }
-  const inParsed = (inRows||[]).map(r=>{ let p; try{ p=JSON.parse(r.content);}catch(e){ p={text:r.content,from:null}; } return { id:r.id, from:p.from||null, text:p.text||r.content, created_at:r.created_at }; }).filter(x=>x.from===other17);
+  try{ inRows = await apiList(me17); } catch(e){ inRows = []; }
+  for(const r of inRows){
+    let parsed = null;
+    try{ parsed = JSON.parse(r.content); } catch(e){ parsed = { text: r.content }; }
+    const from = parsed.from || null;
+    if(!from) continue;
+    const msg = { id: r.id, cid: parsed.cid || null, from, text: parsed.text || r.content, created_at: r.created_at };
+    // only add if from === other17
+    if(from === other17) addOrUpdateMessageToCache(me17, other17, msg);
+  }
 
-  const merged = [...outParsed, ...inParsed].sort((a,b)=> new Date(a.created_at)-new Date(b.created_at));
-  conversationCache[key] = merged;
   renderConversation(me17, other17);
 }
 
 function renderConversation(me17, other17){
-  const key = keyForConv(me17, other17);
+  const key = convKey(me17, other17);
   const arr = conversationCache[key] || [];
   messagesEl.innerHTML = "";
-  if(arr.length===0){ messagesEl.innerHTML = `<div class="small" style="text-align:center;color:var(--muted);padding:20px">Pas encore de messages entre vous.</div>`; }
-  else {
-    arr.forEach(m=>{
-      const b=document.createElement("div");
-      b.className="bubble " + (m.from===me17 ? "me" : "them");
+  if(arr.length === 0){
+    messagesEl.innerHTML = `<div class="small" style="text-align:center;color:var(--muted);padding:20px">Pas encore de messages entre vous.</div>`;
+  } else {
+    for(const m of arr){
+      const b = document.createElement("div");
+      b.className = "bubble " + (m.from === me17 ? "me" : "them");
       b.innerHTML = `<div>${escapeHtml(m.text)}</div><div class="meta-time">${formatTFShort(m.from)} • ${fmtTime(m.created_at)}</div>`;
       messagesEl.appendChild(b);
-    });
+    }
   }
   messagesEl.scrollTop = messagesEl.scrollHeight;
 }
@@ -244,30 +275,35 @@ function renderConversation(me17, other17){
 /* ========== OPEN CHAT ========== */
 async function openChat(other17, contactObj=null){
   if(!me.tf17){ if(!await promptForMe()) return; }
-  currentPartner = { tf17: other17, short: formatTFShort(other17), name: (contactObj&&contactObj.name) || null };
+  currentPartner = { tf17: other17, short: formatTFShort(other17), name: (contactObj && contactObj.name) || null };
   chatName.textContent = currentPartner.name || currentPartner.short;
   chatSub.textContent = currentPartner.tf17;
   chatAvatar.textContent = (currentPartner.name ? currentPartner.name[0] : currentPartner.short.slice(-2));
   composer.style.display = "flex";
   emptyNote.style.display = "none";
-  const c = contacts.find(x=>x.tf17===other17);
+  const c = contacts.find(x => x.tf17 === other17);
   if(c){ c.unread = 0; saveState(); renderContacts(); }
   await loadConversation(me.tf17, other17);
 }
 
-/* ========== SEND MESSAGE ========== */
+/* ========== SEND MESSAGE (with cid) ========== */
 async function sendToCurrent(text){
   if(!currentPartner){ alert("Sélectionne un contact d'abord."); return; }
   if(!me.tf17){ if(!await promptForMe()) return; }
-  const payload = { type:"text", from: me.tf17, text, time: nowISO() };
-  const key = keyForConv(me.tf17, currentPartner.tf17);
-  if(!conversationCache[key]) conversationCache[key]=[];
-  conversationCache[key].push({ id:"local-"+Date.now(), from:me.tf17, text, created_at: payload.time });
+
+  const cid = makeCid();
+  const payload = { type: "text", from: me.tf17, text, time: nowISO(), cid };
+  // add local temporary message
+  const localMsg = { id: "local-" + cid, cid, from: me.tf17, text, created_at: payload.time };
+  addOrUpdateMessageToCache(me.tf17, currentPartner.tf17, localMsg);
   renderConversation(me.tf17, currentPartner.tf17);
+
   try {
+    // send to backend (server will store and broadcast)
     await apiAdd(currentPartner.tf17, payload);
-    // server will broadcast via WS and we'll receive true item (dedupe handled in WS)
+    // don't add anything here — we rely on WS broadcast to finalize (or the /api/add response if needed)
   } catch(e){
+    // failed to send: mark as failed locally (optional)
     alert("Envoi échoué : " + (e.message || e));
   }
 }
@@ -289,7 +325,6 @@ async function promptForMe(){
   me.tf17 = to17(me.short);
   saveState();
   renderMe();
-  // connect WS with new TFID
   if(ws){ try{ ws.close(); }catch(e){} }
   connectWS();
   return true;
@@ -309,36 +344,40 @@ function connectWS(){
   ws.onmessage = (ev)=>{
     try {
       const data = JSON.parse(ev.data);
-      if(data.type==="subscribed") return;
-      if(data.type==="message"){
+      if(data.type === "subscribed") return;
+      if(data.type === "message"){
         const payload = data;
         let parsed = null;
-        try{ parsed = JSON.parse(payload.content); } catch(e){ parsed = { text: payload.content, from:null }; }
+        try{ parsed = JSON.parse(payload.content); } catch(e){ parsed = { text: payload.content }; }
+        const recipient = payload.tfid || null; // tfid where message was stored (recipient)
+        const created = payload.created_at || nowISO();
+        const serverId = payload.id || null;
         const from = parsed.from || null;
-        const to = payload.tfid || null;
-        if(!from || !to) return;
-        // if message is for me (to === me.tf17) --> incoming
-        // if message is to other and from me --> echo of my sent message
-        const isForMe = (to === me.tf17);
-        const other = isForMe ? from : to;
-        const convKey = keyForConv(me.tf17, other);
-        if(!conversationCache[convKey]) conversationCache[convKey] = [];
-        // dedupe
-        if(!conversationCache[convKey].some(m=>String(m.id)===String(payload.id))){
-          conversationCache[convKey].push({ id: payload.id, from: parsed.from, text: parsed.text||"", created_at: payload.created_at });
-          conversationCache[convKey].sort((a,b)=> new Date(a.created_at) - new Date(b.created_at));
-        }
+        const text = parsed.text || parsed || "";
+
+        if(!from || !recipient) return;
+
+        // Determine other endpoint relative to me
+        const isForMe = (recipient === me.tf17);
+        const other = isForMe ? from : recipient;
+
+        // Build message object
+        const msgObj = { id: serverId, cid: parsed.cid || null, from, text, created_at: created };
+
+        // Add or update in cache. If cid matches a local "local-..." message, update/replace it (avoid duplicate).
+        addOrUpdateMessageToCache(me.tf17, other, msgObj);
+
+        // If current chat open with that other, re-render; else bump unread
         if(currentPartner && currentPartner.tf17 === other){
           renderConversation(me.tf17, other);
-        } else {
-          // increment unread if message for me
-          if(isForMe){
-            const c = ensureContactInList(other, null);
-            c.unread = (c.unread||0)+1; saveState(); renderContacts();
-          }
+        } else if(isForMe){
+          const c = ensureContactInList(other, null);
+          c.unread = (c.unread||0) + 1;
+          saveState();
+          renderContacts();
         }
       }
-    } catch(err){ console.warn("WS message parse error", err); }
+    } catch(err){ console.warn("WS parse err", err); }
   };
   ws.onclose = ()=>{ wsStatus.textContent = "WS: déconnecté"; scheduleReconnect(); };
   ws.onerror = (e)=>{ console.warn("WS error", e); wsStatus.textContent = "WS: erreur"; try{ ws.close(); }catch(e){} };
@@ -347,35 +386,34 @@ function scheduleReconnect(){ if(reconnectTimer) return; reconnectTimer = setTim
 
 /* ========== INIT UI & EVENTS ========== */
 async function initUI(){
-  // attempt auto-register frontend (safe)
   await registerFrontendIfNeeded();
-
   if(!me.tf17 && me.short){ me.tf17 = to17(me.short); saveState(); }
   renderMe(); renderContacts();
+
   if(!me.tf17){
     if(confirm("Vous n'êtes pas identifié. Voulez-vous entrer votre TFID maintenant ?")) await promptForMe();
   }
-  // events
+
   searchBtn.onclick = async ()=>{
     const raw = searchInput.value.trim();
     const digits = normalizeInputToDigits(raw);
     if(!digits){ alert("TFID invalide"); return; }
     const short = digits.slice(-7); const target17 = to17(short);
-    const c = ensureContactInList(target17, null);
-    openChat(target17, c);
-    await loadConversation(me.tf17, target17);
+    ensureContactInList(target17, null);
+    openChat(target17, contacts.find(x=>x.tf17===target17));
+    // loadConversation will be called by openChat
   };
-  sendBtn.onclick = ()=>{ const t=messageInput.value.trim(); if(!t) return; messageInput.value=""; sendToCurrent(t); };
+
+  sendBtn.onclick = ()=>{ const t = messageInput.value.trim(); if(!t) return; messageInput.value=""; sendToCurrent(t); };
   messageInput.onkeydown = (e)=>{ if(e.key==="Enter"){ e.preventDefault(); sendBtn.click(); } };
-  document.getElementById("newContactBtn").onclick = ()=>{ const v=prompt("Entrer TFID du nouveau contact (ex: TF-0204143 ou 0204143):"); if(!v) return; const d=normalizeInputToDigits(v); if(!d){ alert("TFID invalide"); return; } const tf17=to17(d.slice(-7)); const name=prompt("Nom (optionnel) :"); const c=ensureContactInList(tf17,name||null); if(name) c.name=name; saveState(); renderContacts(); };
-  document.getElementById("settingsBtn").onclick = async ()=>{ const newShort = prompt("Modifier votre TFID (ex: TF-0204143 ou 0204143) :", me.short||""); if(newShort){ const d=normalizeInputToDigits(newShort); if(!d){ alert("TFID invalide"); } else { me.short=d.slice(-7); me.tf17=to17(me.short); } } const newName = prompt("Pseudo / nom affiché :", me.name||""); if(newName) me.name=newName; saveState(); renderMe(); renderContacts(); if(ws){ try{ ws.close(); }catch(e){} } connectWS(); };
+  document.getElementById("newContactBtn").onclick = ()=>{ const v = prompt("Entrer TFID du nouveau contact (ex: TF-0204143 ou 0204143):"); if(!v) return; const d = normalizeInputToDigits(v); if(!d){ alert("TFID invalide"); return; } const tf17 = to17(d.slice(-7)); const name = prompt("Nom (optionnel) :"); const c = ensureContactInList(tf17, name||null); if(name) c.name = name; saveState(); renderContacts(); };
+  document.getElementById("settingsBtn").onclick = async ()=>{ const newShort = prompt("Modifier votre TFID (ex: TF-0204143 ou 0204143) :", me.short||""); if(newShort){ const d = normalizeInputToDigits(newShort); if(!d){ alert("TFID invalide"); } else { me.short = d.slice(-7); me.tf17 = to17(me.short); } } const newName = prompt("Pseudo / nom affiché :", me.name||""); if(newName) me.name = newName; saveState(); renderMe(); renderContacts(); if(ws){ try{ ws.close(); }catch(e){} } connectWS(); };
 
   if(contacts.length>0) openChat(contacts[0].tf17, contacts[0]);
 
   connectWS();
 }
 
-/* ========== START ========== */
 initUI();
 </script>
 </body>
