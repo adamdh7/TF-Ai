@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="ht">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>TF-Sove - Chat</title>
+  <style>
+    body{font-family:system-ui,Arial;margin:18px;max-width:920px}
+    header{display:flex;align-items:center;gap:12px}
+    .status{padding:6px 10px;border-radius:8px;font-weight:600}
+    .ok{background:#e6ffed;color:#0b6a2f}
+    .err{background:#ffe6e6;color:#921010}
+    #messages{margin-top:12px;list-style:none;padding:0}
+    #messages li{padding:8px;border:1px solid #eee;border-radius:8px;margin-bottom:8px}
+    #composer{margin-top:12px;display:flex;gap:8px}
+    #content{flex:1;padding:8px;border-radius:8px;border:1px solid #ccc}
+    button{padding:8px 12px;border-radius:8px;border:0;background:#2563eb;color:#fff;cursor:pointer}
+    button:disabled{opacity:.5;cursor:not-allowed}
+    small.note{color:#666;display:block;margin-top:8px}
+  </style>
+</head>
+<body>
+  <header>
+    <h1>TF-Sove</h1>
+    <div id="status" class="status">Loading...</div>
+  </header>
+
+  <p>
+    <strong>Usage:</strong> ouvri <code>?tfid=12345678901234567&name=site1</code> nan URL la.<br/>
+    <small class="note">tfid dwe 17 chif. name dwe koresponn ak frontend ki anrejistre sou backend la.</small>
+  </p>
+
+  <div id="app" style="display:none">
+    <p><strong>tfid:</strong> <span id="tfidSpan"></span> &nbsp; <strong>name:</strong> <span id="nameSpan"></span></p>
+
+    <div id="composer">
+      <input id="content" placeholder="Ekri mesaj..." />
+      <button id="sendBtn">Send Message</button>
+    </div>
+
+    <ul id="messages"></ul>
+  </div>
+
+  <script>
+  (function(){
+    const API_BASE = "https://tf-sove.onrender.com";
+    // Si ou vle ekspoze API_TOKEN sou frontend (pa rekòmande), ranplase string anba a.
+    // Ou te di: API_TOKEN=tfstream_45dd9c02d4e34f18a42d
+    const API_TOKEN = "tfstream_45dd9c02d4e34f18a42d"; // <--- SI OU PA VLE EKPOZE, mete "" epi itilize yon Worker pou proxy
+
+    const params = new URL(location.href).searchParams;
+    const tfid = params.get("tfid") || "";
+    const name = params.get("name") || "";
+
+    const statusEl = document.getElementById("status");
+    const appEl = document.getElementById("app");
+    const tfidSpan = document.getElementById("tfidSpan");
+    const nameSpan = document.getElementById("nameSpan");
+    const sendBtn = document.getElementById("sendBtn");
+    const contentInput = document.getElementById("content");
+    const messagesUl = document.getElementById("messages");
+
+    function setStatus(ok, text){
+      statusEl.className = "status " + (ok ? "ok" : "err");
+      statusEl.textContent = text;
+    }
+
+    // validate tfid (17 digits)
+    if (!/^\d{17}$/.test(tfid) || !name) {
+      setStatus(false, "Error: use ?tfid=17digits & name=yourname");
+      return;
+    }
+    tfidSpan.textContent = tfid;
+    nameSpan.textContent = name;
+
+    // Check backend health
+    async function checkHealth(){
+      try {
+        const r = await fetch(API_BASE + "/health", { method: "GET" });
+        if (!r.ok) throw new Error("status " + r.status);
+        const j = await r.json();
+        setStatus(true, "Bien!");
+        appEl.style.display = "block";
+        return true;
+      } catch (err) {
+        setStatus(false, "Error: backend unreachable");
+        appEl.style.display = "none";
+        console.error("health:", err);
+        return false;
+      }
+    }
+
+    // Load messages
+    async function loadMessages(){
+      try {
+        const url = `${API_BASE}/api/list?tfid=${encodeURIComponent(tfid)}&name=${encodeURIComponent(name)}`;
+        const r = await fetch(url, { headers: API_TOKEN ? {"x-api-token": API_TOKEN} : {} });
+        if (!r.ok) {
+          console.warn("list status", r.status);
+          return;
+        }
+        const j = await r.json();
+        const rows = j.rows || [];
+        // render
+        messagesUl.innerHTML = "";
+        for (const row of rows) {
+          const li = document.createElement("li");
+          const time = row.created_at ? ` — ${escapeHtml(row.created_at)}` : "";
+          li.innerHTML = `<div><strong>#${row.id}</strong> ${escapeHtml(row.content)}<div style="font-size:12px;color:#666">${escapeHtml(row.tfid || "")}${time}</div></div>`;
+          messagesUl.appendChild(li);
+        }
+      } catch (err) {
+        console.error("loadMessages error", err);
+      }
+    }
+
+    // Send message
+    async function sendMessage(){
+      const content = contentInput.value.trim();
+      if (!content) return;
+      sendBtn.disabled = true;
+      try {
+        const body = { tfid, name, content };
+        const r = await fetch(API_BASE + "/api/add", {
+          method: "POST",
+          headers: Object.assign({"Content-Type":"application/json"}, API_TOKEN ? {"x-api-token": API_TOKEN} : {}),
+          body: JSON.stringify(body)
+        });
+        if (!r.ok) {
+          const txt = await r.text().catch(()=>"");
+          alert("Error sending message: " + (txt || r.status));
+          console.error("send failed:", r.status, txt);
+        } else {
+          contentInput.value = "";
+          await loadMessages();
+        }
+      } catch (err) {
+        console.error("sendMessage err", err);
+        alert("Send failed: " + err.message);
+      } finally {
+        sendBtn.disabled = false;
+      }
+    }
+
+    // small escape
+    function escapeHtml(s){ return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+    // events
+    sendBtn.addEventListener("click", sendMessage);
+    contentInput.addEventListener("keydown", (e)=>{ if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } });
+
+    // init
+    (async ()=>{
+      const ok = await checkHealth();
+      if (!ok) return;
+      await loadMessages();
+      // poll messages every 2500ms
+      setInterval(loadMessages, 2500);
+    })();
+
+  })();
+  </script>
+</body>
+</html>
