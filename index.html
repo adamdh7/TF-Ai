@@ -1,36 +1,42 @@
 <!doctype html>
 <html lang="fr">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>TF-Chat — Simple</title>
 <style>
-  :root{--bg:#f2f2f5;--card:#fff;--muted:#7a7a7a;--accent:#128C7E;--green:#25D366}
+  :root{
+    --bg:#f2f2f5; --card:#fff; --muted:#7a7a7a; --accent:#128C7E; --green:#25D366;
+    --radius:14px; --maxw:980px; --narrow:520px;
+  }
   *{box-sizing:border-box}
-  body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;background:var(--bg);color:#111}
-  .wrap{max-width:900px;margin:0 auto;height:100vh;display:flex;flex-direction:column}
-  header{height:84px;display:flex;align-items:flex-end;padding:14px 16px;background:linear-gradient(180deg, #fff, rgba(255,255,255,0.8))}
+  body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;background:var(--bg);color:#111;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:var(--maxw);margin:0 auto;height:100vh;display:flex;flex-direction:column}
+  header{height:88px;display:flex;align-items:flex-end;padding:14px 16px;background:linear-gradient(180deg,#fff,#fbfbfb);border-bottom:1px solid rgba(0,0,0,0.04)}
   .title{font-weight:800;font-size:22px}
+  .me-line{font-size:13px;color:var(--muted);margin-top:4px}
   main{flex:1;overflow:auto;padding:12px}
-  .card{background:var(--card);padding:12px;border-radius:12px;margin-bottom:12px;box-shadow:0 1px 0 rgba(0,0,0,0.04)}
-  .search{width:100%;padding:12px;border-radius:12px;border:1px solid #eee;font-size:16px}
-  .row{display:flex;gap:8px;margin-top:8px}
-  button{padding:10px 12px;border-radius:10px;border:0;background:var(--accent);color:#fff;cursor:pointer;font-weight:700}
+  .card{background:var(--card);padding:12px;border-radius:16px;margin-bottom:12px;box-shadow:0 1px 2px rgba(0,0,0,0.04)}
+  .search{width:100%;padding:12px;border-radius:14px;border:1px solid #eee;font-size:16px;background:#fafafa}
+  .row{display:flex;gap:8px;margin-top:10px}
+  button{padding:10px 12px;border-radius:12px;border:0;background:var(--accent);color:#fff;cursor:pointer;font-weight:700}
   .btn-ghost{background:transparent;color:var(--accent);border:1px solid rgba(18,140,126,0.12)}
-  .contacts{display:flex;flex-direction:column;gap:8px}
-  .contact{display:flex;align-items:center;gap:12px;padding:12px;background:#fff;border-radius:10px;cursor:pointer;border:1px solid #f0f0f0}
-  .avatar{width:56px;height:56px;border-radius:50%;background:#ddd;flex-shrink:0}
-  .chat-page{display:flex;flex-direction:column;height:calc(100vh - 160px)}
+  .contacts{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+  .contact{display:flex;align-items:center;gap:12px;padding:12px;background:#fff;border-radius:12px;cursor:pointer;border:1px solid #f0f0f0}
+  .avatar{width:48px;height:48px;border-radius:50%;background:#ddd;flex-shrink:0;overflow:hidden}
+  .avatar img{width:100%;height:100%;object-fit:cover}
+  .chat-page{display:flex;flex-direction:column;height:calc(100vh - 200px)}
   .chat-head{display:flex;align-items:center;gap:12px;padding:12px;border-bottom:1px solid #eee}
-  .chat-body{flex:1;overflow:auto;padding:12px;background:linear-gradient(#f2f2f5,#f2f2f5)}
-  .messages{display:flex;flex-direction:column;gap:8px}
-  .bubble{max-width:78%;padding:10px 12px;border-radius:14px;background:#fff;align-self:flex-start;word-break:break-word}
+  .chat-body{flex:1;overflow:auto;padding:12px;background:linear-gradient(#f2f2f5,#f8f8f8)}
+  .messages{display:flex;flex-direction:column;gap:10px}
+  .bubble{max-width:78%;padding:10px 14px;border-radius:16px;background:#fff;align-self:flex-start;word-break:break-word;box-shadow:0 1px 0 rgba(0,0,0,0.02)}
   .bubble.me{background:#dcf8c6;align-self:flex-end}
+  .time{display:block;font-size:11px;color:var(--muted);margin-top:6px;text-align:right}
   .composer{display:flex;gap:8px;padding:10px;border-top:1px solid #eee;background:var(--card)}
-  input[type="text"], textarea{width:100%;padding:10px;border-radius:10px;border:1px solid #eee}
+  input[type="text"]{width:100%;padding:10px;border-radius:12px;border:1px solid #eee}
   .small{font-size:13px;color:var(--muted)}
   .link-tfid{color:var(--accent);text-decoration:underline;cursor:pointer}
-  @media(min-width:900px){ .wrap{border-left:1px solid rgba(0,0,0,0.04);border-right:1px solid rgba(0,0,0,0.04)} }
+  @media(min-width:900px){ .wrap{border-left:1px solid rgba(0,0,0,0.04);border-right:1px solid rgba(0,0,0,0.04)} .card{border-radius:18px} }
 </style>
 </head>
 <body>
@@ -38,36 +44,36 @@
   <header>
     <div>
       <div class="title">TF-Chat</div>
-      <div class="small" id="meLabel">...</div>
+      <div id="meLabel" class="me-line">Chargement...</div>
     </div>
   </header>
 
   <main id="main">
     <div class="card">
-      <input id="searchInput" class="search" placeholder="Entrer TFID (ex: TF-0204143 ou 0204143) puis Appuyer Rechercher">
+      <input id="searchInput" class="search" placeholder="Entrer TFID (ex: TF-0204143 ou 0204143) puis Appuyer Rechercher" />
       <div class="row" style="margin-top:10px">
         <button id="btnSearch">Rechercher</button>
-        <button id="btnMyProfile" class="btn-ghost">Mon profil / Paramètres</button>
+        <button id="btnProfile" class="btn-ghost">Mon profil / Paramètres</button>
       </div>
     </div>
 
-    <div id="contentArea">
-      <div class="card">
-        <div class="small">Contacts récents</div>
-        <div id="contacts" class="contacts"></div>
-      </div>
-      <div id="chatContainer"></div>
+    <div class="card">
+      <div class="small">Contacts récents</div>
+      <div id="contacts" class="contacts"></div>
     </div>
+
+    <div id="chatContainer"></div>
   </main>
 </div>
 
 <script>
 /*
-  Simple TF-Chat frontend:
-  - Generate TFID (TF-xxxxxxx) for visitor and store in localStorage
-  - Search TFID -> check https://tf-sove.onrender.com/api/list?tfid=<17>&name=Adam_DH7
-  - If found, open chat, allow send; messages stored via POST /api/add
-  - Poll own TFID every 3s to get messages
+  Version simple & corrigée:
+   - Génère TFID local si pa gen sesyon
+   - Recherche TFID via https://tf-sove.onrender.com/api/list?tfid=<17>&name=Adam_DH7
+   - Ouvre chat si TFID egziste
+   - Voye mesaj -> POST /api/add (x-api-token)
+   - Poll timeline chak 3s pou resevwa nouvo mesaj
 */
 const CONFIG = {
   SAVE_HOST: "https://tf-sove.onrender.com",
@@ -82,22 +88,22 @@ const CONFIG = {
 };
 
 let state = {
-  me: null,         // { ui, server, name, avatar }
-  contacts: [],     // [{ui, server, name}]
-  messages: {},     // server -> [ {id, from, text, time} ]
+  me: null,         // { ui, server, name, avatarDataUrl }
+  contacts: [],     // [{ ui, server, name }]
+  messages: {},     // serverTfid => [ { id, from, text, time } ]
   pollId: null,
   currentChatServer: null
 };
 
 /* helpers */
-function el(tag, cls){ const e = document.createElement(tag); if(cls) e.className = cls; return e; }
-function uiRandom(){ return 'TF-' + Math.floor(Math.random()*1e7).toString().padStart(CONFIG.UI_DIGITS,'0'); }
-function extractDigits(s){ const m = String(s||'').match(/\d+/g); return m? m.join('') : ''; }
+function el(tag, cls){ const e=document.createElement(tag); if(cls) e.className=cls; return e; }
+function uiRandom(){ return 'TF-' + Math.floor(1000000 + Math.random()*8999999).toString().padStart(CONFIG.UI_DIGITS, '0'); }
+function extractDigits(s){ const m=String(s||'').match(/\d+/g); return m? m.join('') : ''; }
 function uiNormalize(v){ v = String(v||'').trim(); if(!v) return ''; if(v.startsWith('TF-')) return v; const d = extractDigits(v); return 'TF-' + d.padStart(CONFIG.UI_DIGITS,'0'); }
 function uiToServer(ui){ const d = extractDigits(ui); if(!d) throw new Error('TFID invalide'); return d.padStart(CONFIG.SERVER_DIGITS,'0'); }
 function now(){ return new Date().toISOString(); }
 function saveSession(){ if(state.me) localStorage.setItem(CONFIG.SESSION_KEY, JSON.stringify(state.me)); else localStorage.removeItem(CONFIG.SESSION_KEY); }
-function loadSession(){ try{ const s = localStorage.getItem(CONFIG.SESSION_KEY); return s? JSON.parse(s):null }catch(e){return null} }
+function loadSession(){ try{ const s = localStorage.getItem(CONFIG.SESSION_KEY); return s? JSON.parse(s) : null; }catch(e){ return null; } }
 
 /* network */
 async function apiList(serverTfid){
@@ -119,43 +125,41 @@ async function apiAdd(serverTfid, contentObj){
   return resp.json();
 }
 
-/* UI wiring */
+/* UI refs */
 const meLabel = document.getElementById('meLabel');
 const searchInput = document.getElementById('searchInput');
 const btnSearch = document.getElementById('btnSearch');
-const btnMyProfile = document.getElementById('btnMyProfile');
+const btnProfile = document.getElementById('btnProfile');
 const contactsDiv = document.getElementById('contacts');
 const chatContainer = document.getElementById('chatContainer');
 
-btnSearch.onclick = async ()=>{
+btnSearch.onclick = async () => {
   const v = (searchInput.value || '').trim();
   if(!v){ alert('Entrer un TFID'); return; }
   let ui;
   try{ ui = uiNormalize(v); }catch(e){ alert('TFID invalide'); return; }
   const server = uiToServer(ui);
-  // call backend list to check existence
   try{
     showStatus('Recherche...');
     const j = await apiList(server);
-    // if backend responds ok and rows present => open chat
     if(j && j.ok){
-      // open chat with that server
+      // Ouvri chat menm si rows vid (backend reponn ok) — si ou vle kondisyon stricter, tcheke j.rows.length > 0
       openChat(server, ui);
     } else {
       alert('TFID introuvable sur le serveur.');
     }
   }catch(err){
     console.warn(err);
-    alert('Erreur réseau / tfid introuvable');
+    alert('Erreur réseau ou TFID introuvable');
   }finally{ showStatus(''); }
 };
 
-btnMyProfile.onclick = ()=>{
-  const name = prompt('Votre nom / pseudo', state.me.name || state.me.ui) || state.me.name || state.me.ui;
-  state.me.name = name;
+btnProfile.onclick = () => {
+  const newName = prompt('Votre nom / pseudo', state.me.name || state.me.ui) || state.me.name || state.me.ui;
+  state.me.name = newName;
   saveSession();
   updateHeader();
-  alert('Nom enregistré localement. (profil sera partagé via messages si besoin)');
+  alert('Nom enregistré localement');
 };
 
 /* render contacts */
@@ -163,115 +167,116 @@ function renderContacts(){
   contactsDiv.innerHTML = '';
   state.contacts.forEach(c=>{
     const row = el('div','contact');
-    row.innerHTML = `<div class="avatar"></div><div><strong>${c.name||c.ui}</strong><div class="small">${c.ui}</div></div>`;
+    row.innerHTML = `<div class="avatar">${c.avatarDataUrl? '<img src="'+c.avatarDataUrl+'">' : ''}</div>
+                     <div><strong>${c.name || c.ui}</strong><div class="small">${c.ui}</div></div>`;
     row.onclick = ()=> openChat(c.server, c.ui);
     contactsDiv.appendChild(row);
   });
 }
 
-/* open chat */
+/* open chat view */
 async function openChat(serverTfid, ui){
   state.currentChatServer = serverTfid;
   chatContainer.innerHTML = '';
-  const page = el('div','card');
+  const wrapper = el('div','card');
   const head = el('div','chat-head');
-  head.innerHTML = `<div style="display:flex;gap:12px;align-items:center"><div class="avatar"></div><div><strong>${ui}</strong><div class="small">${ui}</div></div></div>`;
-  page.appendChild(head);
+  const contact = state.contacts.find(c=>c.server===serverTfid) || { ui, name: ui };
+  head.innerHTML = `<div style="display:flex;gap:12px;align-items:center"><div class="avatar">${contact.avatarDataUrl? '<img src="'+contact.avatarDataUrl+'">' : ''}</div>
+                    <div><strong>${contact.name || contact.ui}</strong><div class="small">${contact.ui}</div></div></div>`;
+  wrapper.appendChild(head);
 
   const chatPage = el('div','chat-page');
-  const chatBody = el('div','chat-body');
-  const msgs = el('div','messages');
-  chatBody.appendChild(msgs);
-  chatPage.appendChild(chatBody);
+  const chatBody = el('div','chat-body'); const msgs = el('div','messages'); chatBody.appendChild(msgs); chatPage.appendChild(chatBody);
 
   const composer = el('div','composer');
   const input = el('input'); input.type='text'; input.placeholder='Écrire un message...';
   const sendBtn = el('button'); sendBtn.textContent = 'Envoyer';
   composer.appendChild(input); composer.appendChild(sendBtn);
   chatPage.appendChild(composer);
-  page.appendChild(chatPage);
-  chatContainer.appendChild(page);
+  wrapper.appendChild(chatPage);
+  chatContainer.appendChild(wrapper);
 
-  // load existing messages for this target (serverTfid)
+  // Load messages for this serverTfid (from local state then from server)
   state.messages[serverTfid] = state.messages[serverTfid] || [];
   try{
     const j = await apiList(serverTfid);
     if(j && j.ok && Array.isArray(j.rows)){
-      // rows are newest first in server code; show ascending
+      // rows are returned desc by server; display ascending
       const rows = j.rows.slice().reverse();
       rows.forEach(r=>{
         let payload;
         try{ payload = JSON.parse(r.content); }catch(e){ payload = { type:'text', text: r.content }; }
         if(payload.type === 'text' || payload.type === 'file'){
-          state.messages[serverTfid].push({ id: r.id, from: payload.from || 'unknown', text: payload.text || payload.message || '', time: r.created_at });
+          const obj = { id: r.id, from: payload.from || 'unknown', text: payload.text || payload.message || '', time: r.created_at };
+          if(!state.messages[serverTfid].some(m=>m.id === obj.id)) state.messages[serverTfid].push(obj);
         }
       });
     }
-  }catch(e){ console.warn('load messages error', e); }
+  }catch(e){ console.warn('load chat failed', e); }
 
   function renderMessages(){
     msgs.innerHTML = '';
     const arr = state.messages[serverTfid] || [];
     arr.forEach(m=>{
-      const b = el('div','bubble' + ((state.me && m.from === state.me.server) ? ' me' : ''));
-      // transform TF-xxxxx in text to clickable
-      const text = String(m.text || '').replace(/TF-(\d+)/g, match => `<span class="link-tfid">${match}</span>`);
-      b.innerHTML = text + `<div class="small" style="text-align:right;margin-top:6px">${(m.time? new Date(m.time).toLocaleTimeString(): '')}</div>`;
-      // attach click handlers for any link-tfid
-      setTimeout(()=> b.querySelectorAll('.link-tfid').forEach(el=> el.onclick = ()=> {
-        const u = el.textContent; // open contact if exists else open chat create
+      const meClass = (state.me && m.from === state.me.server);
+      const b = el('div','bubble ' + (meClass? 'me' : ''));
+      // make TF-xxxx clickable
+      const html = String(m.text||'').replace(/TF-(\d+)/g, (match)=> `<span class="link-tfid">${match}</span>`);
+      b.innerHTML = html + `<div class="time">${m.time? new Date(m.time).toLocaleTimeString(): ''}</div>`;
+      // attach link handlers
+      setTimeout(()=> b.querySelectorAll('.link-tfid').forEach(elm => elm.onclick = () => {
+        const u = elm.textContent;
         try{
           const srv = uiToServer(u);
-          if(state.contacts.some(c=>c.server===srv)) openChat(srv, u);
-          else {
-            // create contact entry and open chat
-            const contact = { ui:u, server:srv, name:u };
-            state.contacts.unshift(contact);
-            renderContacts();
-            openChat(srv, u);
+          // if contact exists open it, else add and open
+          if(!state.contacts.some(c=>c.server===srv)){
+            const ct = { ui: u, server: srv, name: u }; state.contacts.unshift(ct); renderContacts();
           }
-        }catch(err){ console.warn(err); alert('TFID invalide'); }
+          openChat(srv, u);
+        }catch(err){ alert('TFID invalide'); }
       }), 0);
       msgs.appendChild(b);
     });
     msgs.scrollTop = msgs.scrollHeight;
   }
 
-  renderMessages();
+  window.renderChatRefresh = function(tfid){ if(tfid === serverTfid) renderMessages(); };
 
-  sendBtn.onclick = async ()=>{
+  sendBtn.onclick = async () => {
     const txt = input.value.trim(); if(!txt) return;
-    if(!state.me){ alert('Profil non configuré'); return; }
-    // optimistic push locally
-    const localM = { id: null, from: state.me.server, text: txt, time: now() };
+    if(!state.me){ alert('Veuillez configurer votre pseudo dans Mon profil / Paramètres'); return; }
+    // optimistic local push
+    const local = { id: null, from: state.me.server, text: txt, time: now() };
     state.messages[serverTfid] = state.messages[serverTfid] || [];
-    state.messages[serverTfid].push(localM);
+    state.messages[serverTfid].push(local);
     renderMessages();
     input.value = '';
-    // build payload
     const payload = { type:'text', from: state.me.server, text: txt, time: now() };
     try{
-      const r = await apiAdd(serverTfid, payload); // write to recipient timeline
-      // also write to sender timeline (so sender sees message)
+      const r = await apiAdd(serverTfid, payload); // save to recipient timeline
+      // copy to sender timeline (so sender sees their own messages)
       await apiAdd(state.me.server, payload).catch(()=>{});
-      if(r && r.id){ localM.id = r.id; }
-    }catch(err){
-      console.warn('send error', err); alert('Envoi échoué');
+      if(r && r.id) local.id = r.id;
+    }catch(e){
+      console.warn('send failed', e);
+      alert('Envoi échoué');
     }
     renderMessages();
   };
+
+  input.addEventListener('keydown', e => { if(e.key === 'Enter'){ e.preventDefault(); sendBtn.click(); } });
+
+  renderMessages();
 }
 
-/* polling own timeline */
+/* Poll own timeline to get messages */
 async function pollOwn(){
   if(!state.me) return;
   try{
     const j = await apiList(state.me.server);
     if(j && j.ok && Array.isArray(j.rows)){
-      // append unseen messages
       const rows = j.rows.slice().reverse();
       for(const r of rows){
-        // check if id present in state.messages for that target (r.tfid)
         const tgt = r.tfid;
         state.messages[tgt] = state.messages[tgt] || [];
         if(state.messages[tgt].some(m=>m.id === r.id)) continue;
@@ -280,61 +285,53 @@ async function pollOwn(){
         if(payload.type === 'text' || payload.type === 'file'){
           const mobj = { id: r.id, from: payload.from || 'unknown', text: payload.text || payload.message || '', time: r.created_at };
           state.messages[tgt].push(mobj);
-          // if currently viewing that chat, re-render
           if(state.currentChatServer === tgt && window.renderChatRefresh) window.renderChatRefresh(tgt);
         }
       }
     }
-  }catch(e){ /* silent */ }
+  }catch(e){ /* ignore to avoid spamming console */ }
 }
 
-/* init */
+/* helper: update header text */
+function updateHeader(){
+  if(state.me) meLabel.textContent = `${state.me.name || state.me.ui} • ${state.me.ui}`;
+  else meLabel.textContent = 'Non configuré';
+}
 
-  function init() {
+/* status small (console) */
+function showStatus(t){ if(!t) return; console.log('status:', t); }
+
+/* Init corrected: always ensure TFID exists and header shows proper info */
+function init(){
   const s = loadSession();
-
-  if (s && s.ui && s.server) {
+  if(s && s.ui && s.server){
     state.me = s;
   } else {
-    // ✅ Toujou kreye yon TF-ID valab
-    const randomNum = Math.floor(1000000 + Math.random() * 8999999);
-    const ui = `TF-${randomNum}`;
-    const server = uiToServer(ui);
-
-    state.me = {
-      ui,
-      server,
-      name: "Moi"
-    };
-
+    // generate a 7-digit UI TF like TF-0xxxxxx
+    const ui = uiRandom();
+    state.me = { ui, server: uiToServer(ui), name: 'Moi', avatarDataUrl: null };
     saveSession();
   }
 
-  // ✅ Mizajou header la
-  meLabel.textContent = `${state.me.name} • ${state.me.ui}`;
+  // show in header
+  updateHeader();
 
-  // ✅ Ajoute kontak default la si pa egziste
-  if (!state.contacts.some(c => c.ui === "TF-7777777")) {
-    state.contacts.unshift({
-      ui: "TF-7777777",
-      server: uiToServer("TF-7777777"),
-      name: "Adam_D'H7"
-    });
+  // ensure Adam_D'H7 preset contact
+  if(!state.contacts.some(c => c.ui === 'TF-7777777')){
+    state.contacts.unshift({ ui:'TF-7777777', server: uiToServer('TF-7777777'), name: "Adam_D'H7" });
   }
-
   renderContacts();
 
-  // ✅ Kòmanse polling pou mesaj yo
+  // start polling
   pollOwn();
   state.pollId = setInterval(pollOwn, CONFIG.POLL_MS);
-  }
+}
 
-/* helper status */
-function showStatus(t){ /* optionally show network status; minimal for now */ console.log('status', t); }
+/* start */
+init();
 
-/* expose for debugging */
+/* expose for debug */
 window.TFCHAT = { state, apiList, apiAdd, uiNormalize, uiToServer, pollOwn };
-
 </script>
 </body>
-</html>
+  </html>
