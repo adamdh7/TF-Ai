@@ -290,28 +290,44 @@ async function pollOwn(){
 
 /* init */
 
-  (function init(){
+  function init() {
   const s = loadSession();
-  if(s){
+
+  if (s && s.ui && s.server) {
     state.me = s;
   } else {
-    const ui = uiRandom();
+    // ✅ Toujou kreye yon TF-ID valab
+    const randomNum = Math.floor(1000000 + Math.random() * 8999999);
+    const ui = `TF-${randomNum}`;
     const server = uiToServer(ui);
-    // 👇 default name = "Moi"
-    state.me = { ui, server, name: "Moi" };
+
+    state.me = {
+      ui,
+      server,
+      name: "Moi"
+    };
+
     saveSession();
   }
-  // ✅ Update header net
-  meLabel.textContent = `TF-ID : ${state.me.ui}`;
-  // Add contact Adam_D'H7 si pa egziste
-  if(!state.contacts.some(c=>c.ui === 'TF-7777777')) {
-    state.contacts.unshift({ ui:'TF-7777777', server: uiToServer('TF-7777777'), name:"Adam_D'H7" });
+
+  // ✅ Mizajou header la
+  meLabel.textContent = `${state.me.name} • ${state.me.ui}`;
+
+  // ✅ Ajoute kontak default la si pa egziste
+  if (!state.contacts.some(c => c.ui === "TF-7777777")) {
+    state.contacts.unshift({
+      ui: "TF-7777777",
+      server: uiToServer("TF-7777777"),
+      name: "Adam_D'H7"
+    });
   }
+
   renderContacts();
-  // Start polling
+
+  // ✅ Kòmanse polling pou mesaj yo
   pollOwn();
   state.pollId = setInterval(pollOwn, CONFIG.POLL_MS);
-})();
+  }
 
 /* helper status */
 function showStatus(t){ /* optionally show network status; minimal for now */ console.log('status', t); }
