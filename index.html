@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>TF-Chat — Corrected (site1)</title>
+<title>TF-Chat — site1 (push & contacts)</title>
 <style>
   :root{
     --bg:#f2f2f5; --card:#fff; --muted:#6b6b6b; --accent:#128C7E; --green:#25D366;
@@ -76,13 +76,12 @@
 </div>
 
 <script>
-/* === CONFIGURE ICI === */
+/* CONFIG */
 const CONFIG = {
   SAVE_HOST: "https://tf-sove.onrender.com",
   API_LIST: "/api/list",
   API_ADD: "/api/add",
   API_TOKEN: "tfstream_45dd9c02d4e34f18a42d",
-  // IMPORTANT: par defaut j'ai mis "site1" parce w di name lan "site1"
   FRONTEND_NAME: "site1",
   UI_DIGITS: 7,
   SERVER_DIGITS: 17,
@@ -90,7 +89,7 @@ const CONFIG = {
   SESSION_KEY: "tfchat_session_site1"
 };
 
-/* === STATE === */
+/* STATE */
 let state = {
   me: null,
   contacts: [],
@@ -99,7 +98,7 @@ let state = {
   currentChatServer: null
 };
 
-/* === HELPERS === */
+/* HELPERS */
 function el(tag, cls){ const e=document.createElement(tag); if(cls) e.className=cls; return e; }
 function logDebug(...args){ const dbg = document.getElementById('debug'); const t = new Date().toLocaleTimeString(); dbg.textContent = t + ' — ' + args.map(a => (typeof a==='object'? JSON.stringify(a): String(a))).join(' ') + '\n' + dbg.textContent; console.log(...args); }
 function showStatus(t){ document.getElementById('status').textContent = t || ''; if(t) logDebug('[STATUS]', t); }
@@ -111,7 +110,7 @@ function uiToServer(ui){ const d = extractDigits(ui); if(!d) throw new Error('TF
 function saveSession(){ if(state.me) localStorage.setItem(CONFIG.SESSION_KEY, JSON.stringify(state.me)); else localStorage.removeItem(CONFIG.SESSION_KEY); }
 function loadSession(){ try{ const s = localStorage.getItem(CONFIG.SESSION_KEY); return s? JSON.parse(s):null }catch(e){ return null } }
 
-/* === NETWORK (debug friendly) === */
+/* NETWORK */
 async function apiList(serverTfid){
   const url = new URL(CONFIG.SAVE_HOST + CONFIG.API_LIST);
   url.searchParams.set('tfid', serverTfid);
@@ -141,7 +140,6 @@ async function apiAdd(serverTfid, contentObj){
     logDebug('API ADD status', resp.status, parsed || text);
     if(!resp.ok){
       const errMsg = (parsed && parsed.error) ? parsed.error : text;
-      // si frontend pa anrejistre, afiche kòmand pou admin la
       if(String(errMsg).indexOf('Frontend name not registered') !== -1){
         const cmd = `curl -X POST https://tf-sove.onrender.com/admin/register-frontend \\\n  -H "x-api-token: tfstream_45dd9c02d4e34f18a42d" \\\n  -H "Content-Type: application/json" \\\n  -d '{"name":"${CONFIG.FRONTEND_NAME}","callback_url":"https://tf-chat.pages.dev"}'`;
         alert("Envoi échoué — Frontend name not registered sur le serveur.\n\nPour corriger (exécutez sur votre machine / serveur):\n\n" + cmd + "\n\nEnsuite relancez le test.");
@@ -157,7 +155,7 @@ async function apiAdd(serverTfid, contentObj){
   }
 }
 
-/* === UI REFS & EVENTS === */
+/* UI REFS */
 const meLabel = document.getElementById('meLabel');
 const searchInput = document.getElementById('searchInput');
 const btnSearch = document.getElementById('btnSearch');
@@ -177,7 +175,12 @@ btnSearch.onclick = async () => {
   try {
     const res = await apiList(server);
     showStatus('');
-    // ouvre chat si pas d'erreur réseau - si w vle verifye rows: if(res.ok && res.rows.length>0) ...
+    // Ajoute kontak la nan lis si li pa la deja (ap monte anwo)
+    if(!state.contacts.some(c=>c.server === server)){
+      const ct = { ui, server, name: ui };
+      state.contacts.unshift(ct);
+      renderContacts();
+    }
     openChat(server, ui);
   } catch (err) {
     showStatus('');
@@ -199,6 +202,8 @@ btnTest.onclick = async () => {
   try{
     showStatus('Test envoi en cours...');
     const r = await apiAdd(state.me.server, sample);
+    // after send, refresh timelines immediately
+    await Promise.all([ apiList(state.me.server).catch(()=>{}), apiList(state.me.server).catch(()=>{}) ]);
     showStatus('');
     alert('Test envoi OK — voir console debug');
     logDebug('TestSendResponse', r);
@@ -209,7 +214,7 @@ btnTest.onclick = async () => {
   }
 };
 
-/* === RENDER CONTACTS === */
+/* RENDER CONTACTS */
 function renderContacts(){
   contactsDiv.innerHTML = '';
   state.contacts.forEach(c=>{
@@ -221,7 +226,7 @@ function renderContacts(){
   });
 }
 
-/* === OPEN CHAT === */
+/* OPEN CHAT */
 async function openChat(serverTfid, ui){
   state.currentChatServer = serverTfid;
   chatContainer.innerHTML = '';
@@ -289,23 +294,68 @@ async function openChat(serverTfid, ui){
 
   window.renderChatRefresh = function(tfid){ if(tfid === serverTfid) renderMessages(); };
 
+  /* SEND: send -> copy to self -> refresh both timelines (this is client-side "push") */
   sendBtn.onclick = async () => {
     const txt = input.value.trim(); if(!txt) return;
     if(!state.me){ alert('Veuillez configurer votre pseudo dans Mon profil / Paramètres'); return; }
+
     const local = { id: null, from: state.me.server, text: txt, time: now() };
     state.messages[serverTfid] = state.messages[serverTfid] || [];
     state.messages[serverTfid].push(local);
     renderMessages();
     input.value = '';
+
     const payload = { type:'text', from: state.me.server, text: txt, time: now() };
+
     try{
       showStatus('Envoi en cours...');
-      const r = await apiAdd(serverTfid, payload); // save to recipient timeline
-      // copy to sender timeline
+      // 1) envoyer sou destinataire
+      const r = await apiAdd(serverTfid, payload);
+      logDebug('apiAdd to recipient OK', r);
+      // 2) copy sou sender timeline pou istwa
       await apiAdd(state.me.server, payload).catch(e => logDebug('copy-to-self failed', e));
+      // 3) refresh timelines imedyatman (push-like): chèche dènye pou destinataire ak pou self
+      try{
+        const [destList, selfList] = await Promise.allSettled([ apiList(serverTfid).catch(()=>null), apiList(state.me.server).catch(()=>null) ]);
+        // si destList ok, entegre rows
+        if(destList.status === 'fulfilled' && destList.value && destList.value.ok && Array.isArray(destList.value.rows)){
+          // replace messages[serverTfid] with rows (ascending)
+          const rows = destList.value.rows.slice().reverse();
+          state.messages[serverTfid] = state.messages[serverTfid] || [];
+          rows.forEach(rw=>{
+            try{
+              const payload = JSON.parse(rw.content);
+              if(payload.type === 'text' || payload.type === 'file'){
+                const obj = { id: rw.id, from: payload.from || 'unknown', text: payload.text || payload.message || '', time: rw.created_at };
+                if(!state.messages[serverTfid].some(m=>m.id === obj.id)) state.messages[serverTfid].push(obj);
+              }
+            }catch(e){
+              const obj = { id: rw.id, from: 'unknown', text: rw.content || '', time: rw.created_at };
+              if(!state.messages[serverTfid].some(m=>m.id === obj.id)) state.messages[serverTfid].push(obj);
+            }
+          });
+        }
+        // update own timeline storage too (optional)
+        if(selfList.status === 'fulfilled' && selfList.value && selfList.value.ok && Array.isArray(selfList.value.rows)){
+          const rows = selfList.value.rows.slice().reverse();
+          const meServer = state.me.server;
+          state.messages[meServer] = state.messages[meServer] || [];
+          rows.forEach(rw=>{
+            try{
+              const payload = JSON.parse(rw.content);
+              if(payload.type === 'text' || payload.type === 'file'){
+                const obj = { id: rw.id, from: payload.from || 'unknown', text: payload.text || payload.message || '', time: rw.created_at };
+                if(!state.messages[meServer].some(m=>m.id === obj.id)) state.messages[meServer].push(obj);
+              }
+            }catch(e){
+              const obj = { id: rw.id, from: 'unknown', text: rw.content || '', time: rw.created_at };
+              if(!state.messages[meServer].some(m=>m.id === obj.id)) state.messages[meServer].push(obj);
+            }
+          });
+        }
+      }catch(e){ logDebug('refresh after send failed', e); }
       showStatus('');
-      if(r && typeof r === 'object' && r.id) local.id = r.id;
-      logDebug('Message envoyé, response:', r);
+      logDebug('Message envoyé et timelines rafraîchis');
     }catch(err){
       showStatus('');
       logDebug('send failed', err && err.message ? err.message : err);
@@ -319,7 +369,7 @@ async function openChat(serverTfid, ui){
   renderMessages();
 }
 
-/* === POLLING OWN TIMELINE === */
+/* POLLING own timeline */
 async function pollOwn(){
   if(!state.me) return;
   try{
@@ -347,15 +397,12 @@ async function pollOwn(){
   }catch(e){ logDebug('pollOwn error', e && e.message ? e.message : e); }
 }
 
-/* === HEADER UPDATE === */
-function updateHeader(){
-  if(state.me) document.getElementById('meLabel').textContent = `${state.me.name || state.me.ui} • ${state.me.ui}`;
-  else document.getElementById('meLabel').textContent = 'Non configuré';
-}
+/* HEADER update */
+function updateHeader(){ if(state.me) document.getElementById('meLabel').textContent = `${state.me.name || state.me.ui} • ${state.me.ui}`; else document.getElementById('meLabel').textContent = 'Non configuré'; }
 
-/* === INIT === */
+/* INIT: restore session or create */
 (function init(){
-  try {
+  try{
     const s = loadSession();
     if(s && s.ui && s.server){
       state.me = s;
@@ -364,7 +411,7 @@ function updateHeader(){
       state.me = { ui, server: uiToServer(ui), name: 'Moi', avatarDataUrl: null };
       saveSession();
     }
-  } catch(e){
+  }catch(e){
     const ui = uiRandom();
     state.me = { ui, server: ui.replace(/TF-/, '').padStart(17,'0'), name:'Moi', avatarDataUrl:null };
     saveSession();
@@ -385,9 +432,9 @@ function updateHeader(){
   logDebug('Init complete', { me: state.me, frontendName: CONFIG.FRONTEND_NAME });
 })();
 
-/* expose for debug */
+/* Expose debug */
 window.TFCHAT = { state, apiList, apiAdd, uiNormalize, uiToServer, pollOwn, logDebug };
 
 </script>
 </body>
-        </html>
+  </html>
