@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>TF-Chat — Debug</title>
+<title>TF-Chat — Corrected (site1)</title>
 <style>
   :root{
-    --bg:#f2f2f5; --card:#fff; --muted:#7a7a7a; --accent:#128C7E; --green:#25D366;
+    --bg:#f2f2f5; --card:#fff; --muted:#6b6b6b; --accent:#128C7E; --green:#25D366;
     --radius:14px; --maxw:980px;
   }
   *{box-sizing:border-box}
@@ -37,7 +37,7 @@
   .small{font-size:13px;color:var(--muted)}
   .link-tfid{color:var(--accent);text-decoration:underline;cursor:pointer}
   .status{font-size:13px;color:var(--muted);margin-top:8px}
-  .debug{font-family:monospace;font-size:12px;color:#444;white-space:pre-wrap;margin-top:8px;background:#f8f8f8;padding:10px;border-radius:8px}
+  .debug{font-family:monospace;font-size:12px;color:#444;white-space:pre-wrap;margin-top:8px;background:#f8f8f8;padding:10px;border-radius:8px;max-height:200px;overflow:auto}
   @media(min-width:900px){ .wrap{border-left:1px solid rgba(0,0,0,0.04);border-right:1px solid rgba(0,0,0,0.04)} .card{border-radius:18px} }
 </style>
 </head>
@@ -76,20 +76,21 @@
 </div>
 
 <script>
-/* Config (user-provided) */
+/* === CONFIGURE ICI === */
 const CONFIG = {
   SAVE_HOST: "https://tf-sove.onrender.com",
   API_LIST: "/api/list",
   API_ADD: "/api/add",
   API_TOKEN: "tfstream_45dd9c02d4e34f18a42d",
-  FRONTEND_NAME: "Adam_DH7",
+  // IMPORTANT: par defaut j'ai mis "site1" parce w di name lan "site1"
+  FRONTEND_NAME: "site1",
   UI_DIGITS: 7,
   SERVER_DIGITS: 17,
   POLL_MS: 3000,
-  SESSION_KEY: "tfchat_session_v2"
+  SESSION_KEY: "tfchat_session_site1"
 };
 
-/* State */
+/* === STATE === */
 let state = {
   me: null,
   contacts: [],
@@ -98,7 +99,7 @@ let state = {
   currentChatServer: null
 };
 
-/* Helpers */
+/* === HELPERS === */
 function el(tag, cls){ const e=document.createElement(tag); if(cls) e.className=cls; return e; }
 function logDebug(...args){ const dbg = document.getElementById('debug'); const t = new Date().toLocaleTimeString(); dbg.textContent = t + ' — ' + args.map(a => (typeof a==='object'? JSON.stringify(a): String(a))).join(' ') + '\n' + dbg.textContent; console.log(...args); }
 function showStatus(t){ document.getElementById('status').textContent = t || ''; if(t) logDebug('[STATUS]', t); }
@@ -110,7 +111,7 @@ function uiToServer(ui){ const d = extractDigits(ui); if(!d) throw new Error('TF
 function saveSession(){ if(state.me) localStorage.setItem(CONFIG.SESSION_KEY, JSON.stringify(state.me)); else localStorage.removeItem(CONFIG.SESSION_KEY); }
 function loadSession(){ try{ const s = localStorage.getItem(CONFIG.SESSION_KEY); return s? JSON.parse(s):null }catch(e){ return null } }
 
-/* Network with debug and robust error messages */
+/* === NETWORK (debug friendly) === */
 async function apiList(serverTfid){
   const url = new URL(CONFIG.SAVE_HOST + CONFIG.API_LIST);
   url.searchParams.set('tfid', serverTfid);
@@ -138,7 +139,17 @@ async function apiAdd(serverTfid, contentObj){
     let parsed = null;
     try{ parsed = JSON.parse(text); }catch(e){ parsed = null; }
     logDebug('API ADD status', resp.status, parsed || text);
-    if(!resp.ok) throw new Error(`ADD HTTP ${resp.status} — ${text}`);
+    if(!resp.ok){
+      const errMsg = (parsed && parsed.error) ? parsed.error : text;
+      // si frontend pa anrejistre, afiche kòmand pou admin la
+      if(String(errMsg).indexOf('Frontend name not registered') !== -1){
+        const cmd = `curl -X POST https://tf-sove.onrender.com/admin/register-frontend \\\n  -H "x-api-token: tfstream_45dd9c02d4e34f18a42d" \\\n  -H "Content-Type: application/json" \\\n  -d '{"name":"${CONFIG.FRONTEND_NAME}","callback_url":"https://tf-chat.pages.dev"}'`;
+        alert("Envoi échoué — Frontend name not registered sur le serveur.\n\nPour corriger (exécutez sur votre machine / serveur):\n\n" + cmd + "\n\nEnsuite relancez le test.");
+      } else {
+        alert('Envoi échoué: ' + errMsg);
+      }
+      throw new Error(errMsg || `HTTP ${resp.status}`);
+    }
     return parsed || text;
   } catch (err) {
     logDebug('API ADD error', err && err.message ? err.message : err);
@@ -146,7 +157,7 @@ async function apiAdd(serverTfid, contentObj){
   }
 }
 
-/* UI Refs */
+/* === UI REFS & EVENTS === */
 const meLabel = document.getElementById('meLabel');
 const searchInput = document.getElementById('searchInput');
 const btnSearch = document.getElementById('btnSearch');
@@ -165,9 +176,8 @@ btnSearch.onclick = async () => {
   showStatus('Recherche TFID sur le serveur...');
   try {
     const res = await apiList(server);
-    // show info
     showStatus('');
-    // backend retourne ok:true si opération réussit; on ouvre chat dans tous cas si pas d'erreur réseau
+    // ouvre chat si pas d'erreur réseau - si w vle verifye rows: if(res.ok && res.rows.length>0) ...
     openChat(server, ui);
   } catch (err) {
     showStatus('');
@@ -194,11 +204,12 @@ btnTest.onclick = async () => {
     logDebug('TestSendResponse', r);
   }catch(e){
     showStatus('');
-    alert('Test envoi échoué — voir console debug (F12). ' + (e.message || e));
+    alert('Test envoi échoué — voir console debug (section "Console debug").');
+    logDebug('Test send failed', e && e.message ? e.message : e);
   }
 };
 
-/* Contacts rendering */
+/* === RENDER CONTACTS === */
 function renderContacts(){
   contactsDiv.innerHTML = '';
   state.contacts.forEach(c=>{
@@ -210,7 +221,7 @@ function renderContacts(){
   });
 }
 
-/* Open chat view */
+/* === OPEN CHAT === */
 async function openChat(serverTfid, ui){
   state.currentChatServer = serverTfid;
   chatContainer.innerHTML = '';
@@ -232,27 +243,26 @@ async function openChat(serverTfid, ui){
   wrapper.appendChild(chatPage);
   chatContainer.appendChild(wrapper);
 
-  // load messages from server for this TF (target)
+  // load messages from server for this target
   state.messages[serverTfid] = state.messages[serverTfid] || [];
   try{
     const j = await apiList(serverTfid);
     if(j && j.ok && Array.isArray(j.rows)){
       const rows = j.rows.slice().reverse();
       rows.forEach(r=>{
-        try {
+        try{
           const payload = JSON.parse(r.content);
           if(payload.type === 'text' || payload.type === 'file'){
             const obj = { id: r.id, from: payload.from || 'unknown', text: payload.text || payload.message || '', time: r.created_at };
             if(!state.messages[serverTfid].some(m=>m.id === obj.id)) state.messages[serverTfid].push(obj);
           }
-        } catch(e) {
-          // content not json => plain text
+        }catch(e){
           const obj = { id: r.id, from: 'unknown', text: r.content || '', time: r.created_at };
           if(!state.messages[serverTfid].some(m=>m.id === obj.id)) state.messages[serverTfid].push(obj);
         }
       });
     }
-  }catch(e){ logDebug('openChat apiList error', e.message || e); }
+  }catch(e){ logDebug('openChat apiList error', e && e.message ? e.message : e); }
 
   function renderMessages(){
     msgs.innerHTML = '';
@@ -282,7 +292,6 @@ async function openChat(serverTfid, ui){
   sendBtn.onclick = async () => {
     const txt = input.value.trim(); if(!txt) return;
     if(!state.me){ alert('Veuillez configurer votre pseudo dans Mon profil / Paramètres'); return; }
-    // optimistic local push
     const local = { id: null, from: state.me.server, text: txt, time: now() };
     state.messages[serverTfid] = state.messages[serverTfid] || [];
     state.messages[serverTfid].push(local);
@@ -300,7 +309,7 @@ async function openChat(serverTfid, ui){
     }catch(err){
       showStatus('');
       logDebug('send failed', err && err.message ? err.message : err);
-      alert('Envoi échoué — voir console debug (section "Console debug") pour détails.');
+      alert('Envoi échoué — voir console debug pour détails.');
     }
     renderMessages();
   };
@@ -310,10 +319,10 @@ async function openChat(serverTfid, ui){
   renderMessages();
 }
 
-/* Polling own timeline (to receive messages) */
+/* === POLLING OWN TIMELINE === */
 async function pollOwn(){
   if(!state.me) return;
-  try {
+  try{
     const j = await apiList(state.me.server);
     if(j && j.ok && Array.isArray(j.rows)){
       const rows = j.rows.slice().reverse();
@@ -338,13 +347,13 @@ async function pollOwn(){
   }catch(e){ logDebug('pollOwn error', e && e.message ? e.message : e); }
 }
 
-/* Header update */
+/* === HEADER UPDATE === */
 function updateHeader(){
-  if(state.me) meLabel.textContent = `${state.me.name || state.me.ui} • ${state.me.ui}`;
-  else meLabel.textContent = 'Non configuré';
+  if(state.me) document.getElementById('meLabel').textContent = `${state.me.name || state.me.ui} • ${state.me.ui}`;
+  else document.getElementById('meLabel').textContent = 'Non configuré';
 }
 
-/* Init: ensure TFID exists and start polling */
+/* === INIT === */
 (function init(){
   try {
     const s = loadSession();
@@ -352,12 +361,10 @@ function updateHeader(){
       state.me = s;
     } else {
       const ui = uiRandom();
-      const server = uiToServer(ui);
-      state.me = { ui, server, name: 'Moi', avatarDataUrl: null };
+      state.me = { ui, server: uiToServer(ui), name: 'Moi', avatarDataUrl: null };
       saveSession();
     }
-  } catch(e) {
-    // In case uiToServer throws, create fallback
+  } catch(e){
     const ui = uiRandom();
     state.me = { ui, server: ui.replace(/TF-/, '').padStart(17,'0'), name:'Moi', avatarDataUrl:null };
     saveSession();
@@ -375,12 +382,12 @@ function updateHeader(){
   pollOwn();
   state.pollId = setInterval(pollOwn, CONFIG.POLL_MS);
 
-  logDebug('Init complete', { me: state.me });
+  logDebug('Init complete', { me: state.me, frontendName: CONFIG.FRONTEND_NAME });
 })();
 
-/* expose for debug in console */
+/* expose for debug */
 window.TFCHAT = { state, apiList, apiAdd, uiNormalize, uiToServer, pollOwn, logDebug };
 
 </script>
 </body>
-  </html>
+        </html>
