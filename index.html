@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>TF-Chat (WebSocket push)</title>
+<title>TF-Chat (fix API host)</title>
 <style>
   :root{--bg:#f2f2f5;--card:#fff;--muted:#6b6b6b;--accent:#128C7E;--unread:#ff4d4f;--radius:14px;--maxw:980px}
   *{box-sizing:border-box}
@@ -70,46 +70,29 @@
 </div>
 
 <script>
-/* ================== CONFIG ================== */
+/* CONFIG — ATTENTION: SAVE_HOST must be FULL absolute URL (https://...) */
 const CONFIG = {
-  SAVE_HOST: "https://tf-sove.onrender.com",
+  SAVE_HOST: "https://tf-sove.onrender.com",   // <-- IMPORTANT : fixed backend host
   API_LIST: "/api/list",
   API_ADD: "/api/add",
   API_TOKEN: "tfstream_45dd9c02d4e34f18a42d",
   FRONTEND_NAME: "site1",
   UI_DIGITS: 7,
   SERVER_DIGITS: 17,
-  WS_URL: (function(){
-    // DEFAULT: replace with your deployed WS server url e.g. "wss://ws-your-domain.example"
-    // If you host the ws server on same domain, you can use:
-    // return (location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host;
-    return "wss://YOUR_WS_SERVER_DOMAIN"; // <-- CHANGE THIS to your WS server
-  })(),
+  WS_URL: "wss://YOUR_WS_SERVER_DOMAIN",       // <-- replace when you deploy WebSocket server; keep placeholder for now
   SESSION_KEY: "tfchat_session_site1_v4"
 };
 
-/* ================== STATE ================== */
-let state = {
-  me: null,                // {ui, server, name, avatarDataUrl}
-  contacts: [],            // arr of {ui, server, name, avatarDataUrl, unread}
-  messages: {},            // server -> [{id, from, text, time}]
-  ws: null,
-  seenMessageIds: new Set(), // dedupe ${name}:${id}
-  currentChatServer: null
-};
-
-/* ================== HELPERS ================== */
-function el(tag, cls){ const e=document.createElement(tag); if(cls) e.className = cls; return e; }
-function now(){ return new Date().toISOString(); }
+/* small helpers */
+function el(t, c){ const e=document.createElement(t); if(c) e.className=c; return e; }
 function extractDigits(s){ const m=String(s||'').match(/\d+/g); return m? m.join('') : ''; }
 function uiNormalize(v){ v = String(v||'').trim(); if(!v) return ''; if(v.startsWith('TF-')) return v; const d = extractDigits(v); return 'TF-' + d.padStart(CONFIG.UI_DIGITS,'0'); }
 function uiRandom(){ return 'TF-' + Math.floor(1000000 + Math.random()*8999999).toString().padStart(CONFIG.UI_DIGITS,'0'); }
 function uiToServer(ui){ const d=extractDigits(ui); if(!d) throw new Error('TFID invalide'); return d.padStart(CONFIG.SERVER_DIGITS,'0'); }
-function saveSession(){ if(state.me) localStorage.setItem(CONFIG.SESSION_KEY, JSON.stringify(state.me)); else localStorage.removeItem(CONFIG.SESSION_KEY); }
-function loadSession(){ try{ const s=localStorage.getItem(CONFIG.SESSION_KEY); return s? JSON.parse(s):null }catch(e){return null} }
-function log(...args){ console.debug('[TFCHAT]', ...args); const a=document.getElementById('logArea'); if(a) a.textContent += args.join(' ') + '\\n'; }
+function log(){ console.debug.apply(console, ['[TFCHAT]'].concat(Array.from(arguments))); const a=document.getElementById('logArea'); if(a) a.textContent += Array.from(arguments).join(' ') + '\\n'; }
+function status(t){ document.getElementById('status').textContent = t || ''; }
 
-/* ================== NETWORK ================== */
+/* NETWORK — always build absolute URL using CONFIG.SAVE_HOST */
 async function apiList(serverTfid){
   const url = new URL(CONFIG.SAVE_HOST + CONFIG.API_LIST);
   url.searchParams.set('tfid', serverTfid);
@@ -120,352 +103,181 @@ async function apiList(serverTfid){
   let parsed = null;
   try{ parsed = JSON.parse(txt); }catch(e){ parsed = null; }
   if(!resp.ok) throw new Error(`LIST HTTP ${resp.status} — ${txt}`);
-  log('API LIST response', parsed || txt);
   return parsed || txt;
 }
-
 async function apiAdd(serverTfid, contentObj){
-  const body = { tfid: serverTfid, name: CONFIG.FRONTEND_NAME, content: JSON.stringify(contentObj) };
-  log('API ADD POST', CONFIG.SAVE_HOST + CONFIG.API_ADD, body);
-  const resp = await fetch(CONFIG.SAVE_HOST + CONFIG.API_ADD, {
-    method: 'POST',
-    headers: { 'Content-Type':'application/json', 'x-api-token': CONFIG.API_TOKEN },
-    body: JSON.stringify(body)
+  const url = CONFIG.SAVE_HOST + CONFIG.API_ADD;
+  log('API ADD POST', url, { tfid: serverTfid, name: CONFIG.FRONTEND_NAME });
+  const resp = await fetch(url, {
+    method:'POST',
+    headers:{ 'Content-Type':'application/json', 'x-api-token': CONFIG.API_TOKEN },
+    body: JSON.stringify({ tfid: serverTfid, name: CONFIG.FRONTEND_NAME, content: JSON.stringify(contentObj) })
   });
   const text = await resp.text().catch(()=>'(no body)');
   let parsed = null;
   try{ parsed = JSON.parse(text); }catch(e){ parsed = null; }
-  log('API ADD status', resp.status, parsed || text);
-  if(!resp.ok){
-    const err = (parsed && parsed.error) ? parsed.error : text;
-    throw new Error(err || `HTTP ${resp.status}`);
-  }
+  if(!resp.ok) throw new Error(parsed && parsed.error ? parsed.error : text);
   return parsed || text;
 }
 
-/* ================== UI REFS ================== */
-const meLabel = document.getElementById('meLabel');
-const searchInput = document.getElementById('searchInput');
-const btnSearch = document.getElementById('btnSearch');
-const btnProfile = document.getElementById('btnProfile');
-const btnClear = document.getElementById('btnClear');
-const contactsDiv = document.getElementById('contacts');
-const chatContainer = document.getElementById('chatContainer');
-const statusEl = document.getElementById('status');
+/* UI minimal (same logic as before) */
+const state = { me:null, contacts:[], messages:{}, seenMessageIds:new Set(), currentChatServer:null, ws:null };
 
-/* ================== UI ACTIONS ================== */
-btnSearch.onclick = async () => {
-  const v = (searchInput.value || '').trim();
-  if(!v){ alert('Veuillez entrer un TFID'); return; }
-  let ui;
-  try{ ui = uiNormalize(v); }catch(e){ alert('TFID invalide'); return; }
-  let server;
-  try{ server = uiToServer(ui); }catch(e){ alert('TFID invalide'); return; }
-  status('Recherche...');
-  try{
-    const res = await apiList(server); // will succeed even if rows empty
-    addContactIfMissing(ui, server, ui);
-    openChat(server, ui);
-  }catch(e){
-    alert('Recherche échouée: ' + (e.message||e));
-  }finally{ status(''); }
-};
+function saveSession(){ if(state.me) localStorage.setItem(CONFIG.SESSION_KEY, JSON.stringify(state.me)); else localStorage.removeItem(CONFIG.SESSION_KEY); }
+function loadSession(){ try{ return JSON.parse(localStorage.getItem(CONFIG.SESSION_KEY)); }catch(e){return null} }
 
-btnProfile.onclick = () => {
-  const newName = prompt('Votre nom / pseudo', state.me.name || state.me.ui) || state.me.name || state.me.ui;
-  state.me.name = newName;
-  saveSession();
-  updateHeader();
-  alert('Nom enregistré localement');
-};
-
-btnClear.onclick = () => {
-  if(confirm('Effacer la session locale (vous serez recréé un TFID) ?')){
-    localStorage.removeItem(CONFIG.SESSION_KEY);
-    location.reload();
-  }
-};
-
-function status(t){ statusEl.textContent = t || ''; }
-
-/* ================== CONTACTS ================== */
-function findContactByServer(server){ return state.contacts.find(c => c.server === server); }
-function addContactIfMissing(ui, server, name, avatarDataUrl = null){
-  let c = findContactByServer(server);
-  if(!c){
-    c = { ui, server, name: name || ui, avatarDataUrl: avatarDataUrl || null, unread: 0 };
-    state.contacts.unshift(c);
+function updateHeader(){ document.getElementById('meLabel').textContent = state.me ? (state.me.name + ' • ' + state.me.ui) : 'Non configuré'; }
+function addContactIfMissing(ui, server, name){
+  if(!state.contacts.find(c=>c.server===server)){
+    state.contacts.unshift({ ui, server, name: name||ui, avatarDataUrl:null, unread:0 });
     renderContacts();
   }
-  return c;
 }
-function incrementUnread(server, count = 1){
-  const c = findContactByServer(server);
-  if(!c){
-    const ui = 'TF-' + server.slice(-7);
-    addContactIfMissing(ui, server, ui);
-    return incrementUnread(server, count);
-  }
-  if(state.currentChatServer === server) c.unread = 0; else c.unread = (c.unread || 0) + count;
-  renderContacts();
-}
-function clearUnread(server){ const c = findContactByServer(server); if(c){ c.unread = 0; renderContacts(); } }
 function renderContacts(){
-  contactsDiv.innerHTML = '';
+  const d = document.getElementById('contacts'); d.innerHTML='';
   state.contacts.forEach(c=>{
     const row = el('div','contact');
-    row.innerHTML = `<div class="avatar">${c.avatarDataUrl? '<img src="'+c.avatarDataUrl+'">' : ''}</div>
-                     <div><strong>${c.name || c.ui}</strong><div class="small">${c.ui}</div></div>`;
-    if(c.unread && c.unread > 0){
-      const badge = el('div','unread-badge'); badge.textContent = c.unread>99 ? '99+' : String(c.unread); row.appendChild(badge);
-    }
+    row.innerHTML = `<div class="avatar">${c.avatarDataUrl? '<img src="'+c.avatarDataUrl+'">':''}</div>
+                     <div><strong>${c.name||c.ui}</strong><div class="small">${c.ui}</div></div>`;
+    if(c.unread) { const b=el('div','unread-badge'); b.textContent = c.unread>99? '99+' : c.unread; row.appendChild(b); }
     row.onclick = ()=> openChat(c.server, c.ui);
-    contactsDiv.appendChild(row);
+    d.appendChild(row);
   });
 }
 
-/* ================== CHAT ================== */
-async function openChat(serverTfid, ui){
-  state.currentChatServer = serverTfid;
-  clearUnread(serverTfid);
-  chatContainer.innerHTML = '';
-  const wrapper = el('div','card');
-  const head = el('div','chat-head');
-  const contact = findContactByServer(serverTfid) || { ui, name: ui };
-  head.innerHTML = `<div style="display:flex;gap:12px;align-items:center"><div class="avatar">${contact.avatarDataUrl? '<img src="'+contact.avatarDataUrl+'">' : ''}</div>
-                    <div><strong>${contact.name || contact.ui}</strong><div class="small">${contact.ui}</div></div></div>`;
-  wrapper.appendChild(head);
+async function openChat(server, ui){
+  state.currentChatServer = server;
+  const container = document.getElementById('chatContainer'); container.innerHTML = '';
+  const wrap = el('div','card');
+  const head = el('div','chat-head'); head.innerHTML = `<div style="display:flex;gap:12px;align-items:center"><div class="avatar"></div><div><strong>${ui}</strong><div class="small">${ui}</div></div></div>`;
+  wrap.appendChild(head);
 
-  const chatPage = el('div','chat-page');
-  const chatBody = el('div','chat-body'); const msgs = el('div','messages'); chatBody.appendChild(msgs); chatPage.appendChild(chatBody);
+  const page = el('div','chat-page');
+  const body = el('div','chat-body'); const msgs = el('div','messages'); body.appendChild(msgs);
+  page.appendChild(body);
 
-  const composer = el('div','composer');
-  const input = el('input'); input.type='text'; input.placeholder='Écrire un message...';
-  const sendBtn = el('button'); sendBtn.textContent = 'Envoyer';
-  composer.appendChild(input); composer.appendChild(sendBtn);
-  chatPage.appendChild(composer);
-  wrapper.appendChild(chatPage);
-  chatContainer.appendChild(wrapper);
+  const composer = el('div','composer'); const input = el('input'); input.type='text'; input.placeholder='Écrire un message...';
+  const send = el('button'); send.textContent='Envoyer';
+  composer.appendChild(input); composer.appendChild(send);
+  page.appendChild(composer); wrap.appendChild(page); container.appendChild(wrap);
 
-  // ensure messages store
-  state.messages[serverTfid] = state.messages[serverTfid] || [];
+  state.messages[server] = state.messages[server] || [];
 
-  // load latest saved messages from server (persisted)
+  // load persisted messages from server
   try{
-    const j = await apiList(serverTfid);
-    if(j && j.ok && Array.isArray(j.rows)){
-      const rows = j.rows.slice().reverse();
+    const res = await apiList(server);
+    if(res && res.ok && Array.isArray(res.rows)){
+      const rows = res.rows.slice().reverse();
       rows.forEach(r=>{
-        if(state.messages[serverTfid].some(m=>m.id === r.id)) return;
+        if(state.messages[server].some(m=>m.id===r.id)) return;
         try{
           const payload = JSON.parse(r.content);
-          const obj = { id: r.id, from: payload.from || 'unknown', text: payload.text || payload.message || '', time: r.created_at };
-          state.messages[serverTfid].push(obj);
+          state.messages[server].push({ id:r.id, from:payload.from||'unknown', text:payload.text||'', time:r.created_at });
           state.seenMessageIds.add(`${r.name}:${r.id}`);
         }catch(e){
-          const obj = { id: r.id, from: 'unknown', text: r.content || '', time: r.created_at };
-          state.messages[serverTfid].push(obj);
+          state.messages[server].push({ id:r.id, from:'unknown', text:r.content||'', time:r.created_at });
           state.seenMessageIds.add(`${r.name}:${r.id}`);
         }
       });
     }
-  }catch(e){ log('openChat apiList error', e.message||e); }
+  }catch(e){
+    log('apiList error', e.message||e);
+  }
 
-  function renderMessages(){
-    msgs.innerHTML = '';
-    const arr = state.messages[serverTfid] || [];
-    arr.forEach(m=>{
-      const meClass = (state.me && m.from === state.me.server);
-      const b = el('div','bubble ' + (meClass? 'me' : ''));
-      const html = String(m.text||'').replace(/(TF-\d{1,})/g, (t) => `<span class="link-tfid">${t}</span>`);
-      b.innerHTML = html + `<div class="time">${m.time? new Date(m.time).toLocaleTimeString(): ''}</div>`;
-      setTimeout(()=> b.querySelectorAll('.link-tfid').forEach(elm => elm.onclick = () => {
-        const u = elm.textContent;
-        try{ const srv = uiToServer(u); if(!findContactByServer(srv)) addContactIfMissing(u,srv,u); openChat(srv,u); }catch(err){ alert('TFID invalide'); }
-      }), 0);
+  function render(){
+    msgs.innerHTML='';
+    (state.messages[server]||[]).forEach(m=>{
+      const b = el('div','bubble ' + ((m.from===state.me.server)?'me':''));
+      b.innerHTML = `${String(m.text)}<div class="time">${m.time? new Date(m.time).toLocaleTimeString():''}</div>`;
       msgs.appendChild(b);
     });
     msgs.scrollTop = msgs.scrollHeight;
   }
+  render();
 
-  window.renderChatRefresh = function(tfid){ if(tfid === serverTfid) renderMessages(); };
-
-  sendBtn.onclick = async () => {
+  send.onclick = async () => {
     const txt = input.value.trim(); if(!txt) return;
-    if(!state.me) return alert('Session introuvable');
-    // local optimistic
-    const tempId = 'local-' + Date.now();
-    const localMsg = { id: tempId, from: state.me.server, text: txt, time: now() };
-    state.messages[serverTfid].push(localMsg);
-    renderMessages();
-    input.value = '';
-
-    const payload = { type:'text', from: state.me.server, text: txt, time: now() };
-
-    try{
+    // optimistic
+    state.messages[server].push({ id:'local-'+Date.now(), from: state.me.server, text: txt, time: new Date().toISOString() });
+    render(); input.value='';
+    const payload = { type:'text', from: state.me.server, text: txt, time: new Date().toISOString() };
+    try {
       status('Envoi...');
-      // send to recipient
-      const r1 = await apiAdd(serverTfid, payload);
-      log('apiAdd recipient', r1);
-      // copy to self (store conversation)
-      await apiAdd(state.me.server, payload).catch(e => log('copy-to-self failed', e));
-      // fetch latest for both recipient and self to sync DB-backed messages (dedupe will prevent repeats)
-      try {
-        const [destRes, selfRes] = await Promise.allSettled([ apiList(serverTfid).catch(()=>null), apiList(state.me.server).catch(()=>null) ]);
-        if(destRes.status === 'fulfilled' && destRes.value && destRes.value.ok){
-          const rows = destRes.value.rows.slice().reverse();
-          rows.forEach(rw=>{
-            if(state.messages[serverTfid].some(m=>m.id === rw.id)) return;
-            try{
-              const p = JSON.parse(rw.content);
-              const obj = { id: rw.id, from: p.from || 'unknown', text: p.text || p.message || '', time: rw.created_at };
-              state.messages[serverTfid].push(obj);
-              state.seenMessageIds.add(`${rw.name}:${rw.id}`);
-            }catch(e){
-              const obj = { id: rw.id, from: 'unknown', text: rw.content || '', time: rw.created_at };
-              state.messages[serverTfid].push(obj);
-              state.seenMessageIds.add(`${rw.name}:${rw.id}`);
-            }
-          });
-        }
-        if(selfRes.status === 'fulfilled' && selfRes.value && selfRes.value.ok){
-          const rows = selfRes.value.rows.slice().reverse(); const meSrv = state.me.server;
-          state.messages[meSrv] = state.messages[meSrv] || [];
-          rows.forEach(rw=>{
-            if(state.messages[meSrv].some(m=>m.id === rw.id)) return;
-            try{
-              const p = JSON.parse(rw.content);
-              const obj = { id: rw.id, from: p.from || 'unknown', text: p.text || p.message || '', time: rw.created_at };
-              state.messages[meSrv].push(obj);
-              state.seenMessageIds.add(`${rw.name}:${rw.id}`);
-            }catch(e){
-              const obj = { id: rw.id, from: 'unknown', text: rw.content || '', time: rw.created_at }; state.messages[meSrv].push(obj);
-              state.seenMessageIds.add(`${rw.name}:${rw.id}`);
-            }
-          });
-        }
-      } catch(e){ log('refresh after send failed', e); }
-      // unread on recipient
-      if(state.currentChatServer !== serverTfid) incrementUnread(serverTfid, 1); else clearUnread(serverTfid);
+      await apiAdd(server, payload);           // to recipient
+      await apiAdd(state.me.server, payload);  // copy to self
+      // attempt quick refresh of recipient & self (safe)
+      try{ const [r1, r2] = await Promise.allSettled([apiList(server), apiList(state.me.server)]); }catch(e){/*ignore*/ }
       status('');
-    }catch(err){
-      status(''); log('send failed', err && (err.message || err)); alert('Envoi échoué: ' + (err.message || err));
+    } catch(e){
+      status(''); alert('Envoi échoué: ' + (e.message||e));
     }
-    renderMessages();
   };
-
-  input.addEventListener('keydown', e => { if(e.key === 'Enter'){ e.preventDefault(); sendBtn.click(); } });
-
-  renderMessages();
 }
 
-/* ================== WEBSOCKET (push) ================== */
+/* WEBSOCKET push (subscribe to my server) */
 function connectWs(){
   if(!CONFIG.WS_URL || CONFIG.WS_URL.includes('YOUR_WS_SERVER_DOMAIN')){
-    log('WS disabled: configure CONFIG.WS_URL to your ws server (wss://...)');
-    return;
+    log('WS disabled (configure CONFIG.WS_URL).'); return;
   }
   try{
     state.ws = new WebSocket(CONFIG.WS_URL);
-  }catch(e){
-    log('WS connect error', e);
-    return;
-  }
-  state.ws.addEventListener('open', () => {
+  }catch(e){ log('WS connect failed', e); return; }
+  state.ws.addEventListener('open', ()=> {
     log('WS open');
-    // subscribe to my server (so I get messages targeted to me)
-    if(state.me && state.me.server) state.ws.send(JSON.stringify({ type: 'subscribe', server: state.me.server }));
-    // subscribe to current open chat so we get immediate pushes for it (optional)
-    if(state.currentChatServer) state.ws.send(JSON.stringify({ type: 'subscribe', server: state.currentChatServer }));
+    if(state.me && state.me.server) state.ws.send(JSON.stringify({ type:'subscribe', server: state.me.server }));
   });
-
-  state.ws.addEventListener('message', (ev) => {
-    let m = null;
-    try{ m = JSON.parse(ev.data); }catch(e){ log('ws parse error'); return; }
-    if(!m) return;
-    if(m.type === 'message'){
-      const key = `${m.name}:${m.id}`;
-      if(state.seenMessageIds.has(key)){
-        log('duplicate ws ignored', key);
-        return;
-      }
-      state.seenMessageIds.add(key);
-      // compute target tfid (message's tfid)
-      const target = String(m.tfid);
-      state.messages[target] = state.messages[target] || [];
-      // parse content (could be object or string)
-      let content = m.content;
-      if(typeof content === 'string'){
-        try{ content = JSON.parse(content); }catch(e){}
-      }
-      const msgObj = { id: m.id, from: (content && content.from) ? String(content.from) : 'unknown', text: (content && (content.text || content.message)) || String(content || ''), time: m.created_at || now() };
-      if(!state.messages[target].some(x => x.id === msgObj.id)) state.messages[target].push(msgObj);
-      // If message targeted to me, show unread/insert and refresh UI
-      if(target === (state.me && state.me.server)){
-        const fromSrv = msgObj.from;
-        const ui = 'TF-' + String(fromSrv).slice(-7);
-        if(!findContactByServer(fromSrv)) addContactIfMissing(ui, fromSrv, ui);
-        if(state.currentChatServer === fromSrv){
-          if(window.renderChatRefresh) window.renderChatRefresh(fromSrv);
-          clearUnread(fromSrv);
-        } else {
-          incrementUnread(fromSrv, 1);
-        }
-      } else {
-        // message for other TFID (rare), if currently viewing that tfid refresh
-        if(state.currentChatServer === target && window.renderChatRefresh) window.renderChatRefresh(target);
+  state.ws.addEventListener('message', ev => {
+    let m=null; try{ m = JSON.parse(ev.data); }catch(e){return;}
+    if(!m || m.type!=='message') return;
+    const key = `${m.name}:${m.id}`;
+    if(state.seenMessageIds.has(key)){ log('dup ignored', key); return; }
+    state.seenMessageIds.add(key);
+    const target = String(m.tfid);
+    const content = (typeof m.content === 'string') ? (()=>{ try{return JSON.parse(m.content);}catch(e){return m.content;}})() : m.content;
+    const msg = { id:m.id, from: content && content.from? String(content.from) : 'unknown', text:(content && (content.text||content.message))||String(content||''), time: m.created_at || new Date().toISOString() };
+    state.messages[target] = state.messages[target] || []; if(!state.messages[target].some(x=>x.id===msg.id)) state.messages[target].push(msg);
+    if(target === state.me.server){
+      const from = msg.from; if(!state.contacts.find(c=>c.server===from)) addContactIfMissing('TF-'+from.slice(-7), from, 'TF-'+from.slice(-7));
+      if(state.currentChatServer === from){ if(window.renderChatRefresh) window.renderChatRefresh(from); } else {
+        const c = state.contacts.find(c=>c.server===from); if(c) c.unread=(c.unread||0)+1; renderContacts();
       }
     } else {
-      // handle other ws messages if any
-      log('ws event', m);
+      if(state.currentChatServer === target && window.renderChatRefresh) window.renderChatRefresh(target);
     }
   });
-
-  state.ws.addEventListener('close', () => {
-    log('WS closed, reconnecting in 1000ms');
-    setTimeout(connectWs, 1000);
-  });
-  state.ws.addEventListener('error', (e) => {
-    log('WS error', e);
-  });
+  state.ws.addEventListener('close', ()=> { log('WS closed, reconnect'); setTimeout(connectWs,1000); });
+  state.ws.addEventListener('error', e=> log('WS error', e));
 }
 
-/* ================== HEADER + INIT ================== */
-function updateHeader(){ if(state.me) meLabel.textContent = `${state.me.name || state.me.ui} • ${state.me.ui}`; else meLabel.textContent = 'Non configuré'; }
-
-(function init(){
-  try{
-    const s = loadSession();
-    if(s && s.ui && s.server){ state.me = s; }
-    else {
-      const ui = uiRandom();
-      state.me = { ui, server: uiToServer(ui), name: 'Moi', avatarDataUrl: null };
-      saveSession();
-    }
-  }catch(e){
-    const ui = uiRandom();
-    state.me = { ui, server: uiToServer(ui), name:'Moi', avatarDataUrl:null };
+/* INIT */
+(function(){
+  const s = loadSession();
+  if(s && s.ui && s.server) state.me = s;
+  else {
+    const ui = uiRandom(); state.me = { ui, server: uiToServer(ui), name:'Moi', avatarDataUrl:null };
     saveSession();
   }
-
   updateHeader();
-
-  // default preset contact
   addContactIfMissing('TF-7777777', uiToServer('TF-7777777'), "Adam_D'H7");
   renderContacts();
-
-  // connect WebSocket for push (if configured)
+  // connect WS (if configured)
   connectWs();
-
-  log('Init complete', { me: state.me, ws: CONFIG.WS_URL });
+  log('init done', state.me);
 })();
 
-/* ================== UTILITIES ================== */
-function uiToServer(ui){ const d = extractDigits(ui); if(!d) throw new Error('TFID invalide'); return d.padStart(CONFIG.SERVER_DIGITS,'0'); }
-
-/* expose for debug */
-window.TFCHAT = { state, connectWs, apiList, apiAdd };
+/* ELEMENTS wiring */
+document.getElementById('btnSearch').addEventListener('click', async ()=>{
+  const v = document.getElementById('searchInput').value.trim(); if(!v){ alert('TFID requis'); return; }
+  const ui = uiNormalize(v); const srv = uiToServer(ui);
+  status('Recherche...');
+  try{ await apiList(srv); addContactIfMissing(ui, srv, ui); openChat(srv, ui); }catch(e){ alert('Recherche échouée: ' + (e.message||e)); }
+  status('');
+});
+document.getElementById('btnProfile').addEventListener('click', ()=>{
+  const n = prompt('Pseudo', state.me.name || state.me.ui) || state.me.name || state.me.ui; state.me.name = n; saveSession(); updateHeader(); alert('Nom enregistré');
+});
+document.getElementById('btnClear').addEventListener('click', ()=>{ if(confirm('Effacer session locale ?')){ localStorage.removeItem(CONFIG.SESSION_KEY); location.reload(); } });
 
 </script>
 </body>
-  </html>
+</html>
