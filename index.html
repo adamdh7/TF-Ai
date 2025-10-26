@@ -3,162 +3,298 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>TF-Sove - Chat</title>
+  <title>TF-Sove — Chat & AI</title>
   <style>
-    body{font-family:system-ui,Arial;margin:18px;max-width:920px}
-    header{display:flex;align-items:center;gap:12px}
-    .status{padding:6px 10px;border-radius:8px;font-weight:600}
-    .ok{background:#e6ffed;color:#0b6a2f}
-    .err{background:#ffe6e6;color:#921010}
-    #messages{margin-top:12px;list-style:none;padding:0}
-    #messages li{padding:8px;border:1px solid #eee;border-radius:8px;margin-bottom:8px}
-    #composer{margin-top:12px;display:flex;gap:8px}
-    #content{flex:1;padding:8px;border-radius:8px;border:1px solid #ccc}
-    button{padding:8px 12px;border-radius:8px;border:0;background:#2563eb;color:#fff;cursor:pointer}
+    :root{font-family:system-ui,Arial,Helvetica,sans-serif;color:#111}
+    body{max-width:980px;margin:18px auto;padding:12px}
+    header{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+    .status{padding:6px 10px;border-radius:8px;font-weight:700}
+    .ok{background:#e6ffed;color:#04662f}
+    .err{background:#ffecec;color:#8b1a1a}
+    .info{background:#eef6ff;color:#0a4b8c}
+    .small{color:#666;font-size:13px}
+    #controls{margin-top:12px;display:flex;gap:8px;flex-wrap:wrap}
+    input[type="text"],textarea,select{padding:8px;border-radius:8px;border:1px solid #ccc;font-size:15px}
+    textarea{min-height:80px;resize:vertical}
+    button{padding:8px 12px;border-radius:8px;border:0;background:#2563eb;color:#fff;cursor:pointer;font-weight:600}
+    button.secondary{background:#666}
     button:disabled{opacity:.5;cursor:not-allowed}
-    small.note{color:#666;display:block;margin-top:8px}
+    #composer{display:flex;gap:8px;margin-top:12px}
+    #messages{list-style:none;padding:0;margin-top:14px}
+    #messages li{padding:10px;border-radius:8px;border:1px solid #eee;margin-bottom:8px;background:#fff}
+    .meta{font-size:12px;color:#666;margin-top:6px}
+    .ai-box{margin-top:14px;padding:12px;border-radius:8px;border:1px dashed #cfe}
+    .flex{display:flex;gap:8px;align-items:center}
+    .grow{flex:1}
+    .muted{color:#777;font-size:13px}
   </style>
 </head>
 <body>
   <header>
     <h1>TF-Sove</h1>
-    <div id="status" class="status">Loading...</div>
+    <div id="status" class="status info">Loading…</div>
   </header>
 
-  <p>
-    <strong>Usage:</strong> ouvri <code>?tfid=12345678901234567&name=site1</code> nan URL la.<br/>
-    <small class="note">tfid dwe 17 chif. name dwe koresponn ak frontend ki anrejistre sou backend la.</small>
+  <p class="small">
+    Ouvri ak <code>?tfid=12345678901234567&amp;name=site1</code> oubyen antre yo anba. <strong>tfid</strong> dwe 17 chif menm egzak.
   </p>
 
-  <div id="app" style="display:none">
-    <p><strong>tfid:</strong> <span id="tfidSpan"></span> &nbsp; <strong>name:</strong> <span id="nameSpan"></span></p>
+  <!-- Config: mete API_BASE ak API_TOKEN la si ou vle.
+       PA mete API_TOKEN sou sit piblik pou prod. Kite vid epi itilize Worker si ou bezwen sekirite. -->
+  <script>
+    // Configure API base (backend running on Render)
+    const API_BASE = "https://tf-sove.onrender.com";
 
-    <div id="composer">
-      <input id="content" placeholder="Ekri mesaj..." />
-      <button id="sendBtn">Send Message</button>
+    // If you absolutely must use API token from frontend (NOT RECOMMENDED), put it here.
+    // Better: leave empty and use Cloudflare Worker as proxy to keep token secret.
+    const API_TOKEN = ""; // e.g. "tfstream_45dd9c02d4e34f18a42d"  <-- DO NOT expose in production
+  </script>
+
+  <!-- If tfid/name are missing, show inputs -->
+  <div id="paramArea">
+    <label>tfid (17 chif)
+      <input id="tfidInput" type="text" placeholder="12345678901234567" />
+    </label>
+    <label style="margin-left:8px">name
+      <input id="nameInput" type="text" placeholder="site1" />
+    </label>
+    <button id="openBtn">Open</button>
+    <div class="small" style="margin-top:8px">name dwe anrejistre sou backend (/admin/register-frontend).</div>
+  </div>
+
+  <!-- Main app -->
+  <div id="app" style="display:none">
+    <p><strong>tfid:</strong> <span id="tfidSpan"></span> — <strong>name:</strong> <span id="nameSpan"></span></p>
+
+    <div id="controls">
+      <div class="flex grow">
+        <input id="content" type="text" placeholder="Ekri yon mesaj..." class="grow" />
+        <button id="sendBtn">Send Message</button>
+      </div>
+
+      <div style="display:flex;gap:8px;align-items:center">
+        <button id="refreshBtn" class="secondary">Refresh</button>
+        <button id="clearBtn" class="secondary">Clear input</button>
+      </div>
     </div>
 
+    <div class="ai-box">
+      <h3>AI — Repons sou prompt</h3>
+      <textarea id="aiPrompt" placeholder="Ekri prompt AI la..." ></textarea>
+      <div style="margin-top:8px;display:flex;gap:8px">
+        <button id="aiBtn">Send to AI</button>
+        <select id="aiTokens">
+          <option value="256">256 tokens</option>
+          <option value="512" selected>512 tokens</option>
+          <option value="1024">1024 tokens</option>
+        </select>
+        <div class="muted">Repons AI ap parèt anba a.</div>
+      </div>
+      <pre id="aiOutput" style="white-space:pre-wrap;margin-top:12px;"></pre>
+    </div>
+
+    <h3 style="margin-top:18px">Sak stocké yo</h3>
     <ul id="messages"></ul>
   </div>
 
-  <script>
-  (function(){
-    const API_BASE = "https://tf-sove.onrender.com";
-    // Si ou vle ekspoze API_TOKEN sou frontend (pa rekòmande), ranplase string anba a.
-    // Ou te di: API_TOKEN=tfstream_45dd9c02d4e34f18a42d
-    const API_TOKEN = "tfstream_45dd9c02d4e34f18a42d"; // <--- SI OU PA VLE EKPOZE, mete "" epi itilize yon Worker pou proxy
+<script>
+(function(){
+  const API = API_BASE;
+  const TOKEN = API_TOKEN && API_TOKEN.length>0 ? API_TOKEN : null;
 
-    const params = new URL(location.href).searchParams;
-    const tfid = params.get("tfid") || "";
-    const name = params.get("name") || "";
+  const params = new URL(location.href).searchParams;
+  let tfid = params.get("tfid") || "";
+  let name = params.get("name") || "";
 
-    const statusEl = document.getElementById("status");
-    const appEl = document.getElementById("app");
-    const tfidSpan = document.getElementById("tfidSpan");
-    const nameSpan = document.getElementById("nameSpan");
-    const sendBtn = document.getElementById("sendBtn");
-    const contentInput = document.getElementById("content");
-    const messagesUl = document.getElementById("messages");
+  const statusEl = document.getElementById("status");
+  const paramArea = document.getElementById("paramArea");
+  const openBtn = document.getElementById("openBtn");
+  const tfidInput = document.getElementById("tfidInput");
+  const nameInput = document.getElementById("nameInput");
 
-    function setStatus(ok, text){
-      statusEl.className = "status " + (ok ? "ok" : "err");
-      statusEl.textContent = text;
-    }
+  const appEl = document.getElementById("app");
+  const tfidSpan = document.getElementById("tfidSpan");
+  const nameSpan = document.getElementById("nameSpan");
+  const sendBtn = document.getElementById("sendBtn");
+  const contentInput = document.getElementById("content");
+  const refreshBtn = document.getElementById("refreshBtn");
+  const clearBtn = document.getElementById("clearBtn");
+  const messagesUl = document.getElementById("messages");
 
-    // validate tfid (17 digits)
-    if (!/^\d{17}$/.test(tfid) || !name) {
-      setStatus(false, "Error: use ?tfid=17digits & name=yourname");
-      return;
-    }
+  const aiBtn = document.getElementById("aiBtn");
+  const aiPrompt = document.getElementById("aiPrompt");
+  const aiOutput = document.getElementById("aiOutput");
+  const aiTokens = document.getElementById("aiTokens");
+
+  let pollInterval = null;
+
+  function setStatus(ok, text){
+    statusEl.className = "status " + (ok ? "ok" : "err");
+    statusEl.textContent = text;
+  }
+
+  function escapeHtml(s){ return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+  function isValidTfid(v){ return /^\d{17}$/.test(v); }
+
+  function showParamInputs(){
+    paramArea.style.display = "block";
+    appEl.style.display = "none";
+  }
+
+  function showAppUI(){
+    paramArea.style.display = "none";
+    appEl.style.display = "block";
     tfidSpan.textContent = tfid;
     nameSpan.textContent = name;
+  }
 
-    // Check backend health
-    async function checkHealth(){
-      try {
-        const r = await fetch(API_BASE + "/health", { method: "GET" });
-        if (!r.ok) throw new Error("status " + r.status);
-        const j = await r.json();
-        setStatus(true, "Bien!");
-        appEl.style.display = "block";
-        return true;
-      } catch (err) {
-        setStatus(false, "Error: backend unreachable");
-        appEl.style.display = "none";
-        console.error("health:", err);
-        return false;
-      }
+  openBtn.addEventListener("click", ()=>{
+    const t = (tfidInput.value||"").trim();
+    const n = (nameInput.value||"").trim();
+    if (!isValidTfid(t)) return alert("tfid dwe 17 chif");
+    if (!n) return alert("name obligatwa");
+    tfid = t; name = n;
+    // update url
+    const u = new URL(location.href);
+    u.searchParams.set("tfid", tfid);
+    u.searchParams.set("name", name);
+    history.replaceState(null, "", u.toString());
+    initApp();
+  });
+
+  async function checkHealth(){
+    try {
+      const r = await fetch(API + "/health");
+      if (!r.ok) throw new Error("status " + r.status);
+      const j = await r.json().catch(()=>null);
+      setStatus(true, "Bien!");
+      return true;
+    } catch (e) {
+      setStatus(false, "Error: backend unreachable");
+      console.error("health error", e);
+      return false;
     }
+  }
 
-    // Load messages
-    async function loadMessages(){
-      try {
-        const url = `${API_BASE}/api/list?tfid=${encodeURIComponent(tfid)}&name=${encodeURIComponent(name)}`;
-        const r = await fetch(url, { headers: API_TOKEN ? {"x-api-token": API_TOKEN} : {} });
-        if (!r.ok) {
-          console.warn("list status", r.status);
-          return;
-        }
-        const j = await r.json();
-        const rows = j.rows || [];
-        // render
-        messagesUl.innerHTML = "";
-        for (const row of rows) {
-          const li = document.createElement("li");
-          const time = row.created_at ? ` — ${escapeHtml(row.created_at)}` : "";
-          li.innerHTML = `<div><strong>#${row.id}</strong> ${escapeHtml(row.content)}<div style="font-size:12px;color:#666">${escapeHtml(row.tfid || "")}${time}</div></div>`;
-          messagesUl.appendChild(li);
-        }
-      } catch (err) {
-        console.error("loadMessages error", err);
+  async function loadMessages(){
+    if (!isValidTfid(tfid) || !name) return;
+    try {
+      const url = `${API}/api/list?tfid=${encodeURIComponent(tfid)}&name=${encodeURIComponent(name)}`;
+      const headers = TOKEN ? { "x-api-token": TOKEN } : {};
+      const r = await fetch(url, { headers });
+      if (!r.ok) {
+        // display error inline
+        console.warn("list failed", r.status);
+        return;
       }
-    }
-
-    // Send message
-    async function sendMessage(){
-      const content = contentInput.value.trim();
-      if (!content) return;
-      sendBtn.disabled = true;
-      try {
-        const body = { tfid, name, content };
-        const r = await fetch(API_BASE + "/api/add", {
-          method: "POST",
-          headers: Object.assign({"Content-Type":"application/json"}, API_TOKEN ? {"x-api-token": API_TOKEN} : {}),
-          body: JSON.stringify(body)
-        });
-        if (!r.ok) {
-          const txt = await r.text().catch(()=>"");
-          alert("Error sending message: " + (txt || r.status));
-          console.error("send failed:", r.status, txt);
-        } else {
-          contentInput.value = "";
-          await loadMessages();
-        }
-      } catch (err) {
-        console.error("sendMessage err", err);
-        alert("Send failed: " + err.message);
-      } finally {
-        sendBtn.disabled = false;
+      const j = await r.json().catch(()=>null);
+      const rows = j && j.rows ? j.rows : [];
+      messagesUl.innerHTML = "";
+      for (const row of rows) {
+        const li = document.createElement("li");
+        const ts = row.created_at ? ` — ${escapeHtml(row.created_at)}` : "";
+        li.innerHTML = `<div><strong>#${row.id}</strong> ${escapeHtml(row.content)}<div class="meta">${escapeHtml(row.tfid||"")}${ts}</div></div>`;
+        messagesUl.appendChild(li);
       }
+    } catch (err) {
+      console.error("loadMessages err", err);
     }
+  }
 
-    // small escape
-    function escapeHtml(s){ return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+  async function sendMessage(){
+    if (!isValidTfid(tfid) || !name) return alert("tfid/name invalid");
+    const content = (contentInput.value||"").trim();
+    if (!content) return;
+    sendBtn.disabled = true;
+    try {
+      const url = API + "/api/add";
+      const headers = Object.assign({"Content-Type":"application/json"}, TOKEN ? {"x-api-token": TOKEN} : {});
+      const res = await fetch(url, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ tfid, name, content })
+      });
+      if (!res.ok) {
+        const t = await res.text().catch(()=>"(no text)");
+        alert("Send failed: " + (t || res.status));
+        console.error("send failed", res.status, t);
+      } else {
+        contentInput.value = "";
+        await loadMessages();
+      }
+    } catch (err) {
+      console.error("send error", err);
+      alert("Send error: " + err.message);
+    } finally {
+      sendBtn.disabled = false;
+    }
+  }
 
-    // events
-    sendBtn.addEventListener("click", sendMessage);
-    contentInput.addEventListener("keydown", (e)=>{ if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } });
+  async function sendToAI(){
+    const prompt = (aiPrompt.value||"").trim();
+    if (!prompt) return alert("Prompt vide");
+    aiBtn.disabled = true;
+    aiOutput.textContent = "Loading AI response…";
+    try {
+      const url = API + "/api/ai";
+      const headers = Object.assign({"Content-Type":"application/json"}, TOKEN ? {"x-api-token": TOKEN} : {});
+      const r = await fetch(url, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ tfid, name, prompt, max_output_tokens: parseInt(aiTokens.value || "512", 10) })
+      });
+      const j = await r.json().catch(()=>null);
+      if (!r.ok || !j) {
+        const txt = j ? JSON.stringify(j) : "AI error";
+        aiOutput.textContent = "AI error: " + txt;
+        console.error("AI error", r.status, j);
+      } else {
+        aiOutput.textContent = j.ai || JSON.stringify(j);
+      }
+    } catch (err) {
+      console.error("AI request err", err);
+      aiOutput.textContent = "AI request error: " + err.message;
+    } finally {
+      aiBtn.disabled = false;
+    }
+  }
 
-    // init
-    (async ()=>{
-      const ok = await checkHealth();
-      if (!ok) return;
-      await loadMessages();
-      // poll messages every 2500ms
-      setInterval(loadMessages, 2500);
-    })();
+  refreshBtn.addEventListener("click", loadMessages);
+  clearBtn.addEventListener("click", ()=> contentInput.value = "");
+  sendBtn.addEventListener("click", sendMessage);
+  contentInput.addEventListener("keydown", (e)=> { if (e.key==="Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); }});
+  aiBtn.addEventListener("click", sendToAI);
 
-  })();
-  </script>
+  async function initApp(){
+    if (!isValidTfid(tfid) || !name) {
+      showParamInputs();
+      setStatus(false, "Error: use ?tfid=17digits & name=yourname or enter below");
+      return;
+    }
+    const ok = await checkHealth();
+    if (!ok) return;
+    showAppUI();
+    await loadMessages();
+    if (pollInterval) clearInterval(pollInterval);
+    pollInterval = setInterval(loadMessages, 2500);
+  }
+
+  // init based on URL
+  if (isValidTfid(tfid) && name) {
+    // hide param area and init
+    tfidInput.value = tfid;
+    nameInput.value = name;
+    initApp();
+  } else {
+    // show param area
+    tfidInput.value = tfid;
+    nameInput.value = name;
+    showParamInputs();
+    setStatus(false, "Enter tfid (17 digits) and name then click Open");
+  }
+
+})();
+</script>
 </body>
-</html>
+      </html>
