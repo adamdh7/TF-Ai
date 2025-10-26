@@ -217,21 +217,18 @@ async function loadConversation(me17, other17){
   const key = convKey(me17, other17);
   conversationCache[key] = conversationCache[key] || [];
 
-  // --- OUTGOING: messages saved under recipient (other17) that have parsed.from === me17 ---
+  // --- OUTGOING: messages saved under recipient that have parsed.from === me17 ---
   try{
     const outRows = await apiList(other17);
     for(const r of outRows){
       let parsed = null;
       try{ parsed = JSON.parse(r.content); } catch(e){ parsed = null; }
-      // only include messages where parsed.from exactly equals me17
       if(!parsed || !parsed.from) continue;
       if(parsed.from !== me17) continue;
       const msg = { id: r.id, cid: parsed.cid || null, from: parsed.from, text: parsed.text || "", created_at: r.created_at };
       addOrUpdateMessageToCache(me17, other17, msg);
     }
-  }catch(e){
-    // ignore load errors
-  }
+  }catch(e){ /* ignore */ }
 
   // --- INCOMING: messages saved under my tf17 that have parsed.from === other17 ---
   try{
@@ -244,9 +241,7 @@ async function loadConversation(me17, other17){
       const msg = { id: r.id, cid: parsed.cid || null, from: parsed.from, text: parsed.text || "", created_at: r.created_at };
       addOrUpdateMessageToCache(me17, other17, msg);
     }
-  }catch(e){
-    // ignore
-  }
+  }catch(e){ /* ignore */ }
 
   renderConversation(me17, other17);
 }
@@ -281,6 +276,10 @@ async function openChat(other17, contactObj=null){
   const c = contacts.find(x => x.tf17 === other17);
   if(c){ c.unread = 0; saveState(); renderContacts(); }
   await loadConversation(me.tf17, other17);
+  // ensure WS subscription for me.tf17 (server handles)
+  if(ws && ws.readyState === WebSocket.OPEN) {
+    try { ws.send(JSON.stringify({ type:"subscribe", tfid: me.tf17 })); } catch(e){}
+  }
 }
 
 async function sendToCurrent(text){
@@ -295,11 +294,40 @@ async function sendToCurrent(text){
   renderConversation(me.tf17, currentPartner.tf17);
 
   try {
-    await apiAdd(currentPartner.tf17, payload);
-    // rely on WS to finalize (server will broadcast stored message with id)
+    const resp = await apiAdd(currentPartner.tf17, payload);
+    // start short poll fallback to ensure recipient gets message even if WS missed (max 5 tries)
+    startShortPollForMessage(currentPartner.tf17, payload.cid);
   } catch(e){
     alert("Envoi échoué : " + (e.message || e));
   }
+}
+
+/* short poll: after sending, try N times to fetch server list and sync once server has stored message (match by cid) */
+function startShortPollForMessage(target17, cid){
+  let tries = 0;
+  const maxTries = 6;
+  const attempt = async ()=>{
+    tries++;
+    try {
+      // check recipient storage (server stored under target17)
+      const rows = await apiList(target17);
+      const found = rows.find(r => {
+        try { const p = JSON.parse(r.content); return p && p.cid === cid; } catch(e){ return false; }
+      });
+      if(found){
+        // also fetch my storage to ensure incoming saved message is available for me (often server stores under recipient only)
+        // We will merge for both sides:
+        await loadConversation(me.tf17, target17);
+        return true;
+      }
+    } catch(e){
+      // ignore error
+    }
+    if(tries < maxTries) {
+      setTimeout(attempt, 1200);
+    }
+  };
+  attempt();
 }
 
 /* ========== CONTACTS & UI helpers ========== */
@@ -342,7 +370,6 @@ function connectWS(){
         const payload = data;
         let parsed = null;
         try{ parsed = JSON.parse(payload.content); } catch(e){ parsed = null; }
-        // require parsed.from (we only handle structured chat messages that include from)
         if(!parsed || !parsed.from) return;
 
         const recipient = payload.tfid || null;
@@ -351,17 +378,15 @@ function connectWS(){
         const text = parsed.text || "";
         const created = payload.created_at || nowISO();
 
-        // determine other endpoint relative to me
         const isForMe = (recipient === me.tf17);
         const other = isForMe ? from : recipient;
         if(!other) return;
 
-        // build msg
         const msgObj = { id: serverId, cid: parsed.cid || null, from, text, created_at: created };
 
-        // add/update cache only if it's between me and other
         addOrUpdateMessageToCache(me.tf17, other, msgObj);
 
+        // if currently viewing that chat — render and mark read
         if(currentPartner && currentPartner.tf17 === other){
           renderConversation(me.tf17, other);
         } else if(isForMe){
@@ -386,6 +411,8 @@ async function initUI(){
 
   if(!me.tf17){
     if(confirm("Vous n'êtes pas identifié. Voulez-vous entrer votre TFID maintenant ?")) await promptForMe();
+  } else {
+    connectWS();
   }
 
   searchBtn.onclick = async ()=>{
@@ -403,8 +430,6 @@ async function initUI(){
   document.getElementById("settingsBtn").onclick = async ()=>{ const newShort = prompt("Modifier votre TFID (ex: TF-0204143 ou 0204143) :", me.short||""); if(newShort){ const d = normalizeInputToDigits(newShort); if(!d){ alert("TFID invalide"); } else { me.short = d.slice(-7); me.tf17 = to17(me.short); } } const newName = prompt("Pseudo / nom affiché :", me.name||""); if(newName) me.name = newName; saveState(); renderMe(); renderContacts(); if(ws){ try{ ws.close(); }catch(e){} } connectWS(); };
 
   if(contacts.length>0) openChat(contacts[0].tf17, contacts[0]);
-
-  connectWS();
 }
 
 initUI();
