@@ -2,514 +2,319 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
-<title>TF-Chat — iOS style</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>TF-Chat — Simple</title>
 <style>
-:root{
-  --bg:#f2f2f5; --card:#fff; --muted:#8e8e93; --accent:#128C7E; --green:#25D366;
-  --bubble-me:#DCF8C6; --bubble-other:#fff; --maxw:980px; --narrow:460px; --radius:16px;
-}
-*{box-sizing:border-box}
-html,body{height:100%;margin:0;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Arial;background:var(--bg);-webkit-font-smoothing:antialiased;color:#111}
-.app{max-width:var(--maxw);margin:0 auto;height:100vh;display:flex;flex-direction:column;border-left:1px solid rgba(0,0,0,0.04);border-right:1px solid rgba(0,0,0,0.04)}
-.header{height:88px;display:flex;align-items:flex-end;padding:14px 16px;background:linear-gradient(180deg, rgba(255,255,255,0.95), transparent)}
-.h-left{display:flex;gap:12px;align-items:center}
-.h-title{font-weight:800;font-size:22px}
-.h-sub{font-size:12px;color:var(--muted)}
-.container{flex:1;overflow:auto;padding:12px 12px 100px}
-.card{background:var(--card);border-radius:12px;padding:12px;margin-bottom:12px;box-shadow:0 1px 0 rgba(0,0,0,0.03)}
-.search{width:100%;padding:10px;border-radius:12px;border:1px solid #eee;background:#fff;margin-bottom:10px;font-size:15px}
-.row{display:flex;align-items:center;gap:12px}
-.avatar{width:56px;height:56px;border-radius:50%;background:#ddd;overflow:hidden;flex-shrink:0}
-.avatar.large{width:92px;height:92px;border-radius:50%}
-.avatar img{width:100%;height:100%;object-fit:cover}
-.list{display:flex;flex-direction:column;gap:8px}
-.contact{display:flex;align-items:center;gap:12px;padding:12px;border-radius:12px;background:#fff;cursor:pointer;border:1px solid #f0f0f0}
-.contact .info{flex:1}
-.contact .name{font-weight:700}
-.contact .meta{font-size:13px;color:var(--muted)}
-.fab{position:fixed;right:18px;bottom:120px;width:62px;height:62px;border-radius:31px;background:var(--green);display:flex;align-items:center;justify-content:center;color:#fff;font-size:30px;cursor:pointer;z-index:120;box-shadow:0 8px 20px rgba(0,0,0,0.12)}
-.tabbar{height:64px;border-top:1px solid rgba(0,0,0,0.04);display:flex;align-items:center;justify-content:space-around;background:transparent;position:fixed;left:0;right:0;bottom:0;max-width:var(--maxw);margin:0 auto}
-.tab{font-size:13px;color:var(--muted);cursor:pointer;width:33%;text-align:center;padding:10px 0}
-.page{width:100%;max-width:var(--narrow);height:94vh;background:var(--card);border-radius:12px;display:flex;flex-direction:column;overflow:hidden;margin:12px auto}
-.chat-page{position:relative;display:flex;flex-direction:column;height:100%}
-.chat-head{height:78px;display:flex;align-items:center;padding:12px;border-bottom:1px solid #eee;background:var(--card)}
-.chat-body{flex:1;overflow:auto;padding:14px;background:linear-gradient(#f2f2f5,#f2f2f5)}
-.messages{display:flex;flex-direction:column;gap:10px}
-.bubble{max-width:78%;padding:10px 12px;border-radius:16px;background:var(--bubble-other);align-self:flex-start;white-space:pre-wrap;word-break:break-word}
-.bubble.me{background:var(--bubble-me);align-self:flex-end}
-.time{display:block;font-size:11px;color:var(--muted);margin-top:6px;text-align:right}
-.composer{display:flex;gap:8px;padding:10px;border-top:1px solid #eee;align-items:center;background:var(--card);position:sticky;bottom:0}
-.composer input{flex:1;padding:10px;border-radius:20px;border:1px solid #eee;font-size:15px}
-.btn{background:var(--accent);color:#fff;padding:9px 12px;border-radius:12px;border:none;cursor:pointer;font-weight:700}
-.btn.ghost{background:transparent;color:var(--accent);border:1px solid rgba(18,140,126,0.12)}
-.small{font-size:12px;color:var(--muted)}
-.link-tfid{color:var(--accent);cursor:pointer;text-decoration:underline}
-.center{display:flex;align-items:center;justify-content:center}
-@media(min-width:900px){
-  .page{max-width:720px}
-  .fab{right:calc((100% - var(--maxw))/2 + 18px)}
-  .tabbar{left:calc((100% - var(--maxw))/2);right:calc((100% - var(--maxw))/2)}
-}
+  :root{--bg:#f2f2f5;--card:#fff;--muted:#7a7a7a;--accent:#128C7E;--green:#25D366}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;background:var(--bg);color:#111}
+  .wrap{max-width:900px;margin:0 auto;height:100vh;display:flex;flex-direction:column}
+  header{height:84px;display:flex;align-items:flex-end;padding:14px 16px;background:linear-gradient(180deg, #fff, rgba(255,255,255,0.8))}
+  .title{font-weight:800;font-size:22px}
+  main{flex:1;overflow:auto;padding:12px}
+  .card{background:var(--card);padding:12px;border-radius:12px;margin-bottom:12px;box-shadow:0 1px 0 rgba(0,0,0,0.04)}
+  .search{width:100%;padding:12px;border-radius:12px;border:1px solid #eee;font-size:16px}
+  .row{display:flex;gap:8px;margin-top:8px}
+  button{padding:10px 12px;border-radius:10px;border:0;background:var(--accent);color:#fff;cursor:pointer;font-weight:700}
+  .btn-ghost{background:transparent;color:var(--accent);border:1px solid rgba(18,140,126,0.12)}
+  .contacts{display:flex;flex-direction:column;gap:8px}
+  .contact{display:flex;align-items:center;gap:12px;padding:12px;background:#fff;border-radius:10px;cursor:pointer;border:1px solid #f0f0f0}
+  .avatar{width:56px;height:56px;border-radius:50%;background:#ddd;flex-shrink:0}
+  .chat-page{display:flex;flex-direction:column;height:calc(100vh - 160px)}
+  .chat-head{display:flex;align-items:center;gap:12px;padding:12px;border-bottom:1px solid #eee}
+  .chat-body{flex:1;overflow:auto;padding:12px;background:linear-gradient(#f2f2f5,#f2f2f5)}
+  .messages{display:flex;flex-direction:column;gap:8px}
+  .bubble{max-width:78%;padding:10px 12px;border-radius:14px;background:#fff;align-self:flex-start;word-break:break-word}
+  .bubble.me{background:#dcf8c6;align-self:flex-end}
+  .composer{display:flex;gap:8px;padding:10px;border-top:1px solid #eee;background:var(--card)}
+  input[type="text"], textarea{width:100%;padding:10px;border-radius:10px;border:1px solid #eee}
+  .small{font-size:13px;color:var(--muted)}
+  .link-tfid{color:var(--accent);text-decoration:underline;cursor:pointer}
+  @media(min-width:900px){ .wrap{border-left:1px solid rgba(0,0,0,0.04);border-right:1px solid rgba(0,0,0,0.04)} }
 </style>
 </head>
 <body>
-<div class="app" id="app">
-  <div class="header">
-    <div class="h-left">
-      <div class="avatar" id="hdrAvatar"></div>
-      <div>
-        <div class="h-title">TF-Chat</div>
-        <div class="h-sub" id="hdrSub">Conversations</div>
+<div class="wrap" id="app">
+  <header>
+    <div>
+      <div class="title">TF-Chat</div>
+      <div class="small" id="meLabel">...</div>
+    </div>
+  </header>
+
+  <main id="main">
+    <div class="card">
+      <input id="searchInput" class="search" placeholder="Entrer TFID (ex: TF-0204143 ou 0204143) puis Appuyer Rechercher">
+      <div class="row" style="margin-top:10px">
+        <button id="btnSearch">Rechercher</button>
+        <button id="btnMyProfile" class="btn-ghost">Mon profil / Paramètres</button>
       </div>
     </div>
-    <div style="margin-left:auto">
-      <button class="btn ghost" id="btnParams">Paramètres</button>
+
+    <div id="contentArea">
+      <div class="card">
+        <div class="small">Contacts récents</div>
+        <div id="contacts" class="contacts"></div>
+      </div>
+      <div id="chatContainer"></div>
     </div>
-  </div>
-
-  <div class="container" id="container"></div>
-
-  <div class="fab" id="fab" title="Ajouter">＋</div>
-
-  <div class="tabbar" role="tablist">
-    <div class="tab" id="tabAccueil">Accueil</div>
-    <div class="tab" id="tabContacts">Contacts</div>
-    <div class="tab" id="tabParamsFooter">Paramètres</div>
-  </div>
+  </main>
 </div>
 
 <script>
-/* TF-Chat simplified & adaptive
-   - Auto-generate TFID for visitor and save in localStorage
-   - No forced login; user can change name/avatar in Paramètres
-   - Clickable TFID in messages opens contact page
-   - Backend: https://tf-sove.onrender.com (x-api-token below)
+/*
+  Simple TF-Chat frontend:
+  - Generate TFID (TF-xxxxxxx) for visitor and store in localStorage
+  - Search TFID -> check https://tf-sove.onrender.com/api/list?tfid=<17>&name=Adam_DH7
+  - If found, open chat, allow send; messages stored via POST /api/add
+  - Poll own TFID every 3s to get messages
 */
 const CONFIG = {
-  saveHost: "https://tf-sove.onrender.com",
-  apiAdd: "/api/add",
-  apiList: "/api/list",
-  apiToken: "tfstream_45dd9c02d4e34f18a42d",
-  frontendName: "Adam_DH7",
-  uiDigits: 7,
-  serverDigits: 17,
-  pollMs: 2500,
-  sessionKey: "tfchat_session"
+  SAVE_HOST: "https://tf-sove.onrender.com",
+  API_LIST: "/api/list",
+  API_ADD: "/api/add",
+  API_TOKEN: "tfstream_45dd9c02d4e34f18a42d",
+  FRONTEND_NAME: "Adam_DH7",
+  UI_DIGITS: 7,
+  SERVER_DIGITS: 17,
+  POLL_MS: 3000,
+  SESSION_KEY: "tfchat_session"
 };
 
 let state = {
-  me: null,        // { uiTfid, serverTfid, name, avatarDataUrl }
-  contacts: [],    // list of {name, uiTfid, serverTfid}
-  messages: {},    // serverTfid => [{...}]
-  pollId: null
+  me: null,         // { ui, server, name, avatar }
+  contacts: [],     // [{ui, server, name}]
+  messages: {},     // server -> [ {id, from, text, time} ]
+  pollId: null,
+  currentChatServer: null
 };
 
-/* DOM refs */
-const container = document.getElementById('container');
-const fab = document.getElementById('fab');
-const hdrAvatar = document.getElementById('hdrAvatar');
-document.getElementById('tabAccueil').onclick = () => navigateTo('/Accueil');
-document.getElementById('tabContacts').onclick = () => navigateTo('/contacts');
-document.getElementById('tabParamsFooter').onclick = () => navigateTo('/parametres');
-document.getElementById('btnParams').onclick = () => navigateTo('/parametres');
-fab.onclick = () => openAddMenu();
+/* helpers */
+function el(tag, cls){ const e = document.createElement(tag); if(cls) e.className = cls; return e; }
+function uiRandom(){ return 'TF-' + Math.floor(Math.random()*1e7).toString().padStart(CONFIG.UI_DIGITS,'0'); }
+function extractDigits(s){ const m = String(s||'').match(/\d+/g); return m? m.join('') : ''; }
+function uiNormalize(v){ v = String(v||'').trim(); if(!v) return ''; if(v.startsWith('TF-')) return v; const d = extractDigits(v); return 'TF-' + d.padStart(CONFIG.UI_DIGITS,'0'); }
+function uiToServer(ui){ const d = extractDigits(ui); if(!d) throw new Error('TFID invalide'); return d.padStart(CONFIG.SERVER_DIGITS,'0'); }
+function now(){ return new Date().toISOString(); }
+function saveSession(){ if(state.me) localStorage.setItem(CONFIG.SESSION_KEY, JSON.stringify(state.me)); else localStorage.removeItem(CONFIG.SESSION_KEY); }
+function loadSession(){ try{ const s = localStorage.getItem(CONFIG.SESSION_KEY); return s? JSON.parse(s):null }catch(e){return null} }
 
-/* Helpers */
-function el(tag, cls){ const e=document.createElement(tag); if(cls) e.className=cls; return e; }
-function nowISO(){ return new Date().toISOString(); }
-function extractDigits(s){ const m=String(s||'').match(/\d+/g); return m?m.join(''):null; }
-function uiNormalize(v){ v=String(v||'').trim(); if(!v) return ''; if(v.startsWith('TF-')) return v; const d=extractDigits(v)||''; return 'TF-'+d.padStart(CONFIG.uiDigits,'0'); }
-function uiRandom(){ return 'TF-'+Math.floor(Math.random()*1e7).toString().padStart(CONFIG.uiDigits,'0'); }
-function uiToServer(ui){ const digits = extractDigits(ui); if(!digits) throw new Error('TFID invalide'); return digits.padStart(CONFIG.serverDigits,'0'); }
-function saveSession(){ if(state.me) localStorage.setItem(CONFIG.sessionKey, JSON.stringify(state.me)); else localStorage.removeItem(CONFIG.sessionKey); }
-function loadSession(){ const s=localStorage.getItem(CONFIG.sessionKey); if(!s) return null; try{return JSON.parse(s);}catch(e){return null;} }
-function prettyTime(iso){ try{ const d=new Date(iso); return d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}); }catch(e){return '';} }
-
-/* Network */
-async function postSave(targetServerTfid, contentObj){
-  const body = { tfid: targetServerTfid, name: CONFIG.frontendName, content: JSON.stringify(contentObj) };
-  const resp = await fetch(CONFIG.saveHost + CONFIG.apiAdd, {
+/* network */
+async function apiList(serverTfid){
+  const url = new URL(CONFIG.SAVE_HOST + CONFIG.API_LIST);
+  url.searchParams.set('tfid', serverTfid);
+  url.searchParams.set('name', CONFIG.FRONTEND_NAME);
+  const resp = await fetch(url.toString(), { headers: { 'x-api-token': CONFIG.API_TOKEN }});
+  if(!resp.ok) throw new Error('list failed ' + resp.status);
+  return resp.json();
+}
+async function apiAdd(serverTfid, contentObj){
+  const body = { tfid: serverTfid, name: CONFIG.FRONTEND_NAME, content: JSON.stringify(contentObj) };
+  const resp = await fetch(CONFIG.SAVE_HOST + CONFIG.API_ADD, {
     method: 'POST',
-    headers: { 'Content-Type':'application/json', 'x-api-token': CONFIG.apiToken },
+    headers: { 'Content-Type':'application/json', 'x-api-token': CONFIG.API_TOKEN },
     body: JSON.stringify(body)
   });
-  if(!resp.ok) throw new Error('save failed '+resp.status);
-  return resp.json().catch(()=>null);
-}
-async function listSave(serverTfid){
-  const url = new URL(CONFIG.saveHost + CONFIG.apiList);
-  url.searchParams.set('tfid', serverTfid);
-  url.searchParams.set('name', CONFIG.frontendName);
-  const resp = await fetch(url.toString(), { headers: { 'x-api-token': CONFIG.apiToken }});
-  if(!resp.ok) throw new Error('list failed '+resp.status);
-  const j = await resp.json().catch(()=>null);
-  return (j && j.ok && Array.isArray(j.rows)) ? j.rows : [];
+  if(!resp.ok) throw new Error('add failed ' + resp.status);
+  return resp.json();
 }
 
-/* Polling */
-function startPolling(){ stopPolling(); if(!state.me) return; pollOnce(); state.pollId = setInterval(pollOnce, CONFIG.pollMs); }
-function stopPolling(){ if(state.pollId) clearInterval(state.pollId); state.pollId=null; }
-async function pollOnce(){
-  if(!state.me) return;
+/* UI wiring */
+const meLabel = document.getElementById('meLabel');
+const searchInput = document.getElementById('searchInput');
+const btnSearch = document.getElementById('btnSearch');
+const btnMyProfile = document.getElementById('btnMyProfile');
+const contactsDiv = document.getElementById('contacts');
+const chatContainer = document.getElementById('chatContainer');
+
+btnSearch.onclick = async ()=>{
+  const v = (searchInput.value || '').trim();
+  if(!v){ alert('Entrer un TFID'); return; }
+  let ui;
+  try{ ui = uiNormalize(v); }catch(e){ alert('TFID invalide'); return; }
+  const server = uiToServer(ui);
+  // call backend list to check existence
   try{
-    const rows = await listSave(state.me.serverTfid);
-    for(let i = rows.length -1; i >=0; i--){
-      const r = rows[i];
-      const tf = r.tfid;
-      state.messages[tf] = state.messages[tf] || [];
-      if(state.messages[tf].some(m=>m._remoteId===r.id)) continue;
-      let payload;
-      try{ payload = JSON.parse(r.content); }catch(e){ payload = { type:'text', text:r.content }; }
-      if(payload.type === 'text' || payload.type === 'file'){
-        const msg = { _remoteId: r.id, from: payload.from || 'unknown', type: payload.type, text: payload.text || payload.message || null, time: r.created_at || nowISO() };
-        state.messages[tf].push(msg);
-        if(window.__renderChatFor) window.__renderChatFor(tf);
-      } else if(payload.type === 'contact_add' && payload.contact){
-        if(!state.contacts.some(c=>c.serverTfid===payload.contact.serverTfid)) state.contacts.unshift(payload.contact);
-      }
+    showStatus('Recherche...');
+    const j = await apiList(server);
+    // if backend responds ok and rows present => open chat
+    if(j && j.ok){
+      // open chat with that server
+      openChat(server, ui);
+    } else {
+      alert('TFID introuvable sur le serveur.');
     }
-  }catch(e){ console.warn('poll', e); }
-}
+  }catch(err){
+    console.warn(err);
+    alert('Erreur réseau / tfid introuvable');
+  }finally{ showStatus(''); }
+};
 
-/* Routing */
-function navigateTo(path, opts={replace:false}){ if(opts.replace) history.replaceState({path}, '', path); else history.pushState({path}, '', path); route(); }
-window.addEventListener('popstate', route);
-function route(){
-  const p = location.pathname;
-  if(p === '/konekte' || p === '/login') return renderKonekte();
-  if(p === '/' || p === '/Accueil' || p === '/accueil') return renderAccueil();
-  if(p === '/contacts') return renderContacts();
-  if(p === '/parametres' || p === '/parametre') return renderParametres();
-  if(p.startsWith('/chat/')) return openChatByUi(decodeURIComponent(p.slice(6)));
-  if(p.startsWith('/name/')) return renderUserPage(decodeURIComponent(p.slice(6)));
-  return renderAccueil();
-}
+btnMyProfile.onclick = ()=>{
+  const name = prompt('Votre nom / pseudo', state.me.name || state.me.ui) || state.me.name || state.me.ui;
+  state.me.name = name;
+  saveSession();
+  updateHeader();
+  alert('Nom enregistré localement. (profil sera partagé via messages si besoin)');
+};
 
-/* Pages */
-
-/* Konekte page - now visitor auto assigned TFID so this page offers change name/avatar */
-function renderKonekte(){
-  container.innerHTML = '';
-  fab.style.display = 'none';
-  const p = el('div'); p.className='page';
-  const head = el('div'); head.className='head'; head.innerHTML = `<div style="flex:1;text-align:center"><strong>Se connecter / Profil</strong></div>`;
-  p.appendChild(head);
-  const content = el('div'); content.className='content';
-  const sess = loadSession();
-  if(sess){
-    content.appendChild(el('h3')).textContent = 'Session existante';
-    content.appendChild(el('div','small')).textContent = `${sess.name} • ${sess.uiTfid}`;
-    const cont = el('div'); cont.style.marginTop='12px';
-    const go = el('button','btn'); go.textContent='Continuer'; go.onclick = ()=> { state.me = sess; saveSession(); syncAfterLogin().then(()=>navigateTo('/Accueil')); };
-    cont.appendChild(go);
-    content.appendChild(cont);
-  } else {
-    content.appendChild(el('h3')).textContent = 'Bienvenue — un TFID a été créé pour vous';
-    const ui = uiRandom();
-    const item = el('div','card'); item.style.textAlign='center'; item.innerHTML = `<strong id="generatedUI">${ui}</strong><div class="small">Cliquez pour copier</div>`;
-    item.onclick = ()=> { navigator.clipboard?.writeText(ui).catch(()=>{}); item.style.border='2px solid var(--accent)'; };
-    content.appendChild(item);
-    content.appendChild(el('div','small')).textContent = 'Complétez votre profil dans Paramètres';
-    const go = el('button','btn'); go.textContent='Aller aux paramètres'; go.onclick = ()=> { state.me = { uiTfid: ui, serverTfid: uiToServer(ui), name: ui, avatarDataUrl: null }; saveSession(); navigateTo('/parametres'); };
-    content.appendChild(go);
-  }
-  p.appendChild(content); container.appendChild(p);
-  navigateTo('/konekte', {replace:true});
-}
-
-/* Accueil */
-function renderAccueil(){
-  container.innerHTML = '';
-  fab.style.display = 'flex';
-  const top = el('div','card'); top.appendChild(el('h3')).textContent = 'Accueil';
-  top.appendChild(el('div','small')).textContent = state.me ? `${state.me.name} • ${state.me.uiTfid}` : 'Non configuré';
-  container.appendChild(top);
-
-  const search = el('input','search'); search.placeholder = 'Rechercher (nom ou TF-xxxxxxx)'; search.oninput = ()=> renderContactsList(search.value.trim());
-  container.appendChild(search);
-
-  const listWrap = el('div','list'); listWrap.id = 'contactsList'; container.appendChild(listWrap);
-  renderContactsList();
-
-  navigateTo('/Accueil', {replace:true});
-}
-
-/* Contacts page */
+/* render contacts */
 function renderContacts(){
-  container.innerHTML = '';
-  fab.style.display = 'none';
-  const top = el('div','card'); top.appendChild(el('h3')).textContent = 'Contacts';
-  container.appendChild(top);
-  const listWrap = el('div','list'); listWrap.id = 'contactsList'; container.appendChild(listWrap);
-  renderContactsList();
-  navigateTo('/contacts', {replace:true});
-}
-
-/* Paramètres */
-function renderParametres(){
-  container.innerHTML = ''; fab.style.display='none';
-  const p = el('div'); p.className='page';
-  const head = el('div'); head.className='head'; head.innerHTML = `<button class="btn ghost" id="backP">Retour</button><div style="flex:1;text-align:center"><strong>Paramètres</strong></div>`; head.querySelector('#backP').onclick = ()=> history.back();
-  p.appendChild(head);
-  const content = el('div'); content.className='content';
-  // Profile editor
-  content.appendChild(el('h3')).textContent = 'Profil';
-  const avatar = el('div','avatar'); avatar.style.margin='10px'; avatar.style.width='92px'; avatar.style.height='92px'; if(state.me && state.me.avatarDataUrl) avatar.innerHTML = `<img src="${state.me.avatarDataUrl}">`;
-  const file = el('input'); file.type='file'; file.accept='image/*'; file.onchange = e=> { const f=e.target.files[0]; if(!f) return; const r=new FileReader(); r.onload=()=>{ avatar.innerHTML=`<img src="${r.result}">`; if(!state.me) state.me={uiTfid:uiRandom(),serverTfid:null,name:'',avatarDataUrl:null}; state.me.avatarDataUrl=r.result; state.me.serverTfid = state.me.serverTfid || uiToServer(state.me.uiTfid); saveSession(); }; r.readAsDataURL(f); };
-  content.appendChild(avatar); content.appendChild(file);
-  const nameIn = el('input'); nameIn.placeholder='Nom / pseudo'; nameIn.style.width='100%'; nameIn.style.padding='10px'; nameIn.value = state.me ? state.me.name : '';
-  content.appendChild(nameIn);
-  const saveBtn = el('button','btn'); saveBtn.textContent = 'Enregistrer profil'; saveBtn.onclick = async ()=> {
-    if(!nameIn.value.trim()) return alert('Entrez un nom');
-    if(!state.me){ state.me = { uiTfid: uiRandom(), serverTfid: null, name: nameIn.value.trim(), avatarDataUrl: null }; }
-    state.me.name = nameIn.value.trim();
-    state.me.serverTfid = state.me.serverTfid || uiToServer(state.me.uiTfid);
-    saveSession();
-    // push profile to server so others can search/discover
-    try{ await postSave(state.me.serverTfid, { type:'profile', name: state.me.name, avatar: state.me.avatarDataUrl, created_at: nowISO() }); }catch(e){ console.warn('profile save err', e); }
-    alert('Profil mis à jour');
-    renderAccueil();
-  };
-  content.appendChild(saveBtn);
-  // show TFID and option to copy
-  content.appendChild(el('div','small')).textContent = 'Votre TFID: ' + (state.me ? state.me.uiTfid : '(aucun)');
-  const copyBtn = el('button','btn ghost'); copyBtn.textContent = 'Copier TFID'; copyBtn.onclick = ()=> { navigator.clipboard?.writeText(state.me ? state.me.uiTfid : ''); copyBtn.textContent='Copié'; setTimeout(()=>copyBtn.textContent='Copier TFID',1000); };
-  content.appendChild(copyBtn);
-
-  p.appendChild(content); container.appendChild(p);
-  navigateTo('/parametres', {replace:true});
-}
-
-/* Contacts list renderer */
-function renderContactsList(filter=''){
-  const wrap = document.getElementById('contactsList');
-  if(!wrap) return;
-  wrap.innerHTML = '';
-  // default preset contact Adam_D'H7
-  if(!state.contacts.some(c=>c.uiTfid==='TF-7777777')) state.contacts.unshift({ name:"Adam_D'H7", uiTfid:'TF-7777777', serverTfid: uiToServer('TF-7777777') });
-  const arr = state.contacts.filter(c => ((c.name||'') + ' ' + (c.uiTfid||'')).toLowerCase().includes((filter||'').toLowerCase()));
-  if(arr.length===0){ wrap.appendChild(el('div','small')).textContent='Aucun contact'; return; }
-  arr.forEach(c=>{
-    const row = el('div','contact'); const av = el('div','avatar'); av.innerHTML = ''; const info = el('div','info'); info.innerHTML = `<div class="name">${c.name}</div><div class="meta">${c.uiTfid}</div>`; row.appendChild(av); row.appendChild(info); row.onclick = ()=> openChatByUi(c.uiTfid); wrap.appendChild(row);
+  contactsDiv.innerHTML = '';
+  state.contacts.forEach(c=>{
+    const row = el('div','contact');
+    row.innerHTML = `<div class="avatar"></div><div><strong>${c.name||c.ui}</strong><div class="small">${c.ui}</div></div>`;
+    row.onclick = ()=> openChat(c.server, c.ui);
+    contactsDiv.appendChild(row);
   });
 }
 
-/* Add menu (Accueil FAB) */
-function openAddMenu(){
-  const modal = createPageModal('Ajouter');
-  const content = modal.querySelector('.content'); content.innerHTML = '';
-  const btnContact = el('button','btn'); btnContact.textContent='Créer un contact'; btnContact.onclick = ()=> { closeModal(modal); renderCreateContact(); };
-  const btnClose = el('button','btn ghost'); btnClose.textContent='Annuler'; btnClose.onclick = ()=> closeModal(modal);
-  content.appendChild(btnContact); content.appendChild(btnClose);
-}
+/* open chat */
+async function openChat(serverTfid, ui){
+  state.currentChatServer = serverTfid;
+  chatContainer.innerHTML = '';
+  const page = el('div','card');
+  const head = el('div','chat-head');
+  head.innerHTML = `<div style="display:flex;gap:12px;align-items:center"><div class="avatar"></div><div><strong>${ui}</strong><div class="small">${ui}</div></div></div>`;
+  page.appendChild(head);
 
-/* Create contact page */
-function renderCreateContact(prefill){
-  container.innerHTML=''; fab.style.display='none';
-  const p = el('div'); p.className='page'; const head=el('div'); head.className='head'; head.innerHTML=`<button class="btn ghost" id="backC">Retour</button><div style="flex:1;text-align:center"><strong>Créer un contact</strong></div>`; head.querySelector('#backC').onclick = ()=> history.back(); p.appendChild(head);
-  const content = el('div'); content.className='content';
-  const nameIn = el('input'); nameIn.placeholder='Nom (optionnel)'; nameIn.style.width='100%'; nameIn.style.padding='10px';
-  const tfIn = el('input'); tfIn.placeholder='TF-7777777 (obligatoire)'; tfIn.style.width='100%'; tfIn.style.padding='10px'; if(prefill) tfIn.value = prefill;
-  const addBtn = el('button','btn'); addBtn.textContent='Ajouter'; addBtn.onclick = ()=> {
-    const tf = uiNormalize(tfIn.value||''); if(!tf) return alert('TFID obligatoire');
-    try{
-      const srv = uiToServer(tf);
-      const contact = { name: nameIn.value.trim() || tf, uiTfid: tf, serverTfid: srv };
-      state.contacts.unshift(contact);
-      if(state.me) postSave(state.me.serverTfid, { type:'contact_add', contact, created_at: nowISO() }).catch(()=>{});
-      navigateTo('/Accueil'); renderAccueil();
-    }catch(e){ alert('TFID invalide'); }
-  };
-  content.appendChild(nameIn); content.appendChild(tfIn); content.appendChild(addBtn);
-  p.appendChild(content); container.appendChild(p); navigateTo('/kreyekontak', {replace:true});
-}
+  const chatPage = el('div','chat-page');
+  const chatBody = el('div','chat-body');
+  const msgs = el('div','messages');
+  chatBody.appendChild(msgs);
+  chatPage.appendChild(chatBody);
 
-/* Chat */
-async function openChatByUi(ui){
-  const norm = uiNormalize(ui); const srv = uiToServer(norm);
-  if(!state.contacts.some(c=>c.serverTfid===srv)) state.contacts.unshift({ name:norm, uiTfid:norm, serverTfid:srv });
-  await renderChat(srv, norm);
-}
+  const composer = el('div','composer');
+  const input = el('input'); input.type='text'; input.placeholder='Écrire un message...';
+  const sendBtn = el('button'); sendBtn.textContent = 'Envoyer';
+  composer.appendChild(input); composer.appendChild(sendBtn);
+  chatPage.appendChild(composer);
+  page.appendChild(chatPage);
+  chatContainer.appendChild(page);
 
-async function renderChat(serverTfid, uiTfid){
-  container.innerHTML=''; fab.style.display='none';
-  const chatWrap = el('div'); chatWrap.className='chat-page';
-  const head = el('div'); head.className='chat-head';
-  const contact = state.contacts.find(c=>c.serverTfid===serverTfid) || { name:uiTfid, uiTfid };
-  head.innerHTML = `<div style="display:flex;gap:12px;align-items:center"><div class="avatar large">${contact.avatarDataUrl?'<img src="'+contact.avatarDataUrl+'">':''}</div><div><strong>${contact.name}</strong><div class="small">${contact.uiTfid}</div></div></div><div style="margin-left:auto"><button class="btn ghost" id="backChat">Retour</button></div>`;
-  head.querySelector('#backChat').onclick = ()=> history.back();
-  chatWrap.appendChild(head);
-
-  const body = el('div'); body.className='chat-body';
-  const msgsWrap = el('div'); msgsWrap.className='messages';
-  body.appendChild(msgsWrap); chatWrap.appendChild(body);
-
-  const composer = el('div'); composer.className='composer';
-  const attach = el('button','btn ghost'); attach.textContent='📎'; attach.onclick = ()=> alert('Upload fichier via tf-stream (optionnel)');
-  const input = el('input'); input.placeholder='Message'; input.autofocus = true;
-  const send = el('button','btn'); send.textContent = 'Envoyer'; send.style.background = 'var(--green)';
-  composer.appendChild(attach); composer.appendChild(input); composer.appendChild(send);
-  chatWrap.appendChild(composer);
-  container.appendChild(chatWrap);
-
-  // load messages for this serverTfid
+  // load existing messages for this target (serverTfid)
   state.messages[serverTfid] = state.messages[serverTfid] || [];
   try{
-    const rows = await listSave(serverTfid);
-    for(const r of rows.reverse()){
-      let payload;
-      try{ payload = JSON.parse(r.content); }catch(e){ payload = { type:'text', text:r.content }; }
-      if(payload.type === 'text' || payload.type === 'file'){
-        const msg = { _remoteId: r.id, from: payload.from || 'unknown', type: payload.type, text: payload.text || payload.message || null, time: r.created_at || nowISO() };
-        if(!state.messages[serverTfid].some(m=>m._remoteId===msg._remoteId)) state.messages[serverTfid].push(msg);
-      }
+    const j = await apiList(serverTfid);
+    if(j && j.ok && Array.isArray(j.rows)){
+      // rows are newest first in server code; show ascending
+      const rows = j.rows.slice().reverse();
+      rows.forEach(r=>{
+        let payload;
+        try{ payload = JSON.parse(r.content); }catch(e){ payload = { type:'text', text: r.content }; }
+        if(payload.type === 'text' || payload.type === 'file'){
+          state.messages[serverTfid].push({ id: r.id, from: payload.from || 'unknown', text: payload.text || payload.message || '', time: r.created_at });
+        }
+      });
     }
-  }catch(e){ console.warn('fetch chat fail', e); }
+  }catch(e){ console.warn('load messages error', e); }
 
   function renderMessages(){
-    msgsWrap.innerHTML = '';
+    msgs.innerHTML = '';
     const arr = state.messages[serverTfid] || [];
     arr.forEach(m=>{
-      const meClass = (state.me && m.from === state.me.serverTfid);
-      const b = el('div','bubble ' + (meClass? 'me' : ''));
-      if(m.type === 'text'){
-        // replace TFIDs inside text with clickable links
-        const txt = String(m.text || '');
-        const replaced = txt.replace(/TF-(\d{1,7}|\d+)/g, (match) => `<span class="link-tfid" data-ui="${match}">${match}</span>`);
-        b.innerHTML = replaced;
-        // add click listeners after injection
-        setTimeout(()=>{ b.querySelectorAll('.link-tfid').forEach(el=> el.onclick = (e)=> { const ui = el.dataset.ui; if(!ui) return; // open contact
-            // if contact exists, open; otherwise open create contact page with prefill
-            try{ const srv2 = uiToServer(ui); if(state.contacts.some(c=>c.serverTfid===srv2)) openChatByUi(ui); else renderCreateContact(ui); }catch(err){ console.warn(err); } }); }, 0);
-      } else if(m.type === 'file'){
-        b.textContent = m.fileMeta && m.fileMeta.filename ? m.fileMeta.filename : 'Fichier';
-      }
-      const t = el('div','time'); t.textContent = prettyTime(m.time || nowISO()); b.appendChild(t);
-      msgsWrap.appendChild(b);
+      const b = el('div','bubble' + ((state.me && m.from === state.me.server) ? ' me' : ''));
+      // transform TF-xxxxx in text to clickable
+      const text = String(m.text || '').replace(/TF-(\d+)/g, match => `<span class="link-tfid">${match}</span>`);
+      b.innerHTML = text + `<div class="small" style="text-align:right;margin-top:6px">${(m.time? new Date(m.time).toLocaleTimeString(): '')}</div>`;
+      // attach click handlers for any link-tfid
+      setTimeout(()=> b.querySelectorAll('.link-tfid').forEach(el=> el.onclick = ()=> {
+        const u = el.textContent; // open contact if exists else open chat create
+        try{
+          const srv = uiToServer(u);
+          if(state.contacts.some(c=>c.server===srv)) openChat(srv, u);
+          else {
+            // create contact entry and open chat
+            const contact = { ui:u, server:srv, name:u };
+            state.contacts.unshift(contact);
+            renderContacts();
+            openChat(srv, u);
+          }
+        }catch(err){ console.warn(err); alert('TFID invalide'); }
+      }), 0);
+      msgs.appendChild(b);
     });
-    msgsWrap.scrollTop = msgsWrap.scrollHeight;
+    msgs.scrollTop = msgs.scrollHeight;
   }
-
-  window.__renderChatFor = function(tfid){ if(tfid === serverTfid) renderMessages(); };
-
-  send.onclick = async ()=>{
-    const txt = input.value.trim(); if(!txt) return;
-    if(!state.me){ alert('Veuillez configurer votre profil dans Paramètres.'); return; }
-    const payload = { type:'text', from: state.me.serverTfid, text: txt, time: nowISO() };
-    // local optimistic push
-    state.messages[serverTfid].push({ _remoteId: null, from: state.me.serverTfid, type:'text', text: txt, time: nowISO() });
-    renderMessages(); input.value = '';
-    try{
-      const resp = await postSave(serverTfid, payload);
-      // copy to sender's own TFID timeline
-      await postSave(state.me.serverTfid, payload).catch(()=>{});
-      if(resp && resp.id){
-        const last = state.messages[serverTfid].slice(-1)[0]; if(last) last._remoteId = resp.id;
-      }
-    }catch(e){ console.warn('send fail', e); alert('Envoi échoué'); }
-  };
-  input.addEventListener('keydown', e => { if(e.key==='Enter'){ e.preventDefault(); send.click(); } });
 
   renderMessages();
-  navigateTo('/chat/' + encodeURIComponent(uiTfid), {replace:true});
-}
 
-/* Simple user page (when clicking TFID) */
-function renderUserPage(ui){
-  const normalized = uiNormalize(ui);
-  const srv = uiToServer(normalized);
-  container.innerHTML=''; fab.style.display='none';
-  const p = el('div'); p.className='page';
-  const head = el('div'); head.className='head'; head.innerHTML = `<button class="btn ghost" id="backU">Retour</button><div style="flex:1;text-align:center"><strong>${normalized}</strong></div>`; head.querySelector('#backU').onclick = ()=> history.back();
-  p.appendChild(head);
-  const content = el('div'); content.className='content';
-  content.appendChild(el('h3')).textContent = normalized;
-  const openChat = el('button','btn'); openChat.textContent = 'Ouvrir chat'; openChat.onclick = ()=> openChatByUi(normalized);
-  content.appendChild(openChat);
-  p.appendChild(content); container.appendChild(p);
-  navigateTo('/name/' + encodeURIComponent(normalized), {replace:true});
-}
-
-/* Modal helper */
-function createPageModal(title){
-  const modal = el('div'); modal.style.position='fixed'; modal.style.inset='0'; modal.style.background='rgba(0,0,0,0.36)'; modal.style.display='flex'; modal.style.alignItems='flex-start'; modal.style.justifyContent='center'; modal.style.padding='20px'; modal.style.zIndex='999';
-  const page = el('div'); page.className='page'; const head = el('div'); head.className='head'; head.innerHTML = `<button class="btn ghost" id="closeM">Retour</button><div style="flex:1;text-align:center"><strong>${title}</strong></div>`; head.querySelector('#closeM').onclick = ()=> closeModal(modal);
-  page.appendChild(head); const content = el('div'); content.className='content'; page.appendChild(content); modal.appendChild(page); document.body.appendChild(modal);
-  modal.onclick = (e)=> { if(e.target === modal) closeModal(modal); };
-  return modal;
-}
-function closeModal(m){ if(m && m.parentNode) m.parentNode.removeChild(m); }
-
-/* Small flows */
-function renderCreateContact(prefill){
-  renderCreateContactInline(prefill);
-}
-function renderCreateContactInline(prefill){
-  container.innerHTML=''; fab.style.display='none';
-  const p = el('div'); p.className='page';
-  const head = el('div'); head.className='head'; head.innerHTML = `<button class="btn ghost" id="backCC">Retour</button><div style="flex:1;text-align:center"><strong>Créer contact</strong></div>`; head.querySelector('#backCC').onclick = ()=> history.back();
-  p.appendChild(head);
-  const content = el('div'); content.className='content';
-  const nameIn = el('input'); nameIn.placeholder='Nom (optionnel)'; nameIn.style.width='100%'; nameIn.style.padding='10px';
-  const tfIn = el('input'); tfIn.placeholder='TF-7777777 (obligatoire)'; tfIn.style.width='100%'; tfIn.style.padding='10px'; if(prefill) tfIn.value = prefill;
-  const addBtn = el('button','btn'); addBtn.textContent='Ajouter'; addBtn.onclick = ()=> {
-    const tf = uiNormalize(tfIn.value||''); if(!tf) return alert('TFID obligatoire');
+  sendBtn.onclick = async ()=>{
+    const txt = input.value.trim(); if(!txt) return;
+    if(!state.me){ alert('Profil non configuré'); return; }
+    // optimistic push locally
+    const localM = { id: null, from: state.me.server, text: txt, time: now() };
+    state.messages[serverTfid] = state.messages[serverTfid] || [];
+    state.messages[serverTfid].push(localM);
+    renderMessages();
+    input.value = '';
+    // build payload
+    const payload = { type:'text', from: state.me.server, text: txt, time: now() };
     try{
-      const srv = uiToServer(tf);
-      const contact = { name: nameIn.value.trim() || tf, uiTfid: tf, serverTfid: srv };
-      state.contacts.unshift(contact);
-      if(state.me) postSave(state.me.serverTfid, { type:'contact_add', contact, created_at: nowISO() }).catch(()=>{});
-      navigateTo('/Accueil'); renderAccueil();
-    }catch(e){ alert('TFID invalide'); }
+      const r = await apiAdd(serverTfid, payload); // write to recipient timeline
+      // also write to sender timeline (so sender sees message)
+      await apiAdd(state.me.server, payload).catch(()=>{});
+      if(r && r.id){ localM.id = r.id; }
+    }catch(err){
+      console.warn('send error', err); alert('Envoi échoué');
+    }
+    renderMessages();
   };
-  content.appendChild(nameIn); content.appendChild(tfIn); content.appendChild(addBtn);
-  p.appendChild(content); container.appendChild(p); navigateTo('/kreyekontak', {replace:true});
 }
 
-/* Init: restore session or create visitor */
-(function init(){
-  // restore
-  const s = loadSession();
-  if(s){ state.me = s; } else {
-    // create visitor TFID and save minimal session (so page reload keeps TFID)
-    const ui = uiRandom();
-    const srv = uiToServer(ui);
-    state.me = { uiTfid: ui, serverTfid: srv, name: ui, avatarDataUrl: null };
-    saveSession();
-  }
-  // ensure Adam preset
-  if(!state.contacts.some(c=>c.uiTfid==='TF-7777777')) state.contacts.unshift({ name:"Adam_D'H7", uiTfid:'TF-7777777', serverTfid: uiToServer('TF-7777777') });
-  // show avatar in header if present
-  if(state.me && state.me.avatarDataUrl) hdrAvatar.innerHTML = `<img src="${state.me.avatarDataUrl}">`; else hdrAvatar.innerHTML = '';
-  // start polling after small delay so service wakes
-  setTimeout(()=>{ syncAfterLogin(); startPolling(); }, 700);
-  route();
-})();
-
-async function syncAfterLogin(){
+/* polling own timeline */
+async function pollOwn(){
   if(!state.me) return;
   try{
-    const rows = await listSave(state.me.serverTfid);
-    state.contacts = state.contacts || [];
-    state.messages = state.messages || {};
-    for(let i = rows.length -1; i >=0; i--){
-      const r = rows[i];
-      let payload;
-      try{ payload = JSON.parse(r.content); }catch(e){ payload = { type:'text', text: r.content }; }
-      if(payload.type === 'contact_add' && payload.contact){
-        if(!state.contacts.some(c=>c.serverTfid===payload.contact.serverTfid)) state.contacts.unshift(payload.contact);
-      } else if(payload.type === 'text' || payload.type === 'file'){
+    const j = await apiList(state.me.server);
+    if(j && j.ok && Array.isArray(j.rows)){
+      // append unseen messages
+      const rows = j.rows.slice().reverse();
+      for(const r of rows){
+        // check if id present in state.messages for that target (r.tfid)
         const tgt = r.tfid;
         state.messages[tgt] = state.messages[tgt] || [];
-        state.messages[tgt].push({ _remoteId:r.id, from: payload.from || 'unknown', type: payload.type, text: payload.text || payload.message || null, time: r.created_at || nowISO() });
+        if(state.messages[tgt].some(m=>m.id === r.id)) continue;
+        let payload;
+        try{ payload = JSON.parse(r.content); }catch(e){ payload = { type:'text', text: r.content }; }
+        if(payload.type === 'text' || payload.type === 'file'){
+          const mobj = { id: r.id, from: payload.from || 'unknown', text: payload.text || payload.message || '', time: r.created_at };
+          state.messages[tgt].push(mobj);
+          // if currently viewing that chat, re-render
+          if(state.currentChatServer === tgt && window.renderChatRefresh) window.renderChatRefresh(tgt);
+        }
       }
     }
-  }catch(e){ console.warn('sync fail', e); }
+  }catch(e){ /* silent */ }
 }
 
-/* expose for debug */
-window.TFCHAT = { state, CONFIG, postSave, listSave, saveSession };
+/* init */
+(function init(){
+  // load or create session
+  const s = loadSession();
+  if(s){
+    state.me = s;
+  } else {
+    const ui = uiRandom();
+    const server = uiToServer(ui);
+    state.me = { ui, server, name: ui };
+    saveSession();
+  }
+  meLabel.textContent = `${state.me.name || state.me.ui} • ${state.me.ui}`;
+  // ensure default contact
+  if(!state.contacts.some(c=>c.ui === 'TF-7777777')) state.contacts.unshift({ ui:'TF-7777777', server: uiToServer('TF-7777777'), name:"Adam_D'H7" });
+  renderContacts();
+  // initial poll and start polling
+  pollOwn();
+  state.pollId = setInterval(pollOwn, CONFIG.POLL_MS);
+})();
+
+/* helper status */
+function showStatus(t){ /* optionally show network status; minimal for now */ console.log('status', t); }
+
+/* expose for debugging */
+window.TFCHAT = { state, apiList, apiAdd, uiNormalize, uiToServer, pollOwn };
+
 </script>
 </body>
-  </html>
+</html>
