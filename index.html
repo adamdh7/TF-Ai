@@ -2,579 +2,622 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>TF Chat — iOS style</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>TF-Chat — iOS</title>
 <style>
   :root{
-    --bg:#f7f7f8;
+    --bg:#f2f2f7;
+    --card:#ffffff;
+    --muted:#8e8e93;
     --accent:#0a84ff;
     --bubble-other:#e5e5ea;
     --bubble-me:#0a84ff;
-    --text-me:#fff;
-    --muted:#8e8e93;
-    --card:#fff;
+    --text-me:#ffffff;
+    --radius:16px;
+    --shadow: 0 6px 18px rgba(0,0,0,0.06);
   }
-  html,body{height:100%;margin:0;font-family:-apple-system, "SF Pro Text", "Helvetica Neue", Arial; background:var(--bg); color:#111}
-  .app{max-width:430px;margin:0 auto;height:100vh;display:flex;flex-direction:column;border-left:1px solid #e6e6e6;border-right:1px solid #e6e6e6}
-  header{height:88px;display:flex;align-items:flex-end;padding:12px 16px;background:linear-gradient(180deg, rgba(255,255,255,0.6), transparent);box-sizing:border-box}
-  header h1{margin:0;font-size:20px}
+  html,body{height:100%;margin:0;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Arial;background:var(--bg);color:#111}
+  .app{max-width:430px;margin:0 auto;height:100vh;display:flex;flex-direction:column;border-left:1px solid rgba(0,0,0,0.04);border-right:1px solid rgba(0,0,0,0.04)}
+  header{height:88px;display:flex;align-items:flex-end;padding:12px 16px;background:linear-gradient(180deg, rgba(255,255,255,0.85), transparent);box-sizing:border-box}
+  header .left{display:flex;align-items:center;gap:12px}
+  header .title{font-size:20px;font-weight:700}
+  header .subtitle{font-size:12px;color:var(--muted)}
   main{flex:1;overflow:auto;padding:12px}
-  .card{background:var(--card);border-radius:14px;padding:12px;margin-bottom:12px;box-shadow:0 1px 2px rgba(0,0,0,0.03)}
+  .card{background:var(--card);border-radius:14px;padding:12px;margin-bottom:12px;box-shadow: 0 1px 2px rgba(0,0,0,0.03)}
   .center{display:flex;align-items:center;justify-content:center}
-  .tfid-pill{background:#fff;border-radius:12px;padding:10px 14px;border:1px solid #eee;cursor:pointer;user-select:none}
   .btn{background:var(--accent);color:#fff;padding:10px 14px;border-radius:12px;border:none;cursor:pointer;font-weight:600}
   .btn.ghost{background:transparent;color:var(--accent);border:1px solid rgba(10,132,255,0.12)}
   .muted{color:var(--muted);font-size:13px}
   .row{display:flex;gap:8px;align-items:center}
-  .avatar{width:56px;height:56px;border-radius:50%;background:#ddd;overflow:hidden;display:inline-block}
-  .avatar img{width:100%;height:100%;object-fit:cover}
+  .avatar{width:56px;height:56px;border-radius:50%;background:#ddd;overflow:hidden;display:inline-block;flex-shrink:0;align-self:center}
+  .avatar.large{width:96px;height:96px;border-radius:48px}
+  .avatar img{width:100%;height:100%;object-fit:cover;display:block}
   .list{display:flex;flex-direction:column;gap:8px}
-  .contact{display:flex;align-items:center;gap:12px;padding:10px;border-radius:12px;background:#fff;cursor:pointer;border:1px solid #f0f0f0}
-  .search{width:100%;padding:10px;border-radius:10px;border:1px solid #eee;background:#fff;margin-bottom:10px}
+  .contact{display:flex;align-items:center;gap:12px;padding:12px;border-radius:12px;background:#fff;cursor:pointer;border:1px solid #f0f0f0}
+  .search{width:100%;padding:10px;border-radius:12px;border:1px solid #eee;background:#fff;margin-bottom:10px}
   .chat{display:flex;flex-direction:column;height:calc(100vh - 160px)}
   .messages{flex:1;overflow:auto;padding:12px;display:flex;flex-direction:column;gap:10px}
-  .bubble{max-width:70%;padding:10px;border-radius:14px;background:var(--bubble-other);align-self:flex-start;word-break:break-word}
+  .bubble{max-width:75%;padding:10px;border-radius:18px;background:var(--bubble-other);align-self:flex-start;word-break:break-word;white-space:pre-wrap;box-shadow:0 1px 0 rgba(0,0,0,0.02)}
   .bubble.me{background:var(--bubble-me);color:var(--text-me);align-self:flex-end}
-  .composer{display:flex;gap:8px;padding:10px;border-top:1px solid #eee;background:transparent}
-  .composer input[type="text"]{flex:1;padding:10px;border-radius:12px;border:1px solid #eee}
-  .file-thumb{max-width:240px;border-radius:10px;overflow:hidden;border:1px solid #ddd;display:block}
+  .bubble .time{display:block;font-size:11px;color:rgba(255,255,255,0.8);opacity:.9;margin-top:6px}
+  .bubble.other .time{color:var(--muted);font-size:11px;margin-top:6px}
+  .composer{display:flex;gap:8px;padding:10px;border-top:1px solid #eee;background:transparent;align-items:center;position:relative}
+  .composer input[type="text"]{flex:1;padding:10px;border-radius:18px;border:1px solid #eee}
+  .file-thumb{max-width:260px;border-radius:10px;overflow:hidden;border:1px solid #ddd;display:block}
   .video-player{max-width:320px;border-radius:10px}
-  .small{font-size:13px;color:var(--muted)}
-  .modal{position:fixed;inset:0;background:rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;padding:20px;z-index:999}
-  .modal .card{width:100%;max-width:420px}
-  footer{height:34px;display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--muted)}
-  /* iOS-like safe area support */
-  body { padding-bottom: env(safe-area-inset-bottom); }
+  .small{font-size:12px;color:var(--muted)}
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,0.35);display:flex;align-items:flex-start;justify-content:center;padding:0;z-index:999}
+  .modal .card{width:100%;max-width:430px;border-radius:0;height:100%;box-sizing:border-box;display:flex;flex-direction:column;background:linear-gradient(#fff,#fff)}
+  .fullscreen-header{height:88px;display:flex;align-items:center;gap:12px;padding:14px;border-bottom:1px solid #eee;background:var(--card)}
+  .fullscreen-content{flex:1;overflow:auto;padding:12px;background:var(--bg)}
+  .fab{position:fixed;right:18px;bottom:26px;width:60px;height:60px;border-radius:30px;background:var(--accent);display:flex;align-items:center;justify-content:center;color:#fff;font-size:28px;box-shadow: var(--shadow);cursor:pointer;z-index:50}
+  .settings-btn{background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:15px;padding:8px 10px;border-radius:8px}
+  .tabbar{height:54px;border-top:1px solid rgba(0,0,0,0.04);display:flex;align-items:center;justify-content:space-around;background:transparent}
+  .badge{background:#eee;padding:4px 8px;border-radius:12px;font-size:12px}
+  .back-btn{background:transparent;border:none;font-size:16px;color:var(--accent);cursor:pointer}
+  .menu-small{font-size:13px;color:var(--muted)}
+  /* animations */
+  .modal .card{transform:translateY(6px);transition:transform .22s cubic-bezier(.2,.9,.3,1),opacity .22s ease; animation:pop .16s ease both}
+  @keyframes pop{from{transform:translateY(10px);opacity:0}to{transform:translateY(0);opacity:1}}
+  /* safe area */
+  body{padding-bottom:env(safe-area-inset-bottom);}
+  /* Prevent horizontal scroll on small words */
+  .messages, .contact { word-break: break-word; -webkit-font-smoothing:antialiased; }
 </style>
 </head>
 <body>
-<div class="app" id="app">
-  <header><h1 id="appTitle">TF Chat</h1></header>
-  <main id="main" aria-live="polite">
-    <!-- content injected by JS -->
+<div class="app" id="app" aria-live="polite">
+  <header>
+    <div class="left">
+      <div class="avatar" id="headerAvatar"></div>
+      <div>
+        <div class="title">TF-Chat</div>
+        <div class="subtitle">Recherche · Conversations</div>
+      </div>
+    </div>
+    <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
+      <button class="settings-btn" id="openSettingsBtn" title="Paramètres">Paramètres</button>
+    </div>
+  </header>
+
+  <main id="main">
+    <!-- injected -->
   </main>
-  <footer>TF Chat — interface iOS-like</footer>
+
+  <div class="fab" id="fabBtn" title="Ajouter">＋</div>
+
+  <div class="tabbar" id="tabbar" style="padding:8px 12px;">
+    <div class="small" id="tabAccueil" style="cursor:pointer">Accueil</div>
+    <div class="small" id="tabContacts" style="cursor:pointer">Contacts <span class="badge" id="contactCount">0</span></div>
+    <div class="small" id="tabSettings" style="cursor:pointer">Paramètres</div>
+  </div>
 </div>
 
 <script>
-/*
-  index.html frontend (vanilla JS)
-  - Requires a sibling config.json (external) with endpoints and apiToken.
-  - Features:
-    - create account (must click shown TFID), reconnect, add contact, create group/channel
-    - upload files <=77MB to streamHost (x-api-token header)
-    - send text/file meta to saveHost /api/add (tfid destination must be 17-digit)
-    - poll saveHost /api/list to receive messages for logged user
-    - display images and videos inline (no raw URL shown)
-    - NO TFID in URL; everything stored locally / fetched from backends
-*/
+/* ====================
+   TF-Chat single-file frontend
+   - iOS-like UI
+   - Fullscreen FAB search contacting https://tf-sove.onrender.com/api/list
+   - Create contact / group, fullscreen chat, send messages saved via /api/add
+   ==================== */
 
-(async function(){
-  // Elements
-  const main = document.getElementById('main');
-  const APP_NAME = "TF Chat";
+const CONFIG = {
+  endpoints: {
+    streamHost: "https://tf-stream-url.onrender.com",
+    saveHost: "https://tf-sove.onrender.com",
+    uploadPath: "/upload",
+    apiAdd: "/api/add",
+    apiList: "/api/list"
+  },
+  apiToken: "tfstream_45dd9c02d4e34f18a42d",
+  frontendName: "web-ios",
+  fileUpload: { maxBytes: 77000000, maxMB: 77, formFieldName: "file" },
+  tfid: { uiDigits:7, serverDigits:17, padChar:"0" }
+};
 
-  // Load config.json placed next to index.html
-  let config = null;
-  try {
-    const r = await fetch('./config.json', {cache: 'no-store'});
-    if(!r.ok) throw new Error('config.json non trouvé');
-    config = await r.json();
-  } catch(e){
-    main.innerHTML = `<div class="card"><h3>Erreur</h3><p>Impossible de charger <strong>config.json</strong>. Placez-le à côté de index.html.</p><pre class="muted">${String(e.message)}</pre></div>`;
-    return;
-  }
+let state = {
+  me: null,
+  contacts: [],
+  messages: {},
+  pollId: null
+};
 
-  // Basic state
-  const state = {
-    me: null,            // { uiTfid, serverTfid, name, avatarDataUrl, password }
-    contacts: [],        // { id, name, uiTfid, serverTfid, isGroup }
-    messages: {},        // serverTfid => [{from, type, text, fileMeta, blobDataUrl, time, _remoteId}]
-    current: null,       // serverTfid open
-    pollIntervalId: null
-  };
+/* Helpers */
+function rnd7(){ return Math.floor(Math.random()*1e7).toString().padStart(7,'0'); }
+function uiTfidRandom(){ return 'TF-' + rnd7(); }
+function extractDigits(s){ const m=String(s||'').match(/(\d+)/); return m?m[1]:null; }
+function uiToServer(ui){ const digits = extractDigits(ui); if(!digits) throw new Error('TFID invalide'); return digits.padStart(CONFIG.tfid.serverDigits, CONFIG.tfid.padChar); }
+function nowISO(){ return new Date().toISOString(); }
+function el(tag, cls=''){ const e=document.createElement(tag); if(cls) e.className=cls; return e; }
+function blobToDataURL(blob){ return new Promise(res=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.readAsDataURL(blob); }); }
 
-  // Helpers
-  function rnd7(){ return Math.floor(Math.random()*1e7).toString().padStart(7,'0'); }
-  function uiTfidRandom(){ return 'TF-' + rnd7(); }
-  function extractDigits(s){ const m = String(s).match(/(\d+)/); return m ? m[1] : null; }
-  function uiToServer(ui){ const digits = extractDigits(ui); if(!digits) throw new Error('TFID invalide'); if(digits.length > config.tfid.serverDigits) throw new Error('TFID numerique trop long'); return digits.padStart(config.tfid.serverDigits, config.tfid.padChar); }
-  function nowISO(){ return new Date().toISOString(); }
-  function el(tag, cls='', html=''){ const e=document.createElement(tag); if(cls) e.className = cls; if(html!==undefined) e.innerHTML = html; return e; }
+/* Persistence */
+function persist(){ localStorage.setItem('tfchat_state', JSON.stringify({ me: state.me, contacts: state.contacts, messages: state.messages })); updateContactCount(); }
+function restore(){ try{ const j=JSON.parse(localStorage.getItem('tfchat_state')||'null'); if(j){ state.me=j.me; state.contacts=j.contacts||[]; state.messages=j.messages||{}; } }catch(e){} }
+function updateContactCount(){ const n = state.contacts.length; document.getElementById('contactCount').textContent = n; const hc = document.getElementById('hc_count'); if(hc) hc.textContent = n; }
 
-  // Persist state in localStorage
-  function persist(){
-    const store = {
-      me: state.me,
-      contacts: state.contacts,
-      messages: serializeMessages()
-    };
-    localStorage.setItem('tfchat_state', JSON.stringify(store));
-  }
-  function restore(){
-    try{
-      const j = JSON.parse(localStorage.getItem('tfchat_state') || 'null');
-      if(!j) return;
-      state.me = j.me || null;
-      state.contacts = j.contacts || [];
-      deserializeMessages(j.messages || {});
-    }catch(e){}
-  }
-  function serializeMessages(){
-    const out = {};
-    for(const k in state.messages){
-      out[k] = state.messages[k].map(m=>{
-        const copy = {...m};
-        if(m.blobDataUrl) copy.blobDataUrl = m.blobDataUrl;
-        delete copy.blob;
-        return copy;
-      });
-    }
-    return out;
-  }
-  function deserializeMessages(obj){
-    state.messages = {};
-    for(const k in obj){
-      state.messages[k] = obj[k].map(m=>{
-        const copy = {...m};
-        if(m.blobDataUrl) copy.blob = dataURLtoBlob(m.blobDataUrl);
-        return copy;
-      });
-    }
-  }
-  function blobToDataURL(blob){ return new Promise(res=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.readAsDataURL(blob); }); }
-  function dataURLtoBlob(dataurl){ const parts = dataurl.split(','); const mime = parts[0].match(/:(.*?);/)[1]; const bstr = atob(parts[1]); let n = bstr.length; const u8 = new Uint8Array(n); while(n--) u8[n]=bstr.charCodeAt(n); return new Blob([u8], {type:mime}); }
+/* Initial setup */
+restore();
+if(!state.contacts || state.contacts.length===0){
+  const preUi='TF-7777777', preSrv = uiToServer(preUi);
+  state.contacts = [{ id:'adam', name:"Adam_D'H7", uiTfid:preUi, serverTfid:preSrv, isGroup:false, avatarDataUrl:null }];
+  persist();
+}
+updateContactCount();
 
-  // UI renderers
-  restore();
-  renderLanding();
+/* DOM refs */
+const main = document.getElementById('main');
+const fab = document.getElementById('fabBtn');
+const openSettingsBtn = document.getElementById('openSettingsBtn');
+document.getElementById('tabAccueil').onclick = ()=> renderAccueil();
+document.getElementById('tabContacts').onclick = ()=> renderContactsView();
+document.getElementById('tabSettings').onclick = ()=> renderSettings();
+fab.onclick = ()=> openFABFullscreen();
+openSettingsBtn.onclick = ()=> renderSettings();
 
-  /* ----------------------
-     RENDER: Landing / Login / Create
-     ----------------------*/
-  function renderLanding(){
-    main.innerHTML = '';
-    const card = el('div','card');
-    card.appendChild(el('h2','','Bienvenue sur ' + (config.appName||APP_NAME)));
-    card.appendChild(el('p','muted','Application web style iPhone — connexion via TFID + mot de passe.'));
-    // If logged in: quick go to home
-    if(state.me){
-      card.appendChild(el('p','','Connecté: <strong>' + (state.me.name || state.me.uiTfid) + '</strong><br><span class="small">'+ state.me.uiTfid +'</span>'));
-      const openBtn = el('button','btn','Aller à l\'accueil'); openBtn.onclick = ()=> renderHome();
-      const logout = el('button','btn ghost','Se déconnecter'); logout.style.marginLeft='8px'; logout.onclick = ()=> { state.me=null; persist(); renderLanding(); };
-      card.appendChild(openBtn); card.appendChild(logout);
-      main.appendChild(card); return;
-    }
+/* Render functions */
+function renderAccueil(){
+  main.innerHTML = '';
+  const headerCard = el('div','card');
+  headerCard.appendChild(el('h3')).textContent = 'Accueil';
+  headerCard.appendChild(el('p','muted')).textContent = 'Bienvenue sur TF-Chat';
+  main.appendChild(headerCard);
 
-    const createBtn = el('button','btn',config.uiStrings.createAccount || 'Créer un compte');
-    createBtn.onclick = ()=> openCreateAccount();
-    const reconnectBtn = el('button','btn ghost','Re connecter');
-    reconnectBtn.onclick = ()=> openReconnect();
-    card.appendChild(createBtn);
-    card.appendChild(el('div','','<hr/>'));
-    card.appendChild(reconnectBtn);
-    main.appendChild(card);
-  }
+  // Search bar at top
+  const search = el('input','search'); search.className='search'; search.placeholder='Recherche (nom ou TFID)'; search.oninput = ()=> renderContactsList(search.value);
+  main.appendChild(search);
 
-  function openCreateAccount(){
-    const modal = showModal();
-    const card = el('div','card');
-    card.appendChild(el('h3','','Créer un compte'));
-    card.appendChild(el('p','muted','Cliquez sur le TFID affiché pour le sélectionner (obligatoire). Le TFID sera copié dans le presse-papier.'));
-    const shown = uiTfidRandom();
-    const pill = el('div','tfid-pill', shown);
-    pill.onclick = ()=> { pill.style.border = '2px solid var(--accent)'; pill.dataset.clicked = '1'; navigator.clipboard?.writeText(shown).catch(()=>{}); };
-    card.appendChild(el('div','center')).lastChild.appendChild(pill);
-    const next = el('button','btn','Suivant'); next.onclick = ()=> {
-      if(!pill.dataset.clicked) return alert('Vous devez cliquer sur le TFID affiché pour continuer.');
-      openPasswordModal(shown, modal);
-    };
-    card.appendChild(next);
-    modal.querySelector('.card').appendChild(card);
-  }
+  // Contacts header and count
+  const head = el('div','card'); head.style.display='flex'; head.style.justifyContent='space-between'; head.style.alignItems='center';
+  head.innerHTML = `<div><strong>Liste de contacts</strong></div><div class="small">Contacts <span class="badge" id="hc_count">${state.contacts.length}</span></div>`;
+  main.appendChild(head);
 
-  function openPasswordModal(shownTfid, parentModal){
-    const card = parentModal.querySelector('.card'); card.innerHTML = '';
-    card.appendChild(el('h3','','Choisissez un mot de passe'));
-    const pw = el('input','',''); pw.type='password'; pw.placeholder = config.uiStrings.password || 'Mot de passe'; pw.style.width='100%'; pw.style.padding='10px';
-    const pw2 = el('input','',''); pw2.type='password'; pw2.placeholder = config.uiStrings.confirmPassword || 'Confirmer mot de passe'; pw2.style.width='100%'; pw2.style.padding='10px'; pw2.style.marginTop='8px';
-    card.appendChild(pw); card.appendChild(pw2);
-    const finalize = el('button','btn','Finaliser');
-    finalize.style.marginTop = '10px';
-    finalize.onclick = ()=> {
-      if(pw.value.length < 6) return alert('Mot de passe trop court (min 6).');
-      if(pw.value !== pw2.value) return alert('Les mots de passe ne correspondent pas.');
-      openProfileModal(shownTfid, pw.value, parentModal);
-    };
-    card.appendChild(finalize);
-  }
+  // Contact list
+  const list = el('div','list'); list.id='contactsList';
+  main.appendChild(list);
+  renderContactsList();
+}
 
-  function openProfileModal(shownTfid, password, parentModal){
-    const card = parentModal.querySelector('.card'); card.innerHTML = '';
-    card.appendChild(el('h3','','Choisir photo & pseudo'));
-    const avatarWrap = el('div','center');
-    const avatar = el('div','avatar'); avatarWrap.appendChild(avatar);
-    card.appendChild(avatarWrap);
-    const fileInput = el('input',''); fileInput.type='file'; fileInput.accept='image/*'; fileInput.onchange = (e)=> {
-      const f = e.target.files[0]; if(!f) return;
-      const reader = new FileReader(); reader.onload = ()=> { avatar.innerHTML = '<img src="'+reader.result+'"/>'; avatar.dataset.dataurl = reader.result; };
-      reader.readAsDataURL(f);
-    };
-    card.appendChild(fileInput);
-    const nameInput = el('input',''); nameInput.placeholder = config.uiStrings.nameLabel || 'Nom / Pseudo'; nameInput.style.width='100%'; nameInput.style.padding='10px'; nameInput.style.marginTop='8px';
-    card.appendChild(nameInput);
-    const finish = el('button','btn','Terminer');
-    finish.style.marginTop='10px';
-    finish.onclick = ()=> {
-      if(!nameInput.value) return alert('Entrez un nom / pseudo.');
+function renderContactsList(filter=''){
+  const wrap = document.getElementById('contactsList');
+  if(!wrap) return;
+  wrap.innerHTML = '';
+  const arr = state.contacts.filter(c => ((c.name||'') + ' ' + (c.uiTfid||'')).toLowerCase().includes((filter||'').toLowerCase()));
+  if(arr.length===0) { const d=el('div','muted'); d.textContent='Aucun contact'; wrap.appendChild(d); return; }
+  arr.forEach(c=>{
+    const row = el('div','contact');
+    const av = el('div','avatar'); av.innerHTML = c.avatarDataUrl ? '<img src="'+c.avatarDataUrl+'">' : '<div style="width:100%;height:100%"></div>';
+    const info = el('div'); info.innerHTML = `<div style="font-weight:700">${c.name || c.uiTfid}</div><div class="small">${c.uiTfid}${c.isGroup? ' • channel':''}</div>`;
+    row.appendChild(av); row.appendChild(info);
+    row.onclick = ()=> openChatFullscreen(c.serverTfid);
+    wrap.appendChild(row);
+  });
+}
+
+function renderContactsView(){
+  main.innerHTML = '';
+  const header = el('div','card'); header.appendChild(el('h3')).textContent='Contacts';
+  main.appendChild(header);
+  const search = el('input','search'); search.className='search'; search.placeholder='Rechercher'; search.oninput = ()=> renderContactsList(search.value);
+  main.appendChild(search);
+  const list = el('div','list'); list.id='contactsList';
+  main.appendChild(list);
+  renderContactsList();
+}
+
+function renderSettings(){
+  main.innerHTML = '';
+  const top = el('div','card'); top.appendChild(el('h3')).textContent='Paramètres';
+  main.appendChild(top);
+  const profile = el('div','card'); profile.innerHTML = `<div style="display:flex;gap:12px;align-items:center"><div class="avatar">${state.me && state.me.avatarDataUrl ? '<img src="'+state.me.avatarDataUrl+'">' : ''}</div><div><strong>${state.me?state.me.name:''}</strong><div class="small">${state.me?state.me.uiTfid:''}</div></div></div>`;
+  main.appendChild(profile);
+  const lang = el('div','card'); lang.innerHTML = `<div><strong>Langue</strong><div class="small">Français</div></div>`; main.appendChild(lang);
+  const notif = el('div','card'); notif.innerHTML = `<div><strong>Notifications</strong><div class="small">Bannières, sons</div></div>`; main.appendChild(notif);
+  const storage = el('div','card'); storage.innerHTML = `<div><strong>Stockage</strong><div class="small">Messages locaux: ${Object.keys(state.messages).reduce((s,k)=>s + (state.messages[k]||[]).length,0)}</div></div>`; main.appendChild(storage);
+  const logoutCard = el('div','card'); const logout = el('button','btn'); logout.textContent='Se déconnecter'; logout.onclick = ()=> { state.me=null; persist(); renderAccueil(); }; logoutCard.appendChild(logout); main.appendChild(logoutCard);
+}
+
+/* FAB fullscreen search (for creating contact / find user on saveHost) */
+function openFABFullscreen(){
+  const wrap = el('div','modal'); wrap.id='fabModal';
+  const container = el('div','card');
+  const header = el('div','fullscreen-header');
+  const back = el('button','back-btn'); back.textContent='Retour'; back.onclick = ()=> closeModal(wrap);
+  header.appendChild(back);
+  header.appendChild(el('div','','<strong>Ajouter / Rechercher</strong>'));
+  container.appendChild(header);
+  const content = el('div','fullscreen-content');
+  const search = el('input','search'); search.placeholder='Rechercher TFID (ex: TF-0204143 ou 0204143)'; search.style.marginBottom='12px';
+  content.appendChild(search);
+  const resultList = el('div','list'); content.appendChild(resultList);
+
+  // quick options: create contact, create group
+  const createRow = el('div','card'); createRow.style.marginTop='10px';
+  const createContactBtn = el('button','btn'); createContactBtn.textContent = 'Créer un contact'; createContactBtn.onclick = ()=> { closeModal(wrap); openCreateContact(); };
+  const createGroupBtn = el('button','btn ghost'); createGroupBtn.textContent = 'Créer un groupe'; createGroupBtn.onclick = ()=> { closeModal(wrap); openCreateGroup(); };
+  createRow.appendChild(createContactBtn); createRow.appendChild(el('div','','<br/>')); createRow.appendChild(createGroupBtn);
+  content.appendChild(createRow);
+
+  container.appendChild(content);
+  wrap.appendChild(container);
+  document.body.appendChild(wrap);
+
+  // clicking outside closes
+  wrap.onclick = (e)=> { if(e.target === wrap) closeModal(wrap); };
+
+  // search handler: if user enters TFID, try to fetch from saveHost/api/list for that TFID
+  let lastTimer = null;
+  search.addEventListener('input', ()=> {
+    clearTimeout(lastTimer);
+    lastTimer = setTimeout(async ()=>{
+      const v = search.value.trim();
+      resultList.innerHTML = '';
+      if(!v) return;
+      // normalize to UI TFID
+      let ui = v.startsWith('TF-') ? v : ('TF-' + (extractDigits(v)||'').padStart(7,'0'));
+      if(!extractDigits(ui)) { resultList.appendChild(el('div','muted')).textContent = 'TFID invalide'; return; }
+      const server = uiToServer(ui);
+      // call saveHost /api/list to see if server has rows (not perfect but helps)
       try{
-        const ui = shownTfid;
-        const server = uiToServer(ui);
-        state.me = { uiTfid: ui, serverTfid: server, name: nameInput.value, avatarDataUrl: avatar.dataset.dataurl || null, password };
-        // add predefined contact Adam_D'H7
-        if(!state.contacts.find(c=>c.uiTfid === 'TF-7777777')){
-          state.contacts.unshift({ id: 'adam', name: "Adam_D'H7", uiTfid: 'TF-7777777', serverTfid: uiToServer('TF-7777777'), isGroup:false });
+        const q = new URL(CONFIG.endpoints.saveHost + CONFIG.endpoints.apiList);
+        q.searchParams.set('tfid', server);
+        q.searchParams.set('name', CONFIG.frontendName);
+        const r = await fetch(q.toString(), { headers: { 'x-api-token': CONFIG.apiToken } });
+        if(!r.ok){ resultList.appendChild(el('div','muted')).textContent = 'Aucun résultat'; return; }
+        const j = await r.json().catch(()=>null);
+        if(j && j.ok && Array.isArray(j.rows) && j.rows.length>0){
+          // found — show as clickable user
+          const item = el('div','contact');
+          const av = el('div','avatar'); item.appendChild(av);
+          const info = el('div'); info.innerHTML = `<div style="font-weight:700">${ui}</div><div class="small">Utilisateur trouvé — cliquer pour ouvrir le chat / ajouter</div>`;
+          item.appendChild(info);
+          const action = el('div','menu-small'); action.style.marginLeft='auto';
+          const openBtn = el('button','btn'); openBtn.style.padding='6px 8px'; openBtn.textContent='Ouvrir';
+          openBtn.onclick = ()=> { 
+            // create contact if not exists
+            if(!state.contacts.find(c=>c.serverTfid === server)){
+              state.contacts.unshift({ id:'c-'+Date.now(), name: ui, uiTfid: ui, serverTfid: server, isGroup:false });
+              persist();
+            }
+            closeModal(wrap);
+            openChatFullscreen(server);
+          };
+          action.appendChild(openBtn);
+          item.appendChild(action);
+          resultList.appendChild(item);
+        } else {
+          // not found — allow create contact with this TFID
+          const info = el('div','card'); info.innerHTML = `<div class="small">Aucun utilisateur trouvé pour ${ui}. Vous pouvez créer un contact avec ce TFID.</div>`;
+          const createBtn = el('button','btn'); createBtn.textContent = 'Créer contact avec ce TFID';
+          createBtn.onclick = ()=> { closeModal(wrap); openCreateContactWithTFID(ui); };
+          info.appendChild(createBtn);
+          resultList.appendChild(info);
         }
+      }catch(e){
+        resultList.appendChild(el('div','muted')).textContent = 'Erreur recherche';
+      }
+    }, 400);
+  });
+}
+
+/* ---------- Create Contact (modal) ---------- */
+function openCreateContact(){
+  const m = showModal();
+  const c = el('div','card'); c.style.padding='18px';
+  c.appendChild(el('h3')).textContent = 'Créer un contact';
+  const nameIn = el('input',''); nameIn.placeholder = 'Nom (optionnel)'; nameIn.style.width='100%'; nameIn.style.padding='10px';
+  const tfidIn = el('input',''); tfidIn.placeholder='TF-7777777 ou 7777777 (obligatoire)'; tfidIn.style.width='100%'; tfidIn.style.padding='10px'; tfidIn.style.marginTop='8px';
+  c.appendChild(nameIn); c.appendChild(tfidIn);
+  const add = el('button','btn'); add.textContent='Ajouter au contact'; add.style.marginTop='12px';
+  add.onclick = ()=> {
+    const t = tfidIn.value.trim();
+    if(!t) return alert('TFID obligatoire');
+    try{
+      const ui = t.startsWith('TF-') ? t : 'TF-' + (extractDigits(t)||'').padStart(7,'0');
+      const server = uiToServer(ui);
+      const name = nameIn.value.trim() || ui;
+      if(!state.contacts.find(cc=>cc.serverTfid===server)){
+        state.contacts.unshift({ id:'c-'+Date.now(), name, uiTfid:ui, serverTfid:server, isGroup:false });
         persist();
-        closeModal(parentModal);
-        renderHome();
-        startPolling();
-      }catch(e){ alert('Erreur TFID: ' + e.message); }
-    };
-    card.appendChild(finish);
-  }
+      }
+      closeModal(m); renderContactsView();
+    }catch(e){ alert('TFID invalide'); }
+  };
+  c.appendChild(add);
+  m.querySelector('.card').appendChild(c);
+}
 
-  function openReconnect(){
-    const modal = showModal();
-    const card = modal.querySelector('.card'); card.innerHTML = '';
-    card.appendChild(el('h3','','Re connecter'));
-    const tfidIn = el('input',''); tfidIn.placeholder = 'TF-7777777 ou 7777777'; tfidIn.style.width='100%'; tfidIn.style.padding='10px';
-    const pw = el('input',''); pw.type='password'; pw.placeholder = 'Mot de passe'; pw.style.width='100%'; pw.style.padding='10px'; pw.style.marginTop='8px';
-    card.appendChild(tfidIn); card.appendChild(pw);
-    const btn = el('button','btn','Suivant');
-    btn.onclick = ()=> {
-      try{
-        const ui = tfidIn.value.trim().startsWith('TF-') ? tfidIn.value.trim() : 'TF-' + (extractDigits(tfidIn.value)||'').padStart(7,'0');
-        const server = uiToServer(ui);
-        const saved = JSON.parse(localStorage.getItem('tfchat_state') || 'null');
-        if(!saved || !saved.me) return alert('Compte non trouvé localement. Créez un compte.');
-        if(saved.me.serverTfid !== server || saved.me.password !== pw.value) return alert('TFID ou mot de passe incorrect.');
-        state.me = saved.me; state.contacts = saved.contacts || state.contacts; deserializeMessages(saved.messages || {});
-        persist(); closeModal(modal); renderHome(); startPolling();
-      }catch(e){ alert('TFID invalide'); }
-    };
-    card.appendChild(btn);
-  }
-
-  /* ----------------------
-     RENDER: Home (Contacts, search, add)
-     ----------------------*/
-  function renderHome(){
-    main.innerHTML = '';
-    const top = el('div','card');
-    const left = el('div','row');
-    const avWrap = el('div','avatar');
-    if(state.me && state.me.avatarDataUrl) avWrap.innerHTML = '<img src="'+state.me.avatarDataUrl+'">';
-    left.appendChild(avWrap);
-    left.appendChild(el('div','','<strong>' + (state.me ? state.me.name : '') + '</strong><div class="small">'+ (state.me ? state.me.uiTfid : '') +'</div>'));
-    top.appendChild(left);
-    const addBtn = el('button','btn ghost','+ Ajouter'); addBtn.style.float='right'; addBtn.onclick = ()=> openAddContact();
-    top.appendChild(el('div','','<br>'));
-    top.appendChild(addBtn);
-    main.appendChild(top);
-
-    const search = el('input','search'); search.placeholder = config.uiStrings.searchPlaceholder || 'Rechercher'; search.oninput = ()=> renderContacts(search.value);
-    main.appendChild(search);
-
-    const listWrap = el('div','list'); listWrap.id = 'contactsList'; main.appendChild(listWrap);
-    renderContacts();
-  }
-
-  function renderContacts(filter=''){
-    const wrap = document.getElementById('contactsList'); if(!wrap) return;
-    wrap.innerHTML = '';
-    const arr = state.contacts.filter(c => (c.name + ' ' + c.uiTfid).toLowerCase().includes((filter||'').toLowerCase()));
-    if(arr.length===0) wrap.appendChild(el('div','muted','Aucun contact'));
-    arr.forEach(c=>{
-      const row = el('div','contact');
-      const av = el('div','avatar'); // placeholder empty
-      const info = el('div'); info.innerHTML = `<strong>${c.name}</strong><div class="small">${c.uiTfid}${c.isGroup? ' • channel':''}</div>`;
-      row.appendChild(av); row.appendChild(info);
-      row.onclick = ()=> openChat(c.serverTfid);
-      wrap.appendChild(row);
-    });
-  }
-
-  function openAddContact(){
-    const modal = showModal();
-    const card = modal.querySelector('.card'); card.innerHTML = '';
-    card.appendChild(el('h3','','Ajouter un contact'));
-    const nameIn = el('input',''); nameIn.placeholder = 'Nom (ex: Adam_D\\'H7)'; nameIn.style.width='100%'; nameIn.style.padding='10px';
-    const tfidIn = el('input',''); tfidIn.placeholder = 'TF-7777777 ou 7777777'; tfidIn.style.width='100%'; tfidIn.style.padding='10px'; tfidIn.style.marginTop='8px';
-    card.appendChild(nameIn); card.appendChild(tfidIn);
-    const addBtn = el('button','btn','Ajouter');
-    addBtn.onclick = async ()=> {
-      const n = nameIn.value.trim(); const t = tfidIn.value.trim();
-      if(!n || !t) return alert('Remplissez tous les champs.');
-      try{
-        const ui = t.startsWith('TF-') ? t : 'TF-' + (extractDigits(t)||'').padStart(7,'0');
-        const server = uiToServer(ui);
-        const contact = { id: 'c-'+Date.now(), name: n, uiTfid: ui, serverTfid: server, isGroup:false };
-        state.contacts.unshift(contact);
+/* Create contact prefilled with TFID */
+function openCreateContactWithTFID(ui){
+  const m = showModal();
+  const c = el('div','card'); c.style.padding='18px';
+  c.appendChild(el('h3')).textContent = 'Créer un contact';
+  const nameIn = el('input',''); nameIn.placeholder = 'Nom (optionnel)'; nameIn.style.width='100%'; nameIn.style.padding='10px';
+  const tfidIn = el('input',''); tfidIn.value = ui; tfidIn.style.width='100%'; tfidIn.style.padding='10px'; tfidIn.style.marginTop='8px';
+  c.appendChild(nameIn); c.appendChild(p=>'');
+  c.appendChild(tfidIn);
+  const add = el('button','btn'); add.textContent='Ajouter au contact'; add.style.marginTop='12px';
+  add.onclick = ()=> {
+    const ui2 = tfidIn.value.trim();
+    try{
+      const server = uiToServer(ui2);
+      const name = nameIn.value.trim() || ui2;
+      if(!state.contacts.find(cc=>cc.serverTfid===server)){
+        state.contacts.unshift({ id:'c-'+Date.now(), name, uiTfid:ui2, serverTfid:server, isGroup:false });
         persist();
-        // Option: save add event to saveHost (so other clients know)
-        try {
-          await fetch(config.endpoints.saveHost + config.endpoints.apiAdd, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'x-api-token': config.apiToken },
-            body: JSON.stringify({
-              tfid: server,
-              name: config.frontendName,
-              content: JSON.stringify({ type:'contact_add', by: state.me ? state.me.serverTfid : null, contact: { name: n, uiTfid: ui, serverTfid: server }, created_at: nowISO() })
-            })
-          });
-        } catch(e){ console.warn('persist contact failed', e); }
-        closeModal(modal); renderHome();
-      }catch(e){ alert('TFID invalide'); }
-    };
-    card.appendChild(addBtn);
-  }
+      }
+      closeModal(m); renderContactsView();
+    }catch(e){ alert('TFID invalide'); }
+  };
+  c.appendChild(add);
+  m.querySelector('.card').appendChild(c);
+}
 
-  /* ----------------------
-     Chat view
-     ----------------------*/
-  function openChat(serverTfid){
-    state.current = serverTfid;
-    renderChat();
-    startPolling(); // ensure polling running
-  }
+/* Create Group */
+function openCreateGroup(){
+  const m = showModal();
+  const c = el('div','card'); c.style.padding='18px';
+  c.appendChild(el('h3')).textContent = 'Créer un groupe';
+  const nameIn = el('input',''); nameIn.placeholder='Nom du groupe (obligatoire)'; nameIn.style.width='100%'; nameIn.style.padding='10px';
+  c.appendChild(nameIn);
+  const create = el('button','btn'); create.textContent='Créer'; create.style.marginTop='12px';
+  create.onclick = ()=> {
+    const n = nameIn.value.trim(); if(!n) return alert('Nom obligatoire');
+    const ui = uiTfidRandom(); const server = uiToServer(ui);
+    state.contacts.unshift({ id:'g-'+Date.now(), name: n, uiTfid: ui, serverTfid: server, isGroup:true });
+    persist(); closeModal(m); renderContactsView();
+  };
+  c.appendChild(create);
+  m.querySelector('.card').appendChild(c);
+}
 
-  function renderChat(){
-    const contact = state.contacts.find(c=>c.serverTfid === state.current) || { name: state.current, uiTfid: state.current };
-    main.innerHTML = '';
-    const head = el('div','card'); head.innerHTML = `<div style="display:flex;align-items:center;gap:12px"><div class="avatar"></div><div><strong>${contact.name}</strong><div class="small">${contact.uiTfid}</div></div></div>`;
-    const backBtn = el('button','btn ghost','Retour'); backBtn.onclick = ()=> { state.current = null; renderHome(); };
-    head.appendChild(backBtn);
-    main.appendChild(head);
+/* Chat fullscreen modal */
+function openChatFullscreen(serverTfid){
+  state.messages[serverTfid] = state.messages[serverTfid] || [];
+  const contact = state.contacts.find(c=>c.serverTfid===serverTfid) || { name: serverTfid, uiTfid: serverTfid };
 
-    const chatBox = el('div','chat');
-    const messagesWrap = el('div','messages'); messagesWrap.id = 'messages';
-    chatBox.appendChild(messagesWrap);
+  const wrap = el('div','modal'); wrap.id='chatModal';
+  const container = el('div','card');
+  const header = el('div','fullscreen-header');
+  const back = el('button','back-btn'); back.textContent='Retour'; back.onclick = ()=> closeModal(wrap);
+  const av = el('div','avatar large'); av.innerHTML = contact.avatarDataUrl?'<img src="'+contact.avatarDataUrl+'">':'';
+  const info = el('div'); info.innerHTML = `<div style="font-weight:800">${contact.name}</div><div class="small">${contact.uiTfid}</div>`;
+  const more = el('button','settings-btn'); more.textContent='⋯'; more.onclick = ()=> openContactOptions(contact);
+  header.appendChild(back); header.appendChild(av); header.appendChild(info); header.appendChild(more);
+  container.appendChild(header);
 
-    const composer = el('div','composer');
-    const input = el('input'); input.type = 'text'; input.placeholder = 'Message';
-    const attach = el('button','btn ghost','➕');
-    const send = el('button','btn','Envoyer');
-    const fileInput = el('input'); fileInput.type='file'; fileInput.style.display='none';
-    fileInput.onchange = async (e)=> {
-      const f = e.target.files[0]; if(!f) return;
-      if(f.size > config.fileUpload.maxBytes){ alert('Fichier trop grand (max ' + config.fileUpload.maxMB + 'MB)'); return; }
-      await handleFileSend(contact, f);
-    };
-    attach.onclick = ()=> fileInput.click();
-    send.onclick = ()=> {
-      if(!input.value) return;
-      handleSendText(contact, input.value);
-      input.value = '';
-    };
-    composer.appendChild(input); composer.appendChild(attach); composer.appendChild(send);
-    chatBox.appendChild(composer);
-    main.appendChild(chatBox);
+  const content = el('div','fullscreen-content');
+  const messagesWrap = el('div','messages'); messagesWrap.id = 'messages_'+serverTfid; content.appendChild(messagesWrap);
+  container.appendChild(content);
 
-    renderMessages();
-  }
+  const inputBar = el('div','fullscreen-input'); inputBar.style.position='sticky'; inputBar.style.bottom='0';
+  const attach = el('button','settings-btn'); attach.textContent='📎'; attach.onclick = ()=> openFilePicker(serverTfid);
+  const txt = el('input',''); txt.type='text'; txt.placeholder='Écrire un message...'; txt.style.flex='1'; txt.style.padding='12px'; txt.style.borderRadius='18px';
+  const send = el('button','btn'); send.textContent='Envoyer';
+  inputBar.appendChild(attach); inputBar.appendChild(txt); inputBar.appendChild(send);
+  container.appendChild(inputBar);
 
-  function renderMessages(){
-    const wrap = document.getElementById('messages');
-    if(!wrap) return;
-    wrap.innerHTML = '';
-    const msgs = state.messages[state.current] || [];
-    msgs.forEach(m=>{
+  wrap.appendChild(container);
+  document.body.appendChild(wrap);
+  wrap.onclick = (e)=> { if(e.target === wrap) closeModal(wrap); };
+
+  // render messages
+  function renderMsgs(){
+    messagesWrap.innerHTML = '';
+    const arr = state.messages[serverTfid] || [];
+    arr.forEach(m=>{
       const b = el('div','bubble ' + (m.from === (state.me && state.me.serverTfid) ? 'me' : ''));
-      if(m.type === 'text'){ b.textContent = m.text; }
+      b.className = 'bubble ' + (m.from === (state.me && state.me.serverTfid) ? 'me' : 'other');
+      if(m.type === 'text') b.textContent = m.text;
       else if(m.type === 'file'){
         const meta = m.fileMeta || {};
-        if(meta.mimetype && meta.mimetype.startsWith('image/')){
-          const img = el('img','file-thumb'); img.src = m.blobDataUrl || (m.blob ? URL.createObjectURL(m.blob) : '');
-          b.appendChild(img);
-        } else if(meta.mimetype && meta.mimetype.startsWith('video/')){
-          const vid = el('video','video-player'); vid.controls = true; vid.src = m.blobDataUrl || (m.blob ? URL.createObjectURL(m.blob) : ''); b.appendChild(vid);
-        } else {
-          b.textContent = meta.filename || 'Fichier';
-        }
-      } else {
-        b.textContent = JSON.stringify(m);
-      }
-      const t = el('div','small', new Date(m.time || nowISO()).toLocaleString());
-      b.appendChild(t);
-      wrap.appendChild(b);
+        if(meta.mimetype && meta.mimetype.startsWith('image/')){ const img=el('img','file-thumb'); img.src = m.blobDataUrl || ''; b.appendChild(img); }
+        else if(meta.mimetype && meta.mimetype.startsWith('video/')){ const v=el('video','video-player'); v.controls=true; v.src=m.blobDataUrl||''; b.appendChild(v); }
+        else b.textContent = meta.filename || 'Fichier';
+      } else b.textContent = JSON.stringify(m);
+      const time = el('div','small'); time.textContent = new Date(m.time || nowISO()).toLocaleTimeString();
+      b.appendChild(time);
+      messagesWrap.appendChild(b);
     });
-    wrap.scrollTop = wrap.scrollHeight;
+    messagesWrap.scrollTop = messagesWrap.scrollHeight;
   }
+  renderMsgs();
 
-  /* ----------------------
-     Send handlers
-     ----------------------*/
-  async function handleSendText(contact, text){
-    if(!state.me) return alert('Connectez-vous.');
+  // send handler
+  send.onclick = async ()=>{
+    if(!txt.value || !state.me) return;
+    const text = txt.value.trim(); if(!text) return;
     const msg = { from: state.me.serverTfid, type:'text', text, time: nowISO() };
-    state.messages[contact.serverTfid] = state.messages[contact.serverTfid] || [];
-    state.messages[contact.serverTfid].push(msg); persist(); renderMessages();
-    // push to saveHost
+    state.messages[serverTfid] = state.messages[serverTfid] || []; state.messages[serverTfid].push(msg); persist(); renderMsgs();
+    txt.value='';
+    // POST to saveHost api/add
     try{
-      await fetch(config.endpoints.saveHost + config.endpoints.apiAdd, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-api-token': config.apiToken },
-        body: JSON.stringify({
-          tfid: contact.serverTfid,
-          name: config.frontendName,
-          content: JSON.stringify({ type:'text', from: state.me.serverTfid, text, time: msg.time })
-        })
+      await fetch(CONFIG.endpoints.saveHost + CONFIG.endpoints.apiAdd, {
+        method:'POST',
+        headers: { 'Content-Type':'application/json', 'x-api-token': CONFIG.apiToken },
+        body: JSON.stringify({ tfid: serverTfid, name: CONFIG.frontendName, content: JSON.stringify({ type:'text', from: state.me.serverTfid, text, time: msg.time }) })
       });
-    }catch(e){ console.warn('send text failed', e); }
-  }
+      // message already shown; server will store and be pulled by recipient
+    }catch(e){ console.warn('send failed', e); }
+  };
 
-  async function handleFileSend(contact, file){
-    if(!state.me) return alert('Connectez-vous.');
-    // Validate size
-    if(file.size > config.fileUpload.maxBytes) return alert('Fichier > ' + config.fileUpload.maxMB + 'MB');
-    // Upload to streamHost
-    const upUrl = (config.endpoints.streamHost || config.streamHost || '') + (config.endpoints.uploadPath || config.uploadPath || '/upload');
-    const fd = new FormData(); fd.append(config.fileUpload.formFieldName || 'file', file);
-    let respJson = null;
+  txt.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); send.click(); } });
+
+  // expose to update from poll
+  window.__renderChatFor = function(sid){ if(sid === serverTfid) renderMsgs(); };
+}
+
+/* Contact options (block/report) */
+function openContactOptions(contact){
+  const m = showModal();
+  const c = el('div','card'); c.style.padding='18px';
+  c.appendChild(el('h3')).textContent = contact.name;
+  const block = el('button','btn ghost'); block.textContent = 'Bloqué'; block.onclick = ()=> { alert(contact.name + ' mis sur liste bloquée (simulé).'); closeModal(m); };
+  const report = el('button','btn'); report.textContent = 'Signaler'; report.onclick = ()=> { alert('Merci pour le signalement (simulé).'); closeModal(m); };
+  c.appendChild(block); c.appendChild(el('div','','<br/>')); c.appendChild(report);
+  m.querySelector('.card').appendChild(c);
+}
+
+/* File picker for chat */
+function openFilePicker(serverTfid){
+  const inp = el('input'); inp.type='file';
+  inp.onchange = async (ev)=>{
+    const f = ev.target.files[0]; if(!f) return;
+    if(f.size > CONFIG.fileUpload.maxBytes){ alert('Fichier trop grand (max ' + CONFIG.fileUpload.maxMB + 'MB)'); return; }
+    // upload to streamHost
     try{
-      const resp = await fetch(upUrl, { method:'POST', headers: { 'x-api-token': config.apiToken }, body: fd });
-      respJson = await resp.json().catch(()=>null);
-      if(!resp.ok){ alert('Upload échoué'); return; }
-    }catch(e){ alert('Erreur upload: ' + e.message); return; }
-
-    // Try to get file URL or id from respJson; if absent, fallback to original file blob
-    const fileUrl = respJson && (respJson.url || respJson.fileUrl || respJson.file_url) || null;
-    const fileId = respJson && (respJson.file_id || respJson.id) || null;
-
-    // Get blob/dataUrl to display: prefer remote URL fetch; else use local file
-    let blob = null, dataUrl = null;
-    if(fileUrl){
-      try{
-        const fresp = await fetch(fileUrl);
-        if(fresp.ok){ blob = await fresp.blob(); dataUrl = await blobToDataURL(blob); }
-      }catch(e){ console.warn('Could not fetch remote file, using local file'); }
-    }
-    if(!blob){
-      blob = file;
-      dataUrl = await blobToDataURL(file);
-    }
-
-    const meta = { filename: file.name, mimetype: file.type, size: file.size, remoteUrl: fileUrl, remoteId: fileId };
-    const msg = { from: state.me.serverTfid, type:'file', fileMeta: meta, blobDataUrl: dataUrl, time: nowISO() };
-    state.messages[contact.serverTfid] = state.messages[contact.serverTfid] || [];
-    state.messages[contact.serverTfid].push(msg);
-    persist(); renderMessages();
-
-    // push file meta to saveHost so recipient gets notification (file stored on streamHost)
-    try{
-      await fetch(config.endpoints.saveHost + config.endpoints.apiAdd, {
-        method: 'POST',
-        headers: { 'Content-Type':'application/json', 'x-api-token': config.apiToken },
-        body: JSON.stringify({
-          tfid: contact.serverTfid,
-          name: config.frontendName,
-          content: JSON.stringify({ type:'file', from: state.me.serverTfid, fileMeta: meta, time: msg.time })
-        })
-      });
-    }catch(e){ console.warn('push saveHost failed', e); }
-  }
-
-  /* ----------------------
-     Polling / receiving messages
-     ----------------------*/
-  function startPolling(){
-    stopPolling();
-    if(!state.me) return;
-    pollOnce(); // immediate
-    state.pollIntervalId = setInterval(pollOnce, 3500);
-  }
-  function stopPolling(){ if(state.pollIntervalId) { clearInterval(state.pollIntervalId); state.pollIntervalId = null; } }
-
-  async function pollOnce(){
-    if(!state.me) return;
-    try{
-      const q = new URL(config.endpoints.saveHost + config.endpoints.apiList);
-      q.searchParams.set('tfid', state.me.serverTfid);
-      q.searchParams.set('name', config.frontendName);
-      const resp = await fetch(q.toString(), { headers: { 'x-api-token': config.apiToken } });
-      if(!resp.ok) return;
+      const fd = new FormData(); fd.append(CONFIG.fileUpload.formFieldName, f);
+      const resp = await fetch(CONFIG.endpoints.streamHost + CONFIG.endpoints.uploadPath, { method:'POST', headers: { 'x-api-token': CONFIG.apiToken }, body: fd });
+      if(!resp.ok) throw new Error('Upload failed');
       const j = await resp.json().catch(()=>null);
-      if(!j || !j.ok || !Array.isArray(j.rows)) return;
-      // rows in DESC order (server code orders DESC). We'll add new ones if not present.
-      for(let i = j.rows.length - 1; i >= 0; i--){ // iterate oldest -> newest
-        const row = j.rows[i];
-        let payload = null;
-        try { payload = JSON.parse(row.content); } catch(e) { payload = { type:'text', text: row.content }; }
-        const target = row.tfid; // messages are stored per tfid in server rows
-        // ensure conversation exists locally
-        state.messages[target] = state.messages[target] || [];
-        // dedupe by remote id
-        const exists = state.messages[target].some(m => m._remoteId === row.id);
-        if(!exists){
-          const msg = {
-            _remoteId: row.id,
-            from: payload.from || 'unknown',
-            type: payload.type || 'text',
-            text: payload.text || payload.message || '',
-            fileMeta: payload.fileMeta || null,
-            time: row.created_at || nowISO()
-          };
-          // If file & remoteUrl present, try to fetch it (but don't block)
-          if(msg.type === 'file' && msg.fileMeta && msg.fileMeta.remoteUrl){
-            (async ()=> {
-              try{
-                const fresp = await fetch(msg.fileMeta.remoteUrl);
-                if(fresp.ok){
-                  const b = await fresp.blob();
-                  msg.blobDataUrl = await blobToDataURL(b);
-                  persist(); if(state.current === target) renderMessages();
-                }
-              }catch(e){}
-            })();
-          }
-          state.messages[target].push(msg);
-          persist();
-          if(state.current === target) renderMessages();
-        }
+      const remoteUrl = j && (j.url || j.fileUrl || j.file_url) || null;
+      // prepare local display
+      let dataUrl = null;
+      if(f.type.startsWith('image/') || f.type.startsWith('video/')) dataUrl = await blobToDataURL(f);
+      const meta = { filename: f.name, mimetype: f.type, size: f.size, remoteUrl };
+      const msg = { from: state.me.serverTfid, type:'file', fileMeta: meta, blobDataUrl: dataUrl, time: nowISO() };
+      state.messages[serverTfid] = state.messages[serverTfid] || []; state.messages[serverTfid].push(msg); persist();
+      // notify saveHost
+      await fetch(CONFIG.endpoints.saveHost + CONFIG.endpoints.apiAdd, { method:'POST', headers:{ 'Content-Type':'application/json', 'x-api-token': CONFIG.apiToken }, body: JSON.stringify({ tfid: serverTfid, name: CONFIG.frontendName, content: JSON.stringify({ type:'file', from: state.me.serverTfid, fileMeta: meta, time: msg.time }) }) });
+      // refresh chat UI if open
+      if(window.__renderChatFor) window.__renderChatFor(serverTfid);
+    }catch(e){ alert('Upload fail: ' + e.message); }
+  };
+  inp.click();
+}
+
+/* Polling for incoming messages saved on saveHost */
+function startPolling(){ stopPolling(); if(!state.me) return; pollOnce(); state.pollId = setInterval(pollOnce, 3500); }
+function stopPolling(){ if(state.pollId){ clearInterval(state.pollId); state.pollId=null; } }
+async function pollOnce(){
+  if(!state.me) return;
+  try{
+    const q = new URL(CONFIG.endpoints.saveHost + CONFIG.endpoints.apiList);
+    q.searchParams.set('tfid', state.me.serverTfid);
+    q.searchParams.set('name', CONFIG.frontendName);
+    const r = await fetch(q.toString(), { headers: { 'x-api-token': CONFIG.apiToken } });
+    if(!r.ok) return;
+    const j = await r.json().catch(()=>null);
+    if(!j || !j.ok || !Array.isArray(j.rows)) return;
+    for(let i=j.rows.length-1;i>=0;i--){
+      const row = j.rows[i];
+      let payload = null;
+      try{ payload = JSON.parse(row.content); } catch(e){ payload = { type:'text', text: row.content }; }
+      const tgt = row.tfid;
+      state.messages[tgt] = state.messages[tgt] || [];
+      const exists = state.messages[tgt].some(m=>m._remoteId === row.id);
+      if(!exists){
+        const msg = { _remoteId: row.id, from: payload.from || 'unknown', type: payload.type || 'text', text: payload.text || payload.message || '', fileMeta: payload.fileMeta || null, time: row.created_at || nowISO() };
+        state.messages[tgt].push(msg); persist();
+        // refresh chat if open
+        if(window.__renderChatFor) window.__renderChatFor(tgt);
       }
-    }catch(e){ console.warn('poll fail', e); }
-  }
+    }
+  }catch(e){ console.warn('poll error', e); }
+}
 
-  /* ----------------------
-     Utility: Modal
-     ----------------------*/
-  function showModal(){
-    const wrap = el('div','modal');
-    const card = el('div','card');
-    wrap.appendChild(card);
-    wrap.onclick = (ev)=> { if(ev.target === wrap) closeModal(wrap); };
-    document.body.appendChild(wrap);
-    return wrap;
-  }
-  function closeModal(m){ if(m && m.parentNode) m.parentNode.removeChild(m); }
+/* Create account flow (click TFID required) */
+function openCreateAccount(){
+  const m = showModal(); const c = el('div','card'); c.style.padding='18px';
+  c.appendChild(el('h3')).textContent='Créer un compte';
+  c.appendChild(el('p','muted')).textContent='Cliquez sur le TFID affiché pour copier / sélectionner.';
+  const shown = uiTfidRandom(); const pill = el('div','tfid-pill'); pill.textContent = shown; pill.onclick = ()=> { pill.style.border='2px solid var(--accent)'; pill.dataset.clicked = '1'; navigator.clipboard?.writeText(shown).catch(()=>{}); };
+  c.appendChild(el('div','center')).lastChild.appendChild(pill);
+  const next = el('button','btn'); next.textContent='Suivant'; next.onclick = ()=> { if(!pill.dataset.clicked) return alert('Cliquez TFID d\'abord'); openSetPassword(shown, m); };
+  c.appendChild(next); m.querySelector('.card').appendChild(c);
+}
 
-  /* ----------------------
-     Utility: alert fallback for iOS feel
-     ----------------------*/
-  function toast(msg){ alert(msg); }
+function openSetPassword(shown, modalRef){
+  const c = modalRef.querySelector('.card'); c.innerHTML='';
+  c.appendChild(el('h3')).textContent='Définir mot de passe';
+  const pw = el('input',''); pw.type='password'; pw.placeholder='Mot de passe (min 6)'; pw.style.width='100%'; pw.style.padding='10px';
+  const pw2 = el('input',''); pw2.type='password'; pw2.placeholder='Confirmer mot de passe'; pw2.style.width='100%'; pw2.style.padding='10px';
+  c.appendChild(pw); c.appendChild(pw2);
+  const ok = el('button','btn'); ok.textContent='Finaliser'; ok.onclick = ()=> { if(pw.value.length<6) return alert('Mot de passe trop court'); if(pw.value !== pw2.value) return alert('mots de passe différents'); openProfilePick(shown, pw.value, modalRef); };
+  c.appendChild(ok);
+}
 
-  /* ----------------------
-     Start / Stop polling when logged in/out
-     ----------------------*/
-  // Start polling if state.me present from restore
-  if(state.me) startPolling();
+function openProfilePick(shown, password, modalRef){
+  const c = modalRef.querySelector('.card'); c.innerHTML='';
+  c.appendChild(el('h3')).textContent='Choisir pseudo & photo';
+  const avatarWrap = el('div','center'); const avatar = el('div','avatar'); avatarWrap.appendChild(avatar); c.appendChild(avatarWrap);
+  const fileIn = el('input'); fileIn.type='file'; fileIn.accept='image/*'; fileIn.onchange = e=> { const f=e.target.files[0]; if(!f) return; const r=new FileReader(); r.onload = ()=> { avatar.innerHTML = '<img src=\"'+r.result+'\">'; avatar.dataset.dataurl = r.result; }; r.readAsDataURL(f); };
+  c.appendChild(fileIn);
+  const nameIn = el('input'); nameIn.placeholder='Nom / Pseudo'; nameIn.style.width='100%'; nameIn.style.padding='10px'; nameIn.style.marginTop='8px';
+  c.appendChild(nameIn);
+  const finish = el('button','btn'); finish.textContent='Terminer'; finish.onclick = ()=> {
+    if(!nameIn.value) return alert('Nom requis');
+    const ui = shown; const server = uiToServer(ui);
+    state.me = { uiTfid: ui, serverTfid: server, name: nameIn.value, avatarDataUrl: avatar.dataset.dataurl || null, password };
+    // ensure Adam contact exists
+    const preUi='TF-7777777', preSrv = uiToServer(preUi);
+    if(!state.contacts.find(c=>c.uiTfid===preUi)) state.contacts.unshift({ id:'adam', name:"Adam_D'H7", uiTfid:preUi, serverTfid:preSrv, isGroup:false });
+    persist(); closeModal(modalRef); renderAccueil(); startPolling();
+  };
+  c.appendChild(finish);
+}
 
-  // Expose some debug helpers in window (optional)
-  window.__tfchat = { state, config, persist, startPolling, stopPolling };
+/* Reconnect */
+function openReconnect(){
+  const m = showModal();
+  const c = el('div','card'); c.style.padding='18px';
+  c.appendChild(el('h3')).textContent='Se reconnecter';
+  const tf = el('input'); tf.placeholder='TF-7777777 ou 7777777'; tf.style.width='100%'; tf.style.padding='10px';
+  const pw = el('input'); pw.type='password'; pw.placeholder='Mot de passe'; pw.style.width='100%'; pw.style.padding='10px';
+  const go = el('button','btn'); go.textContent='Suivant'; go.onclick = ()=> {
+    try{
+      const ui = tf.value.trim().startsWith('TF-') ? tf.value.trim() : 'TF-' + (extractDigits(tf.value)||'').padStart(7,'0');
+      const server = uiToServer(ui);
+      const saved = JSON.parse(localStorage.getItem('tfchat_state')||'null');
+      if(!saved || !saved.me) return alert('Aucun compte local');
+      if(saved.me.serverTfid !== server || saved.me.password !== pw.value) return alert('TFID ou mot de passe incorrect');
+      state.me = saved.me; state.contacts = saved.contacts || state.contacts; state.messages = saved.messages || state.messages; persist(); closeModal(m); renderAccueil(); startPolling();
+    }catch(e){ alert('TFID invalide'); }
+  };
+  c.appendChild(tf); c.appendChild(pw); c.appendChild(go);
+  m.querySelector('.card').appendChild(c);
+}
 
-  // END
-})();
+/* Modal helpers */
+function showModal(){ const wrap = el('div','modal'); const card = el('div','card'); wrap.appendChild(card); document.body.appendChild(wrap); wrap.onclick = e=> { if(e.target === wrap) closeModal(wrap); }; return wrap; }
+function closeModal(m){ if(m && m.parentNode) m.parentNode.removeChild(m); }
+
+/* Start polling when logged */
+function startPolling(){ stopPolling(); if(!state.me) return; pollOnce(); state.pollId = setInterval(pollOnce, 3500); }
+function stopPolling(){ if(state.pollId){ clearInterval(state.pollId); state.pollId = null; } }
+async function pollOnce(){
+  if(!state.me) return;
+  try{
+    const q = new URL(CONFIG.endpoints.saveHost + CONFIG.endpoints.apiList);
+    q.searchParams.set('tfid', state.me.serverTfid);
+    q.searchParams.set('name', CONFIG.frontendName);
+    const r = await fetch(q.toString(), { headers: { 'x-api-token': CONFIG.apiToken } });
+    if(!r.ok) return;
+    const j = await r.json().catch(()=>null);
+    if(!j || !j.ok || !Array.isArray(j.rows)) return;
+    for(let i=j.rows.length-1;i>=0;i--){
+      const row = j.rows[i];
+      let payload=null;
+      try{ payload = JSON.parse(row.content); } catch(e){ payload = { type:'text', text: row.content }; }
+      const tgt = row.tfid;
+      state.messages[tgt] = state.messages[tgt] || [];
+      const exists = state.messages[tgt].some(m=>m._remoteId === row.id);
+      if(!exists){
+        const msg = { _remoteId:row.id, from: payload.from || 'unknown', type: payload.type || 'text', text: payload.text || payload.message || '', fileMeta: payload.fileMeta || null, time: row.created_at || nowISO() };
+        state.messages[tgt].push(msg); persist();
+        if(window.__renderChatFor) window.__renderChatFor(tgt);
+      }
+    }
+  }catch(e){ console.warn('poll err', e); }
+}
+
+/* Initial view */
+renderAccueil();
+
+/* Expose for debug */
+window.__tfchat = { state, CONFIG, persist };
+
+/* End */
 </script>
 </body>
   </html>
