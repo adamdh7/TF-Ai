@@ -3,36 +3,36 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>TF-Chat</title>
+<title>TF-Chat (site1)</title>
 <style>
-  :root{--bg:#f6f8fb;--card:#fff;--muted:#6b7280;--accent:#007aff;--incoming:#f3f6f9;--outgoing:#34c759;--text:#0b1220}
-  html,body{height:100%;margin:0;font-family:-apple-system,'Helvetica Neue',Arial;background:var(--bg);color:var(--text)}
-  .app{max-width:1100px;margin:0 auto;height:100vh;display:grid;grid-template-columns:360px 1fr;gap:18px;padding:18px;box-sizing:border-box}
-  @media(max-width:920px){.app{grid-template-columns:1fr;padding:12px}}
-  .sidebar{background:var(--card);border-radius:18px;padding:14px;display:flex;flex-direction:column;gap:12px;height:calc(100vh-36px);overflow:hidden;box-shadow:0 6px 18px rgba(15,23,42,0.06)}
-  .top{display:flex;align-items:center;gap:12px}
-  .logo{width:56px;height:56px;border-radius:14px;background:linear-gradient(135deg,#007aff,#0ea5e9);display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:18px}
-  .title{font-weight:700;font-size:18px}.sub{color:var(--muted);font-size:13px;margin-top:2px}
-  .searchBox{display:flex;gap:8px;margin-top:8px}.searchBox input{flex:1;padding:10px 12px;border-radius:10px;border:1px solid #e5e7eb;font-size:14px}.searchBox button{padding:10px 12px;background:var(--accent);color:white;border:none;border-radius:10px;cursor:pointer;font-weight:600}
-  .contacts{margin-top:10px;overflow:auto;padding-right:6px}.contact{display:flex;align-items:center;gap:12px;padding:10px;border-radius:12px;cursor:pointer}.contact:hover{background:#f8fafc}
-  .avatar{width:46px;height:46px;border-radius:50%;background:#cbd5e1;display:flex;align-items:center;justify-content:center;font-weight:700;color:#0b1220}
-  .contact .meta{flex:1}.contact .name{font-weight:700}.contact .tf{color:var(--muted);font-size:12px;margin-top:4px}
-  .badge{background:#ef4444;color:white;padding:4px 8px;border-radius:999px;font-size:12px}
-  .actions{display:flex;gap:8px;margin-top:auto;align-items:center;justify-content:space-between}
-  .main{background:var(--card);border-radius:18px;height:calc(100vh-36px);display:flex;flex-direction:column;overflow:hidden;box-shadow:0 6px 18px rgba(15,23,42,0.06)}
-  .header{padding:10px 16px;border-bottom:1px solid #eef2f7;display:flex;gap:12px;align-items:center}
-  .header .avatar-lg{width:52px;height:52px;border-radius:12px;background:#cbd5e1;display:flex;align-items:center;justify-content:center;font-weight:700}
-  .header .info{flex:1}
-  .header .info .name{font-weight:800;font-size:16px}.header .info .sub{color:var(--muted);font-size:12px;margin-top:4px}
-  .messages{flex:1;padding:18px;overflow:auto;display:flex;flex-direction:column;gap:10px;background:linear-gradient(180deg,rgba(0,0,0,0.01),transparent)}
-  .bubble{max-width:72%;padding:10px 12px;border-radius:14px;line-height:1.3;word-wrap:break-word}
-  .bubble.me{margin-left:auto;background:var(--outgoing);color:white;border-bottom-right-radius:6px}
-  .bubble.them{margin-right:auto;background:var(--incoming);color:var(--text);border-bottom-left-radius:6px;border:1px solid #e6edf3}
-  .meta-time{font-size:11px;color:var(--muted);margin-top:6px}
-  .composer{padding:12px;border-top:1px solid #eef2f7;display:flex;gap:10px;align-items:center;background:linear-gradient(180deg,rgba(255,255,255,0.5),rgba(255,255,255,0.9))}
-  .composer input{flex:1;padding:12px;border-radius:12px;border:1px solid #e6eef3;font-size:15px;outline:none}
-  .composer button{padding:10px 14px;border-radius:10px;background:var(--accent);color:white;border:none;font-weight:700;cursor:pointer}
-  .muted-note{color:var(--muted);font-size:13px;padding:8px 12px}.small{font-size:12px;color:var(--muted)}
+:root{--bg:#f6f8fb;--card:#fff;--muted:#6b7280;--accent:#007aff;--incoming:#f3f6f9;--outgoing:#34c759;--text:#0b1220}
+html,body{height:100%;margin:0;font-family:-apple-system,'Helvetica Neue',Arial;background:var(--bg);color:var(--text)}
+.app{max-width:1100px;margin:0 auto;height:100vh;display:grid;grid-template-columns:360px 1fr;gap:18px;padding:18px;box-sizing:border-box}
+@media(max-width:920px){.app{grid-template-columns:1fr;padding:12px}}
+.sidebar{background:var(--card);border-radius:18px;padding:14px;display:flex;flex-direction:column;gap:12px;height:calc(100vh-36px);overflow:hidden;box-shadow:0 6px 18px rgba(15,23,42,0.06)}
+.top{display:flex;align-items:center;gap:12px}
+.logo{width:56px;height:56px;border-radius:14px;background:linear-gradient(135deg,#007aff,#0ea5e9);display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:18px}
+.title{font-weight:700;font-size:18px}.sub{color:var(--muted);font-size:13px;margin-top:2px}
+.searchBox{display:flex;gap:8px;margin-top:8px}.searchBox input{flex:1;padding:10px 12px;border-radius:10px;border:1px solid #e5e7eb;font-size:14px}.searchBox button{padding:10px 12px;background:var(--accent);color:white;border:none;border-radius:10px;cursor:pointer;font-weight:600}
+.contacts{margin-top:10px;overflow:auto;padding-right:6px}.contact{display:flex;align-items:center;gap:12px;padding:10px;border-radius:12px;cursor:pointer}.contact:hover{background:#f8fafc}
+.avatar{width:46px;height:46px;border-radius:50%;background:#cbd5e1;display:flex;align-items:center;justify-content:center;font-weight:700;color:#0b1220}
+.contact .meta{flex:1}.contact .name{font-weight:700}.contact .tf{color:var(--muted);font-size:12px;margin-top:4px}
+.badge{background:#ef4444;color:white;padding:4px 8px;border-radius:999px;font-size:12px}
+.actions{display:flex;gap:8px;margin-top:auto;align-items:center;justify-content:space-between}
+.main{background:var(--card);border-radius:18px;height:calc(100vh-36px);display:flex;flex-direction:column;overflow:hidden;box-shadow:0 6px 18px rgba(15,23,42,0.06)}
+.header{padding:10px 16px;border-bottom:1px solid #eef2f7;display:flex;gap:12px;align-items:center}
+.header .avatar-lg{width:52px;height:52px;border-radius:12px;background:#cbd5e1;display:flex;align-items:center;justify-content:center;font-weight:700}
+.header .info{flex:1}
+.header .info .name{font-weight:800;font-size:16px}.header .info .sub{color:var(--muted);font-size:12px;margin-top:4px}
+.messages{flex:1;padding:18px;overflow:auto;display:flex;flex-direction:column;gap:10px;background:linear-gradient(180deg,rgba(0,0,0,0.01),transparent)}
+.bubble{max-width:72%;padding:10px 12px;border-radius:14px;line-height:1.3;word-wrap:break-word}
+.bubble.me{margin-left:auto;background:var(--outgoing);color:white;border-bottom-right-radius:6px}
+.bubble.them{margin-right:auto;background:var(--incoming);color:var(--text);border-bottom-left-radius:6px;border:1px solid #e6edf3}
+.meta-time{font-size:11px;color:var(--muted);margin-top:6px}
+.composer{padding:12px;border-top:1px solid #eef2f7;display:flex;gap:10px;align-items:center;background:linear-gradient(180deg,rgba(255,255,255,0.5),rgba(255,255,255,0.9))}
+.composer input{flex:1;padding:12px;border-radius:12px;border:1px solid #e6eef3;font-size:15px;outline:none}
+.composer button{padding:10px 14px;border-radius:10px;background:var(--accent);color:white;border:none;font-weight:700;cursor:pointer}
+.muted-note{color:var(--muted);font-size:13px;padding:8px 12px}.small{font-size:12px;color:var(--muted)}
 </style>
 </head>
 <body>
@@ -95,13 +95,13 @@
   </div>
 
 <script>
-/* ========== CONFIG ========== */
+/* ====== CONFIG ====== */
 const API_BASE = "https://tf-sove.onrender.com";
 const FRONTEND_NAME = "site1";
 const ADMIN_API_TOKEN = "tfstream_45dd9c02d4e34f18a42d";
 const WS_URL = (location.protocol === "https:" ? "wss://" : "ws://") + "tf-sove.onrender.com/ws";
 
-/* ========== UTIL ========== */
+/* ====== UTILS ====== */
 function normalizeInputToDigits(inp){ if(!inp) return null; const s=String(inp).trim().toUpperCase(); const digits=s.replace(/[^0-9]/g,""); return digits||null; }
 function to17(shortOrDigits){ if(!shortOrDigits) return null; const ds=String(shortOrDigits); if(ds.length>17) return ds.slice(-17); return ds.padStart(17,"0"); }
 function formatTFShort(digitsString){ if(!digitsString) return ""; const s=String(digitsString); const last7=s.slice(-7); return "TF-"+last7.padStart(7,"0"); }
@@ -109,8 +109,14 @@ function nowISO(){ return (new Date()).toISOString(); }
 function fmtTime(iso){ try{ const d=new Date(iso); return d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});}catch(e){return "";} }
 function escapeHtml(s){ return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
 function makeCid(){ return String(Date.now()) + "-" + Math.floor(Math.random()*100000).toString(16); }
+function parseDatePrefer(isoOrDb, parsedTime){ // prefer parsedTime if present
+  const t1 = parsedTime ? Date.parse(parsedTime) : NaN;
+  if(!isNaN(t1)) return t1;
+  const t2 = Date.parse(isoOrDb || "");
+  return isNaN(t2) ? 0 : t2;
+}
 
-/* ========== STATE ========== */
+/* ====== STATE ====== */
 let me = {
   short: localStorage.getItem("tfchat.me.short") || null,
   tf17: localStorage.getItem("tfchat.me.17") || null,
@@ -120,10 +126,10 @@ let me = {
 let contacts = JSON.parse(localStorage.getItem("tfchat.contacts") || "[]");
 let ws = null;
 let currentPartner = null;
-let conversationCache = {}; // key => [{id,cid,from,text,created_at}]
+let conversationCache = {}; // { 'me|other': [msg,...] }
 let reconnectTimer = null;
 
-/* ========== DOM ========== */
+/* ====== DOM ====== */
 const meDisplay = document.getElementById("meDisplay");
 const searchInput = document.getElementById("searchInput");
 const searchBtn = document.getElementById("searchBtn");
@@ -138,12 +144,12 @@ const sendBtn = document.getElementById("sendBtn");
 const wsStatus = document.getElementById("wsStatus");
 const emptyNote = document.getElementById("emptyNote");
 
-/* ========== STATE HELPERS ========== */
+/* ====== HELPERS ====== */
 function saveState(){ localStorage.setItem("tfchat.me.short", me.short||""); localStorage.setItem("tfchat.me.17", me.tf17||""); localStorage.setItem("tfchat.me.name", me.name||""); if(me.avatarDataUrl) localStorage.setItem("tfchat.me.avatar", me.avatarDataUrl); localStorage.setItem("tfchat.contacts", JSON.stringify(contacts)); }
 function renderMe(){ meDisplay.textContent = me.tf17 ? `${formatTFShort(me.tf17)} • ${me.name||"Moi"}` : "—"; if(me.avatarDataUrl) chatAvatar.style.backgroundImage = `url(${me.avatarDataUrl})`; }
 function renderContacts(){ contactsList.innerHTML=""; if(contacts.length===0){ contactsList.innerHTML = `<div class="small" style="padding:8px;color:var(--muted)">Aucun contact. Recherchez un TFID ou créez-en un.</div>`; return; } for(const c of contacts){ const el=document.createElement("div"); el.className="contact"; el.dataset.tf17=c.tf17; el.innerHTML = `<div class="avatar">${escapeHtml((c.name||formatTFShort(c.tf17))[0]||"U")}</div><div class="meta"><div class="name">${escapeHtml(c.name||formatTFShort(c.tf17))}</div><div class="tf">${formatTFShort(c.tf17)}</div></div>${c.unread?`<div class="badge">${c.unread}</div>`:""}`; el.onclick = ()=> openChat(c.tf17, c); contactsList.appendChild(el); } }
 
-/* ========== HTTP HELPERS ========== */
+/* ====== HTTP HELPERS ====== */
 async function callJSON(url, opts={}) {
   try {
     const r = await fetch(url, opts);
@@ -157,7 +163,11 @@ async function callJSON(url, opts={}) {
 async function apiList(tf17){
   const url = `${API_BASE}/api/list?tfid=${encodeURIComponent(tf17)}&name=${encodeURIComponent(FRONTEND_NAME)}`;
   const r = await callJSON(url);
-  if(!r.ok) throw new Error(r.json?.error || r.text || `HTTP ${r.status}`);
+  if(!r.ok){
+    console.warn("API LIST failed", r.status, r.text?.slice?.(0,200));
+    // don't throw immediatly for UX: return empty list so UI doesn't crash
+    throw new Error(r.json?.error || r.text || `HTTP ${r.status}`);
+  }
   return r.json.rows || [];
 }
 
@@ -185,74 +195,112 @@ async function registerFrontendIfNeeded(){
     const url = `${API_BASE}/admin/register-frontend`;
     const payload = { name: FRONTEND_NAME, callback_url: location.origin };
     const r = await callJSON(url, { method:"POST", headers:{"Content-Type":"application/json","x-api-token": ADMIN_API_TOKEN}, body: JSON.stringify(payload) });
-    if(r.ok) return true;
-    return false;
+    return r.ok;
   } catch(e){ return false; }
 }
 
-/* ========== CONVERSATION CACHE ========== */
+/* ====== CONVERSATION CACHE & SORT/DEDUP ====== */
 function convKey(a,b){ return `${a}|${b}`; }
+
+function messageUniqueKey(m){
+  if(m.cid) return "cid:"+m.cid;
+  if(m.id) return "id:"+m.id;
+  return "temp:"+ (m._tempKey || (m._tempKey = Math.random().toString(36).slice(2)));
+}
+
+function compareMessagesAsc(a,b){
+  // prefer parsed.time (we store as created_at when assigned)
+  const ta = parseDatePrefer(a._db_created_at, a.parsed_time);
+  const tb = parseDatePrefer(b._db_created_at, b.parsed_time);
+  if(ta !== tb) return ta - tb;
+  // fallback to id
+  if(a.id && b.id && a.id !== b.id) return Number(a.id) - Number(b.id);
+  // fallback to cid
+  if(a.cid && b.cid && a.cid !== b.cid) return a.cid < b.cid ? -1 : 1;
+  return 0;
+}
 
 function addOrUpdateMessageToCache(me17, other17, msg){
   const key = convKey(me17, other17);
   if(!conversationCache[key]) conversationCache[key] = [];
   const list = conversationCache[key];
 
-  // dedupe by cid (preferred) then id
-  if(msg.cid){
-    const idx = list.findIndex(x => x.cid && x.cid === msg.cid);
-    if(idx !== -1){ list[idx] = Object.assign({}, list[idx], msg); return; }
+  // we store helper fields:
+  // msg.parsed_time <- parsed.time if any
+  // msg._db_created_at <- r.created_at if any
+  // msg.cid/id/from/text/created_at (created_at used for display only)
+
+  // dedupe by cid or id
+  const findIndex = msg.cid ? list.findIndex(x => x.cid && x.cid === msg.cid) : (msg.id ? list.findIndex(x => x.id && String(x.id) === String(msg.id)) : -1);
+  if(findIndex !== -1){
+    list[findIndex] = Object.assign({}, list[findIndex], msg);
+  } else {
+    list.push(msg);
   }
-  if(msg.id){
-    const idx2 = list.findIndex(x => String(x.id) === String(msg.id));
-    if(idx2 !== -1){ list[idx2] = Object.assign({}, list[idx2], msg); return; }
-  }
-  // otherwise append
-  list.push(msg);
-  // sort ascending (old → new)
-  list.sort((a,b) => new Date(a.created_at) - new Date(b.created_at));
+  list.sort(compareMessagesAsc);
 }
 
+/* load conversation: get messages stored under partner (outgoing I sent) and messages stored under me (incoming)
+   keep messages where parsed.from matches (owner) and prefer parsed.time over db created_at for sorting
+*/
 async function loadConversation(me17, other17){
   const key = convKey(me17, other17);
   conversationCache[key] = conversationCache[key] || [];
+  const seen = new Set();
 
-  // --- OUTGOING: messages saved under recipient that have parsed.from === me17 ---
-  try{
+  function pushRow(r, expectedFrom){
+    let parsed = null;
+    try { parsed = JSON.parse(r.content); } catch(e){ parsed = null; }
+    // If content not JSON or doesn't contain from/time/text, we still try to build text
+    const parsedFrom = parsed && parsed.from ? parsed.from : null;
+    const parsedTime = parsed && parsed.time ? parsed.time : null;
+    const parsedCid = parsed && parsed.cid ? parsed.cid : null;
+    const parsedText = parsed && (parsed.text || parsed.message) ? (parsed.text || parsed.message) : (r.content || "");
+    // only keep rows where parsedFrom matches expectedFrom
+    if(!parsedFrom || parsedFrom !== expectedFrom) return;
+    const m = {
+      id: r.id || null,
+      cid: parsedCid || null,
+      from: parsedFrom,
+      text: parsedText,
+      parsed_time: parsedTime || null,
+      _db_created_at: r.created_at || null,
+      created_at: parsedTime || r.created_at || nowISO()
+    };
+    const keyu = messageUniqueKey(m);
+    if(seen.has(keyu)) return;
+    seen.add(keyu);
+    addOrUpdateMessageToCache(me17, other17, m);
+  }
+
+  // outgoing: messages stored under other17 (these are messages I sent TO other) -> parsed.from should equal me17
+  try {
     const outRows = await apiList(other17);
-    for(const r of outRows){
-      let parsed = null;
-      try{ parsed = JSON.parse(r.content); } catch(e){ parsed = null; }
-      if(!parsed || !parsed.from) continue;
-      if(parsed.from !== me17) continue;
-      const msg = { id: r.id, cid: parsed.cid || null, from: parsed.from, text: parsed.text || "", created_at: r.created_at };
-      addOrUpdateMessageToCache(me17, other17, msg);
-    }
-  }catch(e){ /* ignore */ }
+    for(const r of outRows) pushRow(r, me17);
+  } catch(e){
+    console.warn("LIST outgoing failed for", other17, e.message || e);
+  }
 
-  // --- INCOMING: messages saved under my tf17 that have parsed.from === other17 ---
-  try{
+  // incoming: messages stored under me17 (these are messages FROM other to me) -> parsed.from should equal other17
+  try {
     const inRows = await apiList(me17);
-    for(const r of inRows){
-      let parsed = null;
-      try{ parsed = JSON.parse(r.content); } catch(e){ parsed = null; }
-      if(!parsed || !parsed.from) continue;
-      if(parsed.from !== other17) continue;
-      const msg = { id: r.id, cid: parsed.cid || null, from: parsed.from, text: parsed.text || "", created_at: r.created_at };
-      addOrUpdateMessageToCache(me17, other17, msg);
-    }
-  }catch(e){ /* ignore */ }
+    for(const r of inRows) pushRow(r, other17);
+  } catch(e){
+    console.warn("LIST incoming failed for", me17, e.message || e);
+  }
 
   renderConversation(me17, other17);
 }
 
 function renderConversation(me17, other17){
   const key = convKey(me17, other17);
-  const arr = conversationCache[key] || [];
+  const arr = conversationCache[key] ? [...conversationCache[key]] : [];
   messagesEl.innerHTML = "";
   if(arr.length === 0){
     messagesEl.innerHTML = `<div class="small" style="text-align:center;color:var(--muted);padding:20px">Pas encore de messages entre vous.</div>`;
   } else {
+    // ensure sorted asc (oldest first)
+    arr.sort(compareMessagesAsc);
     for(const m of arr){
       const b = document.createElement("div");
       b.className = "bubble " + (m.from === me17 ? "me" : "them");
@@ -260,11 +308,11 @@ function renderConversation(me17, other17){
       messagesEl.appendChild(b);
     }
   }
-  // scroll to bottom (newest)
+  // newest at bottom
   messagesEl.scrollTop = messagesEl.scrollHeight;
 }
 
-/* ========== CHAT / SEND ========== */
+/* ====== CHAT / SEND ====== */
 async function openChat(other17, contactObj=null){
   if(!me.tf17){ if(!await promptForMe()) return; }
   currentPartner = { tf17: other17, short: formatTFShort(other17), name: (contactObj && contactObj.name) || null };
@@ -276,7 +324,7 @@ async function openChat(other17, contactObj=null){
   const c = contacts.find(x => x.tf17 === other17);
   if(c){ c.unread = 0; saveState(); renderContacts(); }
   await loadConversation(me.tf17, other17);
-  // ensure WS subscription for me.tf17 (server handles)
+  // subscribe to my tfid for real-time
   if(ws && ws.readyState === WebSocket.OPEN) {
     try { ws.send(JSON.stringify({ type:"subscribe", tfid: me.tf17 })); } catch(e){}
   }
@@ -288,49 +336,44 @@ async function sendToCurrent(text){
 
   const cid = makeCid();
   const payload = { type: "text", from: me.tf17, text, time: nowISO(), cid };
-  // local optimistic message
-  const localMsg = { id: "local-" + cid, cid, from: me.tf17, text, created_at: payload.time };
+
+  // optimistic local message appended
+  const localMsg = { id: null, cid, from: me.tf17, text, parsed_time: payload.time, _db_created_at: null, created_at: payload.time, _optimistic:true };
   addOrUpdateMessageToCache(me.tf17, currentPartner.tf17, localMsg);
   renderConversation(me.tf17, currentPartner.tf17);
 
   try {
-    const resp = await apiAdd(currentPartner.tf17, payload);
-    // start short poll fallback to ensure recipient gets message even if WS missed (max 5 tries)
-    startShortPollForMessage(currentPartner.tf17, payload.cid);
+    await apiAdd(currentPartner.tf17, payload);
+    // poll to reconcile server-side copy (match by cid)
+    startShortPollForMessage(currentPartner.tf17, cid);
   } catch(e){
     alert("Envoi échoué : " + (e.message || e));
   }
 }
 
-/* short poll: after sending, try N times to fetch server list and sync once server has stored message (match by cid) */
+/* short poll: a few attempts to fetch server list and sync once server has stored message (match by cid) */
 function startShortPollForMessage(target17, cid){
   let tries = 0;
   const maxTries = 6;
+  const interval = 1200;
   const attempt = async ()=>{
     tries++;
     try {
-      // check recipient storage (server stored under target17)
       const rows = await apiList(target17);
       const found = rows.find(r => {
         try { const p = JSON.parse(r.content); return p && p.cid === cid; } catch(e){ return false; }
       });
       if(found){
-        // also fetch my storage to ensure incoming saved message is available for me (often server stores under recipient only)
-        // We will merge for both sides:
         await loadConversation(me.tf17, target17);
         return true;
       }
-    } catch(e){
-      // ignore error
-    }
-    if(tries < maxTries) {
-      setTimeout(attempt, 1200);
-    }
+    } catch(e){}
+    if(tries < maxTries) setTimeout(attempt, interval);
   };
   attempt();
 }
 
-/* ========== CONTACTS & UI helpers ========== */
+/* ====== CONTACTS & UI helpers ====== */
 function ensureContactInList(tf17, name){
   let c = contacts.find(x=>x.tf17===tf17);
   if(!c){ c = { tf17, short: formatTFShort(tf17), name: name||null, unread:0 }; contacts.unshift(c); saveState(); renderContacts(); }
@@ -351,7 +394,7 @@ async function promptForMe(){
   return true;
 }
 
-/* ========== WEBSOCKET ========== */
+/* ====== WEBSOCKET ====== */
 function connectWS(){
   if(!me.tf17){ wsStatus.textContent = "WS: non connecté (pas de TFID)"; return; }
   try {
@@ -360,7 +403,7 @@ function connectWS(){
 
   ws.onopen = ()=>{
     wsStatus.textContent = "WS: connecté";
-    try{ ws.send(JSON.stringify({ type:"subscribe", tfid: me.tf17 })); } catch(e){ console.warn("WS send err", e); }
+    try{ ws.send(JSON.stringify({ type:"subscribe", tfid: me.tf17 })); } catch(e){}
   };
   ws.onmessage = (ev)=>{
     try {
@@ -372,24 +415,19 @@ function connectWS(){
         try{ parsed = JSON.parse(payload.content); } catch(e){ parsed = null; }
         if(!parsed || !parsed.from) return;
 
-        const recipient = payload.tfid || null;
-        const serverId = payload.id || null;
+        const recipient = payload.tfid || null; // server stored under this tfid
         const from = parsed.from;
-        const text = parsed.text || "";
-        const created = payload.created_at || nowISO();
-
-        const isForMe = (recipient === me.tf17);
-        const other = isForMe ? from : recipient;
+        // choose 'other' as the counterpart for conversation
+        const other = (recipient === me.tf17) ? from : recipient;
         if(!other) return;
-
-        const msgObj = { id: serverId, cid: parsed.cid || null, from, text, created_at: created };
+        const created = parsed.time || payload.created_at || nowISO();
+        const msgObj = { id: payload.id || null, cid: parsed.cid || null, from, text: parsed.text || parsed.message || "", parsed_time: parsed.time || null, _db_created_at: payload.created_at || null, created_at: created };
 
         addOrUpdateMessageToCache(me.tf17, other, msgObj);
 
-        // if currently viewing that chat — render and mark read
         if(currentPartner && currentPartner.tf17 === other){
           renderConversation(me.tf17, other);
-        } else if(isForMe){
+        } else if(recipient === me.tf17){
           const c = ensureContactInList(other, null);
           c.unread = (c.unread||0) + 1;
           saveState();
@@ -403,7 +441,7 @@ function connectWS(){
 }
 function scheduleReconnect(){ if(reconnectTimer) return; reconnectTimer = setTimeout(()=>{ reconnectTimer=null; connectWS(); }, 3000); }
 
-/* ========== UI INIT ========== */
+/* ====== UI INIT ====== */
 async function initUI(){
   await registerFrontendIfNeeded();
   if(!me.tf17 && me.short){ me.tf17 = to17(me.short); saveState(); }
@@ -435,4 +473,4 @@ async function initUI(){
 initUI();
 </script>
 </body>
-            </html>
+  </html>
