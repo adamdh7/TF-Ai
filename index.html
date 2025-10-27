@@ -4,46 +4,19 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no" />
   <title>TF-Chat</title>
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
-    :root{--bg:#000000;--panel:#000000;--text:#e6eefb;--muted:#9aa6bf;--card:#0b0b0b;--accent:#0b81ff;--header-h:56px;--radius:12px}
+    :root{--bg:#000;--panel:#000;--text:#e6eefb;--muted:#9aa6bf;--card:#0b0b0b;--accent:#0b81ff;--header-h:56px}
     *{box-sizing:border-box}
-    html,body{height:100%;margin:0;padding:0;background:var(--bg);color:var(--text);font-family:Roboto,system-ui,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+    html,body{height:100%;margin:0;padding:0;background:var(--bg);color:var(--text);font-family:Roboto,system-ui,Arial,sans-serif}
     header{position:fixed;left:0;right:0;top:0;height:var(--header-h);display:flex;align-items:center;justify-content:center;background:var(--panel);z-index:1000;border-bottom:1px solid rgba(255,255,255,0.03)}
-    .header-left{position:absolute;left:12px;display:flex;gap:8px}
-    .header-right{position:absolute;right:12px;display:flex;gap:8px}
     .app-title{font-weight:700;font-size:18px}
-    .icon-btn{background:transparent;border:0;color:var(--text);padding:8px;border-radius:10px;cursor:pointer}
     main{position:fixed;left:0;right:0;top:var(--header-h);bottom:0;overflow:auto;padding:12px}
-    .search{padding:6px 0}
     .search-box{display:flex;align-items:center;gap:8px;background:var(--card);padding:10px;border-radius:999px;border:1px solid rgba(255,255,255,0.03)}
     .search-box input{flex:1;background:transparent;border:0;outline:none;color:var(--text);font-size:15px}
     .list{margin-top:12px}
     .contact{display:flex;gap:12px;align-items:center;padding:12px;border-radius:12px;cursor:pointer}
-    .contact:active{transform:translateY(1px)}
-    .avatar{width:56px;height:56px;border-radius:50%;background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;color:var(--text);flex-shrink:0}
-    .meta{flex:1;min-width:0}
-    .meta-top{display:flex;justify-content:space-between;align-items:flex-start}
-    .name{font-weight:600;font-size:16px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
-    .time{font-size:12px;color:var(--muted)}
-    .meta-bottom{display:flex;justify-content:space-between;margin-top:6px;align-items:center}
-    .snippet{font-size:13px;color:var(--muted);overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
-    .badge{background:var(--accent);color:white;padding:4px 8px;border-radius:999px;font-weight:600;font-size:13px}
-    .modal{position:fixed;inset:0;background:rgba(0,0,0,0.96);display:none;z-index:1200}
-    .modal.show{display:block}
-    .modal .full{height:100%;display:flex;flex-direction:column}
-    .modal-header{height:56px;display:flex;align-items:center;padding:8px 12px;border-bottom:1px solid rgba(255,255,255,0.03)}
-    .modal-body{overflow:auto;padding:12px;flex:1}
-    .modal-footer{padding:12px;border-top:1px solid rgba(255,255,255,0.03)}
-    .small-modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.6);z-index:1400}
-    .small-modal.show{display:flex}
-    .dialog{width:92%;max-width:420px;background:var(--panel);border-radius:12px;padding:16px;border:1px solid rgba(255,255,255,0.03)}
-    .dialog .row{margin-bottom:12px}
-    .round-avatar{width:88px;height:88px;border-radius:50%;background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:24px;margin:0 auto;cursor:pointer}
-    .dialog input[type='file']{display:none}
-    .dialog .actions{display:flex;gap:8px;justify-content:flex-end}
+    .avatar{width:56px;height:56px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;color:var(--text);flex-shrink:0;background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01))}
     .messages{padding:12px;height:calc(100% - 56px - 84px);overflow:auto;display:flex;flex-direction:column;gap:8px}
     .msg{max-width:74%;padding:10px;border-radius:12px;margin-bottom:4px}
     .msg.bot{background:#121212;color:var(--text);align-self:flex-start}
@@ -51,160 +24,73 @@
     .chat-input{display:flex;gap:8px;align-items:center}
     .input{flex:1;padding:12px;border-radius:999px;border:1px solid rgba(255,255,255,0.03);background:var(--card);color:var(--text);outline:none}
     .send-btn{background:transparent;border:0;padding:8px;border-radius:10px;cursor:pointer;color:var(--accent)}
-    .settings{display:flex;flex-direction:column;gap:12px}
-    .item{padding:12px;border-radius:12px;background:transparent;border:1px solid rgba(255,255,255,0.02);display:flex;justify-content:space-between;align-items:center;cursor:pointer}
+    .muted{text-align:center;color:var(--muted);padding:20px}
     @media (min-width:900px){main{max-width:700px;margin:0 auto}}
   </style>
 </head>
 <body>
-  <header>
-    <div class="header-left">
-      <button id="homeBtn" type="button" class="icon-btn" aria-label="Home">
-        <svg viewBox="0 0 24 24" width="18" height="18" fill="none"><path d="M3 11.5L12 4l9 7.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </button>
-    </div>
-    <div class="app-title" id="appTitle">TF-Chat</div>
-    <div class="header-right">
-      <button id="settingsBtn" type="button" class="icon-btn" aria-label="Paramètres">
-        <svg viewBox="0 0 24 24" width="18" height="18" fill="none"><path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </button>
-    </div>
-  </header>
-
+  <header><div class="app-title">TF-Chat</div></header>
   <main>
-    <section class="search">
-      <div class="search-box">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none"><path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="1.6"/><circle cx="11" cy="11" r="6" stroke="currentColor" stroke-width="1.6"/></svg>
-        <input id="searchInput" placeholder="Recherche (TFID)" aria-label="Recherche" />
-        <button id="clearSearch" type="button" class="icon-btn" style="display:none" aria-label="Clear search">✖</button>
-      </div>
-    </section>
+    <div class="search-box" style="margin-top:6px">
+      <input id="searchInput" placeholder="Recherche (TFID)" aria-label="Recherche" />
+      <button id="clearSearch" style="display:none;background:transparent;border:0;color:var(--muted);cursor:pointer">✖</button>
+    </div>
 
     <section class="list" id="contactsList" aria-live="polite"></section>
   </main>
 
   <!-- Chat modal -->
-  <div class="modal" id="chatModal" aria-hidden="true">
-    <div class="full">
-      <div class="modal-header">
-        <button id="chatBack" type="button" class="icon-btn" aria-label="Retour">←</button>
-        <div style="flex:1;display:flex;align-items:center;gap:12px">
-          <div id="chatAvatarSmall" class="avatar" style="width:44px;height:44px;font-size:16px"></div>
-          <div style="min-width:0">
-            <div id="chatTitle" style="font-weight:700;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></div>
-            <div id="chatSubtitle" style="font-size:12px;color:var(--muted)"></div>
-          </div>
-        </div>
+  <div id="chatModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.96);z-index:1200">
+    <div style="height:100%;display:flex;flex-direction:column">
+      <div style="height:56px;display:flex;align-items:center;padding:8px 12px;border-bottom:1px solid rgba(255,255,255,0.03)">
+        <button id="chatBack" style="background:transparent;border:0;color:var(--text);cursor:pointer">←</button>
+        <div style="flex:1;text-align:center;font-weight:700" id="chatTitle">Chat</div>
         <div style="width:44px"></div>
       </div>
-      <div class="modal-body">
+      <div style="overflow:auto;padding:12px;flex:1">
         <div class="messages" id="messages"></div>
       </div>
-      <div class="modal-footer">
+      <div style="padding:12px;border-top:1px solid rgba(255,255,255,0.03)">
         <div class="chat-input">
           <input id="chatText" class="input" placeholder="Ekri mesaj..." autocomplete="off" aria-label="Message" />
-          <button id="sendBtn" type="button" class="send-btn" aria-label="Send">Envoyer</button>
+          <button id="sendBtn" class="send-btn">Envoyer</button>
         </div>
       </div>
-    </div>
-  </div>
-
-  <!-- Settings modal -->
-  <div class="modal" id="settingsModal" aria-hidden="true">
-    <div class="full">
-      <div class="modal-header">
-        <button id="settingsBack" type="button" class="icon-btn" aria-label="Retour">←</button>
-        <div style="flex:1;text-align:center;font-weight:700">Paramètres</div>
-        <div style="width:44px"></div>
-      </div>
-      <div class="modal-body">
-        <div style="display:flex;gap:12px;align-items:center;padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,0.02)">
-          <div id="settingsAvatar" class="avatar" style="width:72px;height:72px;font-size:22px"></div>
-          <div>
-            <div id="settingsName" style="font-weight:800">Utilisateur</div>
-            <div id="settingsTfid" style="color:var(--muted)">TF-0000000</div>
-          </div>
-        </div>
-        <div style="height:12px"></div>
-        <div class="settings">
-          <div class="item" id="openProfile">Profil</div>
-          <div class="item" id="openLang">Langue</div>
-          <div class="item" id="openTfid">tfid</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Profile modal -->
-  <div class="small-modal" id="profileModal" aria-hidden="true">
-    <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="profileTitle">
-      <div class="row" id="profileTitle" style="text-align:center;font-weight:700;padding-bottom:6px">Profil</div>
-      <div class="row">
-        <div id="profileAvatarRound" class="round-avatar" title="Cliquer pou chanje photo"></div>
-        <input type="file" id="profilePhotoInput" accept="image/*">
-      </div>
-      <div class="row"><label>Nom</label><input id="profileNameInput" type="text" class="input"></div>
-      <div class="actions"><button class="icon-btn" type="button" id="profileCancel">Retour</button><button class="icon-btn" type="button" id="profileSave">Valider</button></div>
-    </div>
-  </div>
-
-  <!-- Lang modal -->
-  <div class="small-modal" id="langModal" aria-hidden="true">
-    <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="langTitle">
-      <div id="langTitle" style="text-align:center;font-weight:700;padding-bottom:6px">Langue</div>
-      <div class="row"><label><input type="radio" name="lang" value="ht"> Kreyòl</label></div>
-      <div class="row"><label><input type="radio" name="lang" value="fr"> Français</label></div>
-      <div class="row"><label><input type="radio" name="lang" value="es"> Español</label></div>
-      <div class="row"><label><input type="radio" name="lang" value="en"> English</label></div>
-      <div class="actions"><button class="icon-btn" type="button" id="langCancel">Retour</button><button class="icon-btn" type="button" id="langSave">Valider</button></div>
-    </div>
-  </div>
-
-  <!-- tfid modal -->
-  <div class="small-modal" id="tfidModal" aria-hidden="true">
-    <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="tfidTitle">
-      <div id="tfidTitle" style="text-align:center;font-weight:700;padding-bottom:6px">Modifier tfid</div>
-      <div class="row"><label>tfid</label><input id="tfidInput" type="text" class="input"></div>
-      <div class="actions"><button class="icon-btn" type="button" id="tfidCancel">Retour</button><button class="icon-btn" type="button" id="tfidSave">Valider</button></div>
     </div>
   </div>
 
 <script>
-/* ========= SAFETY HELPERS ========= */
-function safeParse(jsonStr, fallback){
-  try{
-    const v = JSON.parse(jsonStr);
-    return (v === null ? fallback : v);
-  }catch(e){
-    console.warn('safeParse fallback used', e);
-    return fallback;
-  }
-}
-
-/* ========= CONFIG & STATE ========= */
+/* ========== CONFIG ========== */
+/* Base API and token — user provided values */
 const API_BASE = 'https://tf-sove.onrender.com';
+const API_TOKEN = 'tfstream_45dd9c02d4e34f18a42d'; // <-- token you shared
 const FRONTEND_NAME = 'site1';
 
+/* storage keys */
 const KEY_CONTACTS = 'tfai_contacts_v4';
 const KEY_SESSIONS = 'tfai_sessions_v4';
 const KEY_PROFILE = 'tfai_profile_v4';
 const KEY_LANG = 'tfai_lang_v4';
 
+/* ========== STATE ========== */
+function safeParse(jsonStr, fallback){
+  try{ const v = JSON.parse(jsonStr); return (v === null ? fallback : v); }catch(e){ return fallback; }
+}
 let contacts = safeParse(localStorage.getItem(KEY_CONTACTS), []);
 let sessions = safeParse(localStorage.getItem(KEY_SESSIONS), []);
 let profile = safeParse(localStorage.getItem(KEY_PROFILE), {}) || {};
 let lang = localStorage.getItem(KEY_LANG) || 'ht';
 
-if (!profile.tfid) profile.tfid = generateRandomShortTF();
-if (!profile.name) profile.name = 'Utilisateur';
+if(!profile.tfid) profile.tfid = generateRandomShortTF();
+if(!profile.name) profile.name = 'Utilisateur';
 localStorage.setItem(KEY_PROFILE, JSON.stringify(profile));
 
-function saveContacts(){ try{ localStorage.setItem(KEY_CONTACTS, JSON.stringify(contacts)); }catch(e){ console.warn('saveContacts failed', e); } }
-function saveSessions(){ try{ localStorage.setItem(KEY_SESSIONS, JSON.stringify(sessions)); }catch(e){ console.warn('saveSessions failed', e); } }
-function saveProfile(){ try{ localStorage.setItem(KEY_PROFILE, JSON.stringify(profile)); }catch(e){ console.warn('saveProfile failed', e); } }
-function saveLang(){ try{ localStorage.setItem(KEY_LANG, lang); }catch(e){ console.warn('saveLang failed', e); } }
+function saveContacts(){ try{ localStorage.setItem(KEY_CONTACTS, JSON.stringify(contacts)); }catch(e){} }
+function saveSessions(){ try{ localStorage.setItem(KEY_SESSIONS, JSON.stringify(sessions)); }catch(e){} }
+function saveProfile(){ try{ localStorage.setItem(KEY_PROFILE, JSON.stringify(profile)); }catch(e){} }
+function saveLang(){ try{ localStorage.setItem(KEY_LANG, lang); }catch(e){} }
 
-/* ========= UTIL ======== */
+/* ========== UTIL ========== */
 function normalizeInputToDigits(inp){ if(!inp) return null; const s=String(inp).trim().toUpperCase(); const digits=s.replace(/[^0-9]/g,''); return digits||null; }
 function to17(shortOrDigits){ if(!shortOrDigits) return null; const ds=String(shortOrDigits).replace(/[^0-9]/g,''); if(ds.length>17) return ds.slice(-17); return ds.padStart(17,'0'); }
 function formatTFShort(digitsString){ if(!digitsString) return ''; const s=String(digitsString).replace(/[^0-9]/g,''); const last7 = s.slice(-7); return 'TF-'+ last7.padStart(7,'0'); }
@@ -215,34 +101,49 @@ function escapeHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,
 function initials(name){ if(!name) return 'U'; return name.split(' ').map(p=>p[0]).slice(0,2).join('').toUpperCase(); }
 function timeAgo(ts){ const diff=Math.floor((Date.now()-ts)/1000); if(diff<60) return diff+'s'; if(diff<3600) return Math.floor(diff/60)+'m'; if(diff<86400) return Math.floor(diff/3600)+'h'; return new Date(ts).toLocaleDateString(); }
 
-/* ========= NETWORK HELPERS ========= */
+/* ========== NETWORK HELPERS (add token headers) ========== */
 async function callJSON(url, opts={}){
   try{
+    opts = Object.assign({}, opts);
+    opts.headers = Object.assign({}, opts.headers || {}, { 'Accept':'application/json' });
+    if(API_TOKEN){
+      // include token both as Authorization and x-api-key to cover backend expectations
+      opts.headers['Authorization'] = 'Bearer ' + API_TOKEN;
+      opts.headers['x-api-key'] = API_TOKEN;
+    }
     const r = await fetch(url, opts);
     const text = await r.text();
     let json = null;
-    try{ json = JSON.parse(text); } catch(e){}
+    try{ json = JSON.parse(text); }catch(e){}
     return { ok: r.ok, status: r.status, json, text };
   }catch(e){ return { ok:false, error: e.message }; }
 }
+
 async function apiList(tf17){
   const url = `${API_BASE}/api/list?tfid=${encodeURIComponent(tf17)}&name=${encodeURIComponent(FRONTEND_NAME)}`;
   console.log('apiList ->', url);
   const r = await callJSON(url);
   console.log('apiList response', r);
-  if(!r.ok) throw new Error(r.json?.error || r.text || `HTTP ${r.status}`);
+  if(!r.ok){
+    if(r.status === 401 || r.status === 403) throw new Error('Unauthorized — API token missing or invalid (401/403).');
+    throw new Error(r.json?.error || r.text || `HTTP ${r.status}`);
+  }
   return r.json.rows || [];
 }
+
 async function apiAdd(recipient17, contentObj){
   const body = { tfid: recipient17, name: FRONTEND_NAME, content: JSON.stringify(contentObj), source_url: location.origin };
   const url = `${API_BASE}/api/add`;
   console.log('apiAdd ->', url, body);
-  const r = await callJSON(url, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+  const r = await callJSON(url, { method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify(body) });
   console.log('apiAdd response', r);
-  if(!r.ok) throw new Error(r.json?.error || r.text || `HTTP ${r.status}`);
+  if(!r.ok){
+    if(r.status === 401 || r.status === 403) throw new Error('Unauthorized — API token missing or invalid (401/403).');
+    throw new Error(r.json?.error || r.text || `HTTP ${r.status}`);
+  }
   return r.json;
 }
-// best-effort register (no crash on error) — fixed to use API_BASE
+
 async function registerFrontendIfNeeded(){
   try{
     const url = `${API_BASE}/internal/register-frontend`;
@@ -250,22 +151,20 @@ async function registerFrontendIfNeeded(){
   }catch(e){ console.warn('registerFrontendIfNeeded failed', e); }
 }
 
-/* ========= UI refs ========= */
+/* ========== UI refs ========== */
 const contactsListEl = document.getElementById('contactsList');
 const searchInputEl = document.getElementById('searchInput');
 const clearSearchEl = document.getElementById('clearSearch');
-
 const chatModalEl = document.getElementById('chatModal');
 const messagesEl = document.getElementById('messages');
 const chatTitleEl = document.getElementById('chatTitle');
-const chatSubtitleEl = document.getElementById('chatSubtitle');
-const chatAvatarSmallEl = document.getElementById('chatAvatarSmall');
 const chatTextEl = document.getElementById('chatText');
 const sendBtnEl = document.getElementById('sendBtn');
+const chatBackBtn = document.getElementById('chatBack');
 
 let currentChat = null;
 
-/* ========= RENDER CONTACTS ========= */
+/* ========== RENDER CONTACTS ========== */
 function renderContacts(filter = ''){
   if(!contactsListEl) return;
   contactsListEl.innerHTML = '';
@@ -276,8 +175,8 @@ function renderContacts(filter = ''){
   });
   if(list.length === 0){
     const div = document.createElement('div');
-    div.style.padding='20px'; div.style.textAlign='center'; div.style.color='var(--muted)';
-    div.textContent = 'Pa gen kontak. Rechèch yon TFID oswa ajoute yon kontak nan kòd.';
+    div.className = 'muted';
+    div.textContent = 'Pa gen kontak. Rechèch yon TFID oswa antre yon TFID ki egziste sou servèr la.';
     contactsListEl.appendChild(div);
     return;
   }
@@ -285,31 +184,26 @@ function renderContacts(filter = ''){
     const el = document.createElement('div'); el.className='contact'; el.dataset.id = c.id;
     const avatarHtml = c.logo ? `<img src="${c.logo}">` : escapeHtml(initials(c.name||c.tfid));
     el.innerHTML = `<div class="avatar">${avatarHtml}</div>
-      <div class="meta">
-        <div class="meta-top">
-          <div class="name">${escapeHtml(c.name||c.tfid)}</div>
-          <div class="time">${timeAgo(c.lastTs||Date.now())}</div>
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start">
+          <div style="font-weight:600;font-size:16px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${escapeHtml(c.name||c.tfid)}</div>
+          <div style="font-size:12px;color:var(--muted)">${timeAgo(c.lastTs||Date.now())}</div>
         </div>
-        <div class="meta-bottom">
-          <div class="snippet">${escapeHtml(c.lastMsg||'')}</div>
-          <div>${c.unread?'<span class="badge">'+c.unread+'</span>':''}</div>
+        <div style="display:flex;justify-content:space-between;margin-top:6px;align-items:center">
+          <div style="font-size:13px;color:var(--muted);overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${escapeHtml(c.lastMsg||'')}</div>
+          <div>${c.unread?'<span style="background:var(--accent);color:white;padding:4px 8px;border-radius:999px;font-weight:600;font-size:13px">'+c.unread+'</span>':''}</div>
         </div>
       </div>`;
-    el.addEventListener('click', ()=> {
-      if(c.isGroup) {
-        if(typeof openGroupInfo === 'function') openGroupInfo(c);
-      } else {
-        if(typeof openChat === 'function') openChat(c);
-      }
-    });
+    el.addEventListener('click', ()=> openChat(c));
     contactsListEl.appendChild(el);
   });
 }
 
-/* ========= SEARCH ========= */
+/* ========== SEARCH HANDLER ========== */
+/* On Enter: if digits -> try local -> call backend apiList -> create/open contact */
 if(searchInputEl){
-  searchInputEl.addEventListener('input', (e)=>{ renderContacts(e.target.value); if(clearSearchEl) clearSearchEl.style.display = e.target.value ? 'inline-block' : 'none'; });
-  if(clearSearchEl) clearSearchEl.addEventListener('click', ()=>{ searchInputEl.value=''; renderContacts(); clearSearchEl.style.display='none'; searchInputEl.focus(); });
+  searchInputEl.addEventListener('input', (e)=>{ renderContacts(e.target.value); clearSearchEl.style.display = e.target.value ? 'inline-block' : 'none'; });
+  clearSearchEl.addEventListener('click', ()=>{ searchInputEl.value=''; renderContacts(); clearSearchEl.style.display='none'; searchInputEl.focus(); });
 
   searchInputEl.addEventListener('keydown', async (e)=>{
     if(e.key !== 'Enter') return;
@@ -320,10 +214,10 @@ if(searchInputEl){
       if(digits.length < 7){ alert('TFID dwe gen omwen 7 chif.'); return; }
       const short7 = digits.slice(-7);
       const tf17 = to17(short7);
-      // first try local
+      // local first
       let local = contacts.find(c => (c.tf17 === tf17) || (normalizeInputToDigits(c.tfid) === short7));
-      if(local){ if(local.isGroup) { if(typeof openGroupInfo === 'function') openGroupInfo(local); } else { if(typeof openChat === 'function') openChat(local); } return; }
-      // else query server
+      if(local){ openChat(local); return; }
+      // query server
       try{
         const rows = await apiList(tf17);
         if(rows && rows.length > 0){
@@ -331,21 +225,19 @@ if(searchInputEl){
           const last = rows[rows.length-1];
           let lastMsg = '';
           try{ const p = JSON.parse(last.content); lastMsg = p.text || p.message || last.content; }catch(e){ lastMsg = last.content || ''; }
-          const c = { id, name: formatTFShort(short7), tfid: formatTFShort(short7), tf17: tf17, lastMsg, lastTs: Date.now(), unread:0 };
+          const c = { id, name: formatTFShort(short7), tfid: formatTFShort(short7), tf17, lastMsg, lastTs: Date.now(), unread:0 };
           contacts.unshift(c); saveContacts(); renderContacts();
-          if(typeof openChat === 'function') openChat(c);
-          return;
+          openChat(c);
         } else {
-          if(confirm('Pa jwenn done sou servèr. Kreye kontak lokal pou TFID sa a?')){
+          if(confirm('Servèr pa gen done pou TFID sa. Kreye kontak lokal pou TFID sa a?')){
             const id = 'c_'+Date.now();
-            const c = { id, name:'', tfid: formatTFShort(short7), tf17: tf17, lastMsg:'', lastTs:Date.now(), unread:0 };
+            const c = { id, name:'', tfid: formatTFShort(short7), tf17, lastMsg:'', lastTs:Date.now(), unread:0 };
             contacts.unshift(c); saveContacts(); renderContacts();
-            if(typeof openChat === 'function') openChat(c);
+            openChat(c);
           }
-          return;
         }
       }catch(err){
-        alert('Erè lè w ap chèche sou servèr: ' + (err.message||err)); return;
+        alert('Erè lè w ap chèche sou servèr: ' + (err.message||err));
       }
     } else {
       renderContacts(raw);
@@ -353,30 +245,26 @@ if(searchInputEl){
   });
 }
 
-/* ========= MODAL HELPERS ========= */
-function showModal(id){ const el = document.getElementById(id); if(!el) return; el.classList.add('show'); el.setAttribute('aria-hidden','false'); }
-function closeModal(id){ const el = document.getElementById(id); if(!el) return; el.classList.remove('show'); el.setAttribute('aria-hidden','true'); }
+/* ========== CHAT ========== */
+function showChatModal(){ chatModalEl.style.display = 'block'; setTimeout(()=> chatTextEl?.focus(), 150); }
+function hideChatModal(){ chatModalEl.style.display = 'none'; currentChat = null; }
 
-/* ========= CHAT ========= */
+chatBackBtn?.addEventListener('click', ()=> hideChatModal());
+
 async function openChat(contact){
   currentChat = contact;
-  if(chatTitleEl) chatTitleEl.textContent = contact.name || contact.tfid;
-  if(chatSubtitleEl) chatSubtitleEl.textContent = contact.isGroup ? 'Groupe' : contact.tfid || '';
-  if(chatAvatarSmallEl) chatAvatarSmallEl.innerHTML = contact.logo ? `<img src="${contact.logo}">` : escapeHtml(initials(contact.name||contact.tfid));
+  chatTitleEl.textContent = contact.name || contact.tfid;
   contact.unread = 0; saveContacts(); renderContacts(searchInputEl?.value);
-
-  if(messagesEl) messagesEl.innerHTML = '<div style="padding:10px;color:var(--muted)">Chaje mesaj...</div>';
+  if(messagesEl) messagesEl.innerHTML = '<div class="muted">Chaje mesaj...</div>';
   try{
-    const meShortLocal = profile.tfid;
-    const me17 = to17(normalizeInputToDigits(meShortLocal) || meShortLocal);
+    const me17 = to17(normalizeInputToDigits(profile.tfid) || profile.tfid);
     const other17 = to17(normalizeInputToDigits(contact.tfid) || contact.tfid);
     const conv = await loadConversation(me17, other17);
     renderMessageList(conv);
   }catch(err){
-    if(messagesEl) messagesEl.innerHTML = `<div style="padding:10px;color:var(--muted)">Pa kapab chaje mesaj: ${escapeHtml(err.message||err)}</div>`;
+    messagesEl.innerHTML = `<div class="muted">Pa kapab chaje mesaj: ${escapeHtml(err.message||err)}</div>`;
   }
-
-  showModal('chatModal'); setTimeout(()=> chatTextEl?.focus(),150);
+  showChatModal();
 }
 
 /* conversation merge loader */
@@ -390,7 +278,7 @@ async function loadConversation(me17, other17){
     const parsedFrom = parsed && parsed.from ? parsed.from : null;
     const parsedText = parsed && (parsed.text || parsed.message) ? (parsed.text || parsed.message) : (r.content || '');
     const parsedTime = parsed && parsed.time ? parsed.time : r.created_at;
-    // keep rows where content.from matches expectedFrom (this matches how server stores outgoing vs incoming)
+    // keep rows where content.from matches expectedFrom
     if(!parsedFrom || parsedFrom !== expectedFrom) return;
     const m = { id: r.id||null, cid: parsed && parsed.cid ? parsed.cid : null, from: parsedFrom, text: parsedText, created_at: parsedTime || new Date().toISOString() };
     const keyu = (m.cid? 'cid:'+m.cid : (m.id? 'id:'+m.id : m.created_at+'|'+m.text));
@@ -406,7 +294,7 @@ async function loadConversation(me17, other17){
 function renderMessageList(arr){
   if(!messagesEl) return;
   messagesEl.innerHTML = '';
-  if(!arr || arr.length === 0){ messagesEl.innerHTML = `<div style="padding:20px;color:var(--muted);text-align:center">Pa gen mesaj ankò.</div>`; return; }
+  if(!arr || arr.length === 0){ messagesEl.innerHTML = `<div class="muted">Pa gen mesaj ankò.</div>`; return; }
   const me17 = to17(normalizeInputToDigits(profile.tfid) || profile.tfid);
   arr.forEach(m=>{
     const isUser = m.from === me17;
@@ -418,118 +306,62 @@ function renderMessageList(arr){
   messagesEl.scrollTop = messagesEl.scrollHeight;
 }
 
-/* robust polling: check both lists (recipient & me) for the cid — longer timeout */
-function robustPollForMessage(me17, recipient17, cid){
+/* Poll for message on both sides (recipient and sender) by cid */
+async function robustPollForMessage(me17, recipient17, cid){
   let tries = 0; const maxTries = 30; const interval = 1000;
-  return new Promise((resolve)=>{
-    const attempt = async ()=>{
-      tries++;
-      try{
-        // check recipient list
-        const rowsR = await apiList(recipient17).catch(e=>{ console.warn('apiList recipient fail', e); return []; });
-        const foundR = rowsR.find(r=>{ try{ const p = JSON.parse(r.content); return p && p.cid === cid; }catch(e){ return false; } });
-        if(foundR){ console.log('found on recipient list', foundR); resolve(true); return; }
-
-        // check my list (in case server stores messages on sender side)
-        const rowsM = await apiList(me17).catch(e=>{ console.warn('apiList me fail', e); return []; });
-        const foundM = rowsM.find(r=>{ try{ const p = JSON.parse(r.content); return p && p.cid === cid; }catch(e){ return false; } });
-        if(foundM){ console.log('found on my list', foundM); resolve(true); return; }
-      }catch(e){ console.warn('robustPoll attempt error', e); }
-      if(tries < maxTries) setTimeout(attempt, interval); else resolve(false);
-    };
-    attempt();
-  });
+  while(tries < maxTries){
+    tries++;
+    try{
+      const rowsR = await apiList(recipient17).catch(()=>[]);
+      const foundR = rowsR.find(r=>{ try{ const p=JSON.parse(r.content); return p && p.cid===cid; }catch(e){return false;} });
+      if(foundR){ console.log('found on recipient list', foundR); return true; }
+      const rowsM = await apiList(me17).catch(()=>[]);
+      const foundM = rowsM.find(r=>{ try{ const p=JSON.parse(r.content); return p && p.cid===cid; }catch(e){return false;} });
+      if(foundM){ console.log('found on my list', foundM); return true; }
+    }catch(e){ console.warn('poll error', e); }
+    await new Promise(res=>setTimeout(res, interval));
+  }
+  return false;
 }
 
 /* SEND MESSAGE */
-document.getElementById('sendBtn')?.addEventListener('click', sendMessage);
+sendBtnEl?.addEventListener('click', sendMessage);
 chatTextEl?.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); sendMessage(); } });
+
 async function sendMessage(){
   const txt = (chatTextEl?.value || '').trim();
   if(!txt || !currentChat) return;
-  if(!profile.tfid){ alert('Pa gen TFID pou itilizatè a. Ale nan Paramètres pou mete TFID.'); return; }
-  const meShortLocal = profile.tfid;
-  const me17 = to17(normalizeInputToDigits(meShortLocal) || meShortLocal);
+  if(!profile.tfid){ alert('Pa gen TFID pou itilizatè a. Mete TFID anvan.'); return; }
+  const me17 = to17(normalizeInputToDigits(profile.tfid) || profile.tfid);
   const cid = makeCid();
   const payload = { type:'text', from: me17, text: txt, time: (new Date()).toISOString(), cid };
 
   // optimistic UI
-  const sess = sessions.find(s=> s.meta&&s.meta.contactId===currentChat.id) || (function(){ const s={title:currentChat.name||currentChat.tfid, meta:{contactId:currentChat.id}, messages:[]}; sessions.unshift(s); return s; })();
-  sess.messages.push({sender:'user',text:txt,ts:Date.now(),cid});
-  saveSessions();
-  addOrUpdateMessageToCache?.(me17, to17(normalizeInputToDigits(currentChat.tfid)||currentChat.tfid), { id:null, cid, from: me17, text: txt, created_at: new Date().toISOString() });
+  addOrUpdateMessageToCache(me17, to17(normalizeInputToDigits(currentChat.tfid)||currentChat.tfid), { id:null, cid, from: me17, text: txt, created_at: new Date().toISOString() });
   renderMessageList(conversationCache[convKey(me17, to17(normalizeInputToDigits(currentChat.tfid)||currentChat.tfid))] || []);
-
   if(chatTextEl) chatTextEl.value=''; currentChat.lastMsg = txt; currentChat.lastTs = Date.now(); saveContacts(); renderContacts(searchInputEl?.value);
 
   try{
     const recipientShort = normalizeInputToDigits(currentChat.tfid) || currentChat.tfid;
     const recipient17 = to17(recipientShort);
     await registerFrontendIfNeeded();
-
-    // send and inspect response
     const addRes = await apiAdd(recipient17, payload);
     console.log('apiAdd result object:', addRes);
-
-    // then robust poll both sides for message to appear (find by cid)
     const ok = await robustPollForMessage(me17, recipient17, cid);
     if(ok){
-      // reload full conversation
       const conv = await loadConversation(me17, recipient17);
       renderMessageList(conv);
     } else {
       console.warn('Message not found after polling for cid', cid);
-      alert('Mesaj voye, men pa t konfime sou servèr. Tcheke Console / Network.');
+      alert('Mesaj voye, men pa t konfime sou servèr — tcheke Console / Network pou plis detay.');
     }
-  } catch(err){ console.warn('send failed', err); alert('Envoi echwe: '+ (err.message||err)); }
+  }catch(err){
+    console.warn('send failed', err);
+    alert('Envoi echwe: '+ (err.message||err));
+  }
 }
 
-/* ========= SETTINGS / PROFILE / TFID ========= */
-document.getElementById('settingsBtn')?.addEventListener('click', ()=> { updateSettingsUI(); showModal('settingsModal'); });
-document.getElementById('settingsBack')?.addEventListener('click', ()=> closeModal('settingsModal'));
-function updateSettingsUI(){
-  const pa = document.getElementById('settingsAvatar');
-  if(pa) pa.innerHTML = profile.photo ? `<img src="${profile.photo}" style="width:100%;height:100%;border-radius:50%">` : initials(profile.name||profile.tfid);
-  const nameEl = document.getElementById('settingsName'); if(nameEl) nameEl.textContent = profile.name || 'Utilisateur';
-  const tfEl = document.getElementById('settingsTfid'); if(tfEl) tfEl.textContent = profile.tfid || '';
-}
-document.getElementById('openProfile')?.addEventListener('click', ()=> {
-  document.getElementById('profileNameInput').value = profile.name || '';
-  const pa = document.getElementById('profileAvatarRound');
-  if(pa) pa.innerHTML = profile.photo ? `<img src="${profile.photo}" style="width:100%;height:100%;border-radius:50%">` : initials(profile.name||profile.tfid);
-  showModal('profileModal');
-});
-const profileAvatarRound = document.getElementById('profileAvatarRound');
-const profilePhotoInput = document.getElementById('profilePhotoInput');
-if(profileAvatarRound && profilePhotoInput){
-  profileAvatarRound.addEventListener('click', ()=> profilePhotoInput.click());
-  profilePhotoInput.addEventListener('change', (e)=>{
-    const f = e.target.files[0]; if(!f) return;
-    if (!f.type.startsWith('image/')){ alert('Tanpri chwazi yon foto sèlman'); return; }
-    const r=new FileReader(); r.onload = (ev)=>{ profile.photo = ev.target.result; profileAvatarRound.innerHTML = `<img src="${profile.photo}" style="width:100%;height:100%;border-radius:50%">`; saveProfile(); updateSettingsUI(); }; r.readAsDataURL(f);
-  });
-}
-document.getElementById('profileCancel')?.addEventListener('click', ()=> closeModal('profileModal'));
-document.getElementById('profileSave')?.addEventListener('click', ()=>{ const newName = document.getElementById('profileNameInput').value.trim(); if(newName) profile.name = newName; saveProfile(); updateSettingsUI(); closeModal('profileModal'); alert('Profil sove'); });
-
-document.getElementById('openLang')?.addEventListener('click', ()=>{ document.querySelectorAll('#langModal input[name="lang"]').forEach(r=> r.checked = (r.value === lang)); showModal('langModal'); });
-document.getElementById('langCancel')?.addEventListener('click', ()=> closeModal('langModal'));
-document.getElementById('langSave')?.addEventListener('click', ()=>{ const sel = document.querySelector('#langModal input[name="lang"]:checked'); if(sel){ lang = sel.value; saveLang(); applyLang(); closeModal('langModal'); alert('Lang chanje: '+lang); } });
-
-document.getElementById('openTfid')?.addEventListener('click', ()=>{ document.getElementById('tfidInput').value = profile.tfid || ''; showModal('tfidModal'); });
-document.getElementById('tfidCancel')?.addEventListener('click', ()=> closeModal('tfidModal'));
-document.getElementById('tfidSave')?.addEventListener('click', ()=>{ const v=document.getElementById('tfidInput').value.trim(); if(!v){ alert('tfid pa ka vid'); return; } const digits = normalizeInputToDigits(v); if(!digits || digits.length < 7){ alert('TFID pa valab (dwe gen 7 chif).'); return; } profile.tfid = formatTFShort(digits.slice(-7)); saveProfile(); updateSettingsUI(); closeModal('tfidModal'); alert('tfid mete ajou'); });
-
-/* ========= INTERNATIONALIZATION ======== */
-const translations = { ht:{search:'Recherche', chatPlaceholder:'Ekri mesaj...', addedContactMsg:'Kontak ajoute.'}, fr:{search:'Recherche', chatPlaceholder:'Écrire un message...', addedContactMsg:'Contact ajouté.'}, en:{search:'Search', chatPlaceholder:'Type a message...', addedContactMsg:'Contact added.'}, es:{search:'Buscar', chatPlaceholder:'Escribe un mensaje...', addedContactMsg:'Contacto agregado.'} };
-function applyLang(){ const t = translations[lang] || translations.ht; if(document.getElementById('searchInput')) document.getElementById('searchInput').placeholder = t.search; if(document.getElementById('chatText')) document.getElementById('chatText').placeholder = t.chatPlaceholder; }
-applyLang();
-
-/* ========= BOOT ========= */
-updateSettingsUI(); renderContacts();
-window._tf_contacts = contacts; // debug
-
-/* small helper exposed for optimistic UI */
+/* expose add/update helper */
 function addOrUpdateMessageToCache(me17, other17, msg){
   const key = convKey(me17, other17);
   if(!conversationCache[key]) conversationCache[key]=[];
@@ -538,6 +370,22 @@ function addOrUpdateMessageToCache(me17, other17, msg){
   if(exists!==-1) list[exists]=Object.assign({}, list[exists], msg); else list.push(msg);
   list.sort((a,b)=> new Date(a.created_at) - new Date(b.created_at));
 }
+
+/* ========== SETTINGS UI (minimal) ========== */
+function updateSettingsUI(){
+  // not shown in this slim version; profile available via console
+}
+updateSettingsUI();
+
+/* ========== BOOT ========== */
+renderContacts();
+
+/* debug helper */
+window._tf_contacts = contacts;
+window._tf_profile = profile;
+window._apiBase = API_BASE;
+window._apiTokenPresent = !!API_TOKEN;
+
 </script>
 </body>
-        </html>
+  </html>
