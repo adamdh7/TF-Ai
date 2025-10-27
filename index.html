@@ -1,51 +1,26 @@
 <!doctype html>
+
 <html lang="ht">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover" />
-<title>TF-Chat</title>
+<meta name="viewport" content="width=device-width,initial-scale=1.0" />
+<title>TF-Chat (updated)</title>
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
-:root{
-  --bg:#000;
-  --panel:#000;
-  --text:#e6eefb;
-  --muted:#9aa6bf;
-  --card:#0b0b0b;
-  --accent:#0b81ff;
-  --header-h:56px;
-}
+:root{ --bg:#000000; --panel:#000000; --text:#e6eefb; --muted:#9aa6bf; --card:#0b0b0b; --accent:#0b81ff; --header-h:56px; }
 *{box-sizing:border-box}
 html,body{height:100%;margin:0;padding:0;background:var(--bg);color:var(--text);font-family:Roboto,system-ui,Arial,sans-serif;-webkit-font-smoothing:antialiased}
-header{
-  position:fixed;left:0;right:0;top:0;height:var(--header-h);
-  display:flex;align-items:center;justify-content:space-between;
-  background:var(--panel);z-index:1000;border-bottom:1px solid rgba(255,255,255,0.03);padding:0 8px;
-}
+header{position:fixed;left:0;right:0;top:0;height:var(--header-h);display:flex;align-items:center;justify-content:space-between;background:var(--panel);z-index:1000;border-bottom:1px solid rgba(255,255,255,0.03);padding:0 12px}
+.app-title{font-weight:700;font-size:18px;text-align:center;flex:1}
 .header-left, .header-right{display:flex;gap:8px;align-items:center}
-.header-btn{background:transparent;border:0;color:var(--text);padding:8px 10px;border-radius:8px;cursor:pointer;font-weight:600}
+.header-btn{background:transparent;border:0;color:var(--text);padding:8px 10px;border-radius:8px;cursor:pointer}
 .header-primary{background:var(--accent);color:white;padding:8px 12px;border-radius:10px}
-.app-title{font-weight:700;font-size:18px;text-align:center;flex:1;margin:0 8px;pointer-events:none}
-
-/* main layout: flex column so list expands to fill */
-main{
-  position:fixed;left:0;right:0;top:var(--header-h);bottom:0;
-  display:flex;flex-direction:column;padding:12px;gap:12px;
-}
-
-/* search row stays at top, contact list fills remaining area */
-.search{flex:0 0 auto}
-.search-box{
-  display:flex;align-items:center;gap:8px;background:var(--card);padding:10px;border-radius:999px;border:1px solid rgba(255,255,255,0.03)
-}
-.search-box input{
-  flex:1;background:transparent;border:0;outline:none;color:var(--text);font-size:15px;
-  -webkit-appearance:none;
-}
+main{position:fixed;left:0;right:0;top:var(--header-h);bottom:0;overflow:auto;padding:12px}
+.search{padding:6px 0}
+.search-box{display:flex;align-items:center;gap:8px;background:var(--card);padding:10px;border-radius:999px;border:1px solid rgba(255,255,255,0.03)}
+.search-box input{flex:1;background:transparent;border:0;outline:none;color:var(--text);font-size:15px}
 .search-btn{background:var(--accent);border:none;color:white;padding:8px 12px;border-radius:10px;cursor:pointer;font-weight:600}
-
-/* contact list */
-.list{flex:1 1 auto;overflow:auto;-webkit-overflow-scrolling:touch;padding-bottom:8px}
+.list{margin-top:12px}
 .contact{display:flex;gap:12px;align-items:center;padding:12px;border-radius:12px;cursor:pointer}
 .contact:hover{background:rgba(255,255,255,0.02)}
 .avatar{width:56px;height:56px;border-radius:50%;background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;color:var(--text);flex-shrink:0;overflow:hidden}
@@ -57,29 +32,24 @@ main{
 .meta-bottom{display:flex;justify-content:space-between;margin-top:6px;align-items:center}
 .snippet{font-size:13px;color:var(--muted);overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
 .badge{background:var(--accent);color:white;padding:4px 8px;border-radius:999px;font-weight:600;font-size:13px}
-
-/* chat modal full-screen */
-.modal-full{position:fixed;inset:0;background:rgba(0,0,0,0.96);z-index:1200;display:none;align-items:flex-start;justify-content:center}
-.modal-panel{width:100%;height:100%;display:flex;flex-direction:column;background:transparent}
-.modal-header{height:var(--header-h);display:flex;align-items:center;padding:8px 12px;border-bottom:1px solid rgba(255,255,255,0.03)}
-.modal-body{flex:1;overflow:auto;padding:12px;display:flex;flex-direction:column}
-
-/* messages container */
-.messages-wrap{padding:12px;flex:1 1 auto;overflow:auto;display:flex;flex-direction:column;gap:8px;-webkit-overflow-scrolling:touch}
+.messages-wrap{padding:12px;height:calc(100% - 56px - 84px);overflow:auto;display:flex;flex-direction:column;gap:8px;-webkit-overflow-scrolling:touch}
 .messages{display:flex;flex-direction:column;gap:8px}
 .msg{max-width:74%;padding:10px;border-radius:12px;margin-bottom:4px}
 .msg.bot{background:#121212;color:var(--text);align-self:flex-start}
 .msg.user{background:linear-gradient(180deg,var(--accent),#0563c9);color:white;align-self:flex-end}
 .msg .checks{font-size:11px;margin-left:8px;opacity:0.9}
-
-/* input row pinned to bottom of chat modal */
-.chat-input{display:flex;gap:8px;align-items:center;padding:10px;border-top:1px solid rgba(255,255,255,0.03);background:transparent;flex:0 0 auto}
+.chat-input{display:flex;gap:8px;align-items:center;padding:12px;border-top:1px solid rgba(255,255,255,0.03);background:transparent}
 .input{flex:1;padding:12px;border-radius:999px;border:1px solid rgba(255,255,255,0.03);background:var(--card);color:var(--text);outline:none}
 .send-btn{background:transparent;border:0;padding:8px;border-radius:10px;cursor:pointer;color:var(--accent)}
 .muted{text-align:center;color:var(--muted);padding:20px}
-
-/* profile edit panel (centered on mobile) */
+.bottom-right { position: fixed; right: 16px; bottom: 16px; z-index: 1100; display:flex; gap:8px; align-items:center; }
+@media (min-width:900px){main{max-width:700px;margin:0 auto}} 
+.modal-full{position:fixed;inset:0;background:rgba(0,0,0,0.96);z-index:1200;display:none;align-items:center;justify-content:center}
+.modal-panel{width:100%;height:100%;display:flex;flex-direction:column;background:transparent}
+.modal-header{height:56px;display:flex;align-items:center;padding:8px 12px;border-bottom:1px solid rgba(255,255,255,0.03)}
+.modal-body{flex:1;overflow:auto;padding:12px}
 .profile-edit-panel{width:420px;max-width:95%;background:#fff;border-radius:12px;padding:18px;box-shadow:0 10px 30px rgba(11,18,32,0.2);color:#0b1220}
+.setting-row{display:flex;gap:12px;align-items:center;margin-bottom:12px}
 .profile-circle{width:96px;height:96px;border-radius:50%;background:#cbd5e1;display:flex;align-items:center;justify-content:center;font-weight:700;overflow:hidden}
 .profile-circle img{width:100%;height:100%;object-fit:cover;border-radius:50%}
 .input-full{width:100%;padding:10px;border-radius:8px;border:1px solid #e6eef3}
@@ -87,93 +57,66 @@ main{
 .crop-preview{width:100%;height:300px;background:#111;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;margin-bottom:12px}
 .share-list{display:flex;flex-direction:column;gap:8px}
 .pw-modal{position:fixed;left:50%;top:30%;transform:translate(-50%,-30%);z-index:1400;background:#fff;padding:16px;border-radius:10px;color:#0b1220}
-
-/* responsiveness: make contact list items larger on tablet */
-@media (min-width:900px){
-  .avatar{width:72px;height:72px}
-  .name{font-size:18px}
-  main{max-width:900px;margin:0 auto}
-}
 </style>
 </head>
 <body>
-
   <header>
     <div class="header-left">
-      <button id="homeBtn" class="header-btn" aria-label="Accueil">Accueil</button>
+      <button id="homeBtn" class="header-btn">Accueil</button>
     </div>
-
     <div class="app-title">TF-Chat</div>
-
     <div class="header-right">
-      <button id="openSettingsBtn" class="header-btn" aria-label="Paramètres">Paramètres</button>
+      <button id="openSettingsBtn" class="header-btn">Paramètres</button>
     </div>
-  </header>
-
-  <main>
+  </header>  <main>
     <section class="search">
       <div class="search-box" role="search">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" aria-hidden="true"><path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="1.6"/><circle cx="11" cy="11" r="6" stroke="currentColor" stroke-width="1.6"/></svg>
-        <!-- search input tuned for on-screen keyboards -->
-        <input id="searchInput" type="search" inputmode="search" enterkeyhint="search" autocomplete="off" placeholder="Recherche (TFID oswa 7 chif)" aria-label="Recherche" />
-        <button id="searchBtn" class="search-btn" aria-label="Chercher">Rechercher</button>
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none"><path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="1.6"/><circle cx="11" cy="11" r="6" stroke="currentColor" stroke-width="1.6"/></svg>
+        <input id="searchInput" type="search" inputmode="search" enterkeyhint="search" autocomplete="off" placeholder="Recherche (TFID ou 7 chif)" aria-label="Recherche" />
+        <button id="searchBtn" class="search-btn">Rechercher</button>
       </div>
-    </section>
+    </section><section class="list" id="contactsList" aria-live="polite"></section>
 
-    <!-- contact list: flex:1 so it fills available space (adaptive) -->
-    <section class="list" id="contactsList" aria-live="polite"></section>
-  </main>
-
-  <!-- Chat modal (full-screen) -->
-  <div id="chatModal" class="modal-full" aria-hidden="true">
-    <div class="modal-panel" role="dialog" aria-modal="true" aria-label="Chat">
+  </main>  <!-- Chat modal (full-screen) -->  <div id="chatModal" class="modal-full" style="display:none;">
+    <div class="modal-panel">
       <div class="modal-header">
-        <button id="chatBack" class="header-btn" aria-label="Retour">←</button>
+        <button id="chatBack" class="header-btn">←</button>
         <div style="flex:1;text-align:center;font-weight:700;cursor:pointer" id="chatTitle">Chat</div>
         <div style="width:44px"></div>
       </div>
-
       <div class="modal-body">
-        <div class="messages-wrap" id="messagesWrap">
+        <div class="messages-wrap">
           <div class="messages" id="messages"></div>
         </div>
       </div>
-
       <div class="chat-input" id="chatInputRow">
-        <!-- input is single-line but enter sends; enterkeyhint=send signals keyboard -->
-        <input id="chatText" class="input" inputmode="text" enterkeyhint="send" autocomplete="off" placeholder="Ekri mesaj..." aria-label="Message" />
-        <button id="voiceBtn" class="send-btn" title="Voice" aria-label="Enregistrer">🎤</button>
-        <button id="sendBtn" class="send-btn" title="Send" aria-label="Envoyer" style="display:none">➡️</button>
+        <input id="chatText" class="input" inputmode="text" enterkeyhint="send" autocomplete="off" placeholder="Ekri mesaj..." />
+        <button id="voiceBtn" class="send-btn" title="Voice">🎤</button>
+        <button id="sendBtn" class="send-btn" title="Send" style="display:none">➡️</button>
       </div>
     </div>
-  </div>
-
-  <!-- Home modal (fullscreen) -->
-  <div id="homeModal" class="modal-full" aria-hidden="true">
+  </div>  <!-- Home fullscreen modal (Accueil) -->  <div id="homeModal" class="modal-full" style="display:none;">
     <div style="width:100%;height:100%;display:flex;flex-direction:column">
       <div class="modal-header">
-        <button id="homeBack" class="header-btn" aria-label="Retour">←</button>
+        <button id="homeBack" class="header-btn">←</button>
         <div style="flex:1;text-align:center;font-weight:700">Accueil</div>
         <div style="width:44px"></div>
       </div>
       <div class="modal-body" id="homeBody">
-        <div class="search" style="max-width:900px;margin:0 auto 12px">
+        <div class="search" style="max-width:700px;margin:0 auto">
           <div class="search-box" role="search">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" aria-hidden="true"><path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="1.6"/><circle cx="11" cy="11" r="6" stroke="currentColor" stroke-width="1.6"/></svg>
-            <input id="homeSearchInput" type="search" inputmode="search" enterkeyhint="search" autocomplete="off" placeholder="Recherche (TFID oswa 7 chif)" aria-label="Recherche" />
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none"><path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="1.6"/><circle cx="11" cy="11" r="6" stroke="currentColor" stroke-width="1.6"/></svg>
+            <input id="homeSearchInput" type="search" inputmode="search" enterkeyhint="search" autocomplete="off" placeholder="Recherche (TFID ou 7 chif)" aria-label="Recherche" />
             <button id="homeSearchBtn" class="search-btn">Rechercher</button>
           </div>
         </div>
-        <div id="homeContacts" style="max-width:900px;margin:0 auto"></div>
+        <div id="homeContacts" style="max-width:700px;margin:12px auto"></div>
       </div>
     </div>
-  </div>
-
-  <!-- Settings (full-screen modal) -->
-  <div id="settingsModal" class="modal-full" aria-hidden="true">
-    <div class="modal-panel" role="dialog" aria-modal="true" aria-label="Paramètres">
+  </div>  <!-- Settings (fullscreen) -->  <div id="settingsModal" class="modal-full" style="display:none;">
+    <div class="modal-panel">
       <div class="modal-header">
-        <button id="settingsBack" class="header-btn" aria-label="Retour">←</button>
+        <button id="settingsBack" class="header-btn">←</button>
         <div style="flex:1;text-align:center;font-weight:700">Paramètres</div>
         <div style="width:44px"></div>
       </div>
@@ -183,25 +126,21 @@ main{
             <div style="font-weight:800">Identité</div>
             <div class="small">Chwazi foto, non, bio, tfid, modpas</div>
           </div>
-
           <div style="display:flex;gap:12px;align-items:center;margin-bottom:12px">
-            <div class="profile-circle" id="editAvatar" title="Chwazi foto">U</div>
+            <div class="profile-circle" id="editAvatar">U</div>
             <div style="flex:1">
-              <input id="editName" class="input-full" placeholder="Nom" aria-label="Nom" />
-              <input id="editBio" class="input-full" placeholder="Bio" style="margin-top:8px" aria-label="Bio" />
+              <input id="editName" class="input-full" placeholder="Nom" />
+              <input id="editBio" class="input-full" placeholder="Bio" style="margin-top:8px" />
             </div>
           </div>
-
           <div style="margin-bottom:8px">
             <label class="small">TFID (7 chif)</label>
-            <input id="editTfid" class="input-full" placeholder="0204143" inputmode="numeric" aria-label="TFID" />
+            <input id="editTfid" class="input-full" placeholder="0204143" />
           </div>
-
           <div style="margin-bottom:12px">
             <label class="small">Nouveau mot de passe</label>
-            <input id="editPw" type="password" class="input-full" placeholder="Nouveau mot de passe" aria-label="Nouveau mot de passe" />
+            <input id="editPw" type="password" class="input-full" placeholder="Nouveau mot de passe" />
           </div>
-
           <div style="display:flex;justify-content:flex-end;gap:8px">
             <button id="cancelProfile" style="padding:8px 12px;border-radius:8px;border:1px solid #e6edf3;background:white;cursor:pointer">Annuler</button>
             <button id="saveProfile" style="padding:8px 12px;border-radius:8px;background:#007aff;color:white;border:none;cursor:pointer">Sove</button>
@@ -209,31 +148,20 @@ main{
         </div>
       </div>
     </div>
-  </div>
-
-  <!-- Password modal (localized) -->
-  <div id="pwModal" class="pw-modal" role="dialog" aria-modal="true" aria-hidden="true">
+  </div>  <!-- Password modal (localized) -->  <div id="pwModal" class="pw-modal" style="display:none;">
     <div style="font-weight:700;margin-bottom:8px">Antre modpas pou TFID sa</div>
     <input id="pwModalInput" type="password" placeholder="Modpas" style="width:260px;padding:8px;border-radius:6px;border:1px solid #ddd;margin-bottom:8px" />
     <div style="display:flex;gap:8px;justify-content:flex-end">
       <button id="pwModalCancel">Anile</button>
       <button id="pwModalOk">Valide</button>
     </div>
-  </div>
-
-  <!-- Share modal -->
-  <div id="shareModal" class="modal-full" aria-hidden="true">
+  </div>  <!-- Share modal -->  <div id="shareModal" class="modal-full" style="display:none;">
     <div class="modal-panel">
       <div class="modal-header"><button id="shareBack" class="header-btn">←</button><div style="flex:1;text-align:center;font-weight:700">Partager</div><div style="width:44px"></div></div>
       <div class="modal-body"><div class="share-list" id="shareList"></div><div style="display:flex;justify-content:flex-end;margin-top:12px"><button id="shareSend" class="header-primary">Envoyer</button></div></div>
     </div>
-  </div>
-
-  <!-- invisible inputs -->
-  <input type="file" id="profileFile" accept="image/*" style="display:none" />
-  <input type="file" id="audioFile" accept="audio/*" style="display:none" />
-
-<script>
+  </div>  <!-- invisible inputs -->  <input type="file" id="profileFile" accept="image/*" style="display:none" />
+  <input type="file" id="audioFile" accept="audio/*" style="display:none" /><script>
 /* ================== CONFIG ================== */
 const API_BASE = 'https://tf-sove.onrender.com';
 const PROFILE_UPLOAD_URL = 'https://tf-stream-url.onrender.com/upload';
@@ -252,685 +180,115 @@ async function hashPasswordHex(pw){ const enc = new TextEncoder(); const data = 
 /* ================== STATE ================== */
 let me = { short: localStorage.getItem('tfchat.me.short') || null, tf17: localStorage.getItem('tfchat.me.17') || null, name: localStorage.getItem('tfchat.me.name') || 'Utilisateur', avatarDataUrl: localStorage.getItem('tfchat.me.avatar') || null };
 let contacts = JSON.parse(localStorage.getItem('tfchat.contacts') || '[]');
-let currentPartner = null;
-const conversationCache = {};
+let currentPartner = null; const conversationCache = {};
 
 /* ================== DOM REFS ================== */
-const searchInput = document.getElementById('searchInput');
-const searchBtn = document.getElementById('searchBtn');
-const contactsListEl = document.getElementById('contactsList');
-
-const chatModalEl = document.getElementById('chatModal');
-const messagesEl = document.getElementById('messages');
-const messagesWrap = document.getElementById('messagesWrap');
-const chatInputRow = document.getElementById('chatInputRow');
-const chatTextEl = document.getElementById('chatText');
-const sendBtnEl = document.getElementById('sendBtn');
-const voiceBtn = document.getElementById('voiceBtn');
-
-const openSettingsBtn = document.getElementById('openSettingsBtn');
-const homeBtnEl = document.getElementById('homeBtn');
-
-const profileFile = document.getElementById('profileFile');
-const editAvatar = document.getElementById('editAvatar');
-const editName = document.getElementById('editName');
-const editBio = document.getElementById('editBio');
-const editTfid = document.getElementById('editTfid');
-const editPw = document.getElementById('editPw');
-const saveProfile = document.getElementById('saveProfile');
-const cancelProfile = document.getElementById('cancelProfile');
-
-const pwModal = document.getElementById('pwModal');
-const pwModalInput = document.getElementById('pwModalInput');
-const pwModalOk = document.getElementById('pwModalOk');
-const pwModalCancel = document.getElementById('pwModalCancel');
-
-const homeModal = document.getElementById('homeModal');
-const homeBack = document.getElementById('homeBack');
-const homeSearchInput = document.getElementById('homeSearchInput');
-const homeSearchBtn = document.getElementById('homeSearchBtn');
-const homeContacts = document.getElementById('homeContacts');
-
-const profileFileInput = document.getElementById('profileFile');
-const shareModal = document.getElementById('shareModal');
-const shareListEl = document.getElementById('shareList');
-const shareSendBtn = document.getElementById('shareSend');
-
-const chatTitleEl = document.getElementById('chatTitle');
+const searchInput = document.getElementById('searchInput'); const searchBtn = document.getElementById('searchBtn'); const contactsListEl = document.getElementById('contactsList');
+const chatModalEl = document.getElementById('chatModal'); const messagesEl = document.getElementById('messages'); const chatInputRow = document.getElementById('chatInputRow'); const chatTextEl = document.getElementById('chatText'); const sendBtnEl = document.getElementById('sendBtn');
+const openSettingsBtn = document.getElementById('openSettingsBtn'); const homeBtnEl = document.getElementById('homeBtn');
+const profileFile = document.getElementById('profileFile'); const editAvatar = document.getElementById('editAvatar'); const editName = document.getElementById('editName'); const editBio = document.getElementById('editBio'); const editTfid = document.getElementById('editTfid'); const editPw = document.getElementById('editPw'); const saveProfile = document.getElementById('saveProfile'); const cancelProfile = document.getElementById('cancelProfile');
+const pwModal = document.getElementById('pwModal'); const pwModalInput = document.getElementById('pwModalInput'); const pwModalOk = document.getElementById('pwModalOk'); const pwModalCancel = document.getElementById('pwModalCancel');
+const homeModal = document.getElementById('homeModal'); const homeBack = document.getElementById('homeBack'); const homeSearchInput = document.getElementById('homeSearchInput'); const homeSearchBtn = document.getElementById('homeSearchBtn'); const homeContacts = document.getElementById('homeContacts');
+const profileEditPanel = document.getElementById('profileEditPanel'); const profileFileInput = document.getElementById('profileFile');
+const shareModal = document.getElementById('shareModal'); const shareListEl = document.getElementById('shareList'); const shareSendBtn = document.getElementById('shareSend');
+const chatTitleEl = document.getElementById('chatTitle'); const voiceBtn = document.getElementById('voiceBtn'); const audioFile = document.getElementById('audioFile');
 
 /* ================== STORAGE HELPERS ================== */
-function saveState(){
-  localStorage.setItem('tfchat.me.short', me.short || '');
-  localStorage.setItem('tfchat.me.17', me.tf17 || '');
-  localStorage.setItem('tfchat.me.name', me.name || '');
-  if(me.avatarDataUrl) localStorage.setItem('tfchat.me.avatar', me.avatarDataUrl);
-  localStorage.setItem('tfchat.contacts', JSON.stringify(contacts || []));
-}
+function saveState(){ localStorage.setItem('tfchat.me.short', me.short || ''); localStorage.setItem('tfchat.me.17', me.tf17 || ''); localStorage.setItem('tfchat.me.name', me.name || ''); if(me.avatarDataUrl) localStorage.setItem('tfchat.me.avatar', me.avatarDataUrl); localStorage.setItem('tfchat.contacts', JSON.stringify(contacts || [])); }
 function initials(name){ if(!name) return 'U'; return name.split(' ').map(p=>p[0]).slice(0,2).join('').toUpperCase(); }
 
-/* ================== NETWORK (no websockets) ================== */
-async function callJSON(url, opts = {}){
-  opts = Object.assign({}, opts);
-  opts.headers = Object.assign({}, opts.headers || {}, { 'Accept': 'application/json' });
-  try {
-    const r = await fetch(url, opts);
-    const text = await r.text();
-    let json = null;
-    try { json = JSON.parse(text); } catch(e){}
-    return { ok: r.ok, status: r.status, json, text };
-  } catch (err) {
-    return { ok: false, error: err.message };
-  }
-}
-async function apiList(tf17){
-  const url = `${API_BASE}/api/list?tfid=${encodeURIComponent(tf17)}&name=${encodeURIComponent(FRONTEND_NAME)}`;
-  const r = await callJSON(url);
-  if(!r.ok) throw new Error(r.json?.error || r.text || `HTTP ${r.status}`);
-  return r.json.rows || [];
-}
-async function apiAdd(recipient17, contentObj){
-  const body = { tfid: recipient17, name: FRONTEND_NAME, content: JSON.stringify(contentObj), source_url: location.origin };
-  const url = `${API_BASE}/api/add`;
-  const r = await callJSON(url, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
-  if(!r.ok){
-    const errMsg = r.json?.error || r.text || `HTTP ${r.status}`;
-    if(String(errMsg).toLowerCase().includes("frontend name not registered")){
-      const regOk = await registerFrontendIfNeeded();
-      if(regOk){
-        const r2 = await callJSON(url, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
-        if(!r2.ok) throw new Error(r2.json?.error || r2.text || `HTTP ${r2.status}`);
-        return r2.json;
-      }
-    }
-    throw new Error(errMsg);
-  }
-  return r.json;
-}
-async function registerFrontendIfNeeded(){
-  try {
-    const url = `${API_BASE}/admin/register-frontend`;
-    const payload = { name: FRONTEND_NAME, callback_url: location.origin };
-    const r = await callJSON(url, { method:"POST", headers:{"Content-Type":"application/json","x-api-token": ADMIN_API_TOKEN}, body: JSON.stringify(payload) });
-    return r.ok;
-  } catch(e){ return false; }
-}
-// password/profile endpoints (back-end must implement)
+/* ================== NETWORK WRAPPERS (no websockets) */
+async function callJSON(url, opts = {}){ opts = Object.assign({}, opts); opts.headers = Object.assign({}, opts.headers || {}, { 'Accept': 'application/json' }); try{ const r = await fetch(url, opts); const text = await r.text(); let json = null; try{ json = JSON.parse(text);}catch(e){} return { ok: r.ok, status: r.status, json: json, text: text }; } catch(err){ return { ok:false, error: err.message }; } }
+async function apiList(tf17){ const url = `${API_BASE}/api/list?tfid=${encodeURIComponent(tf17)}&name=${encodeURIComponent(FRONTEND_NAME)}`; const r = await callJSON(url); if(!r.ok) { var errMsg = (r.json && r.json.error) ? r.json.error : r.text || `HTTP ${r.status}`; throw new Error(errMsg); } return r.json && r.json.rows ? r.json.rows : []; }
+async function apiAdd(recipient17, contentObj){ const body = { tfid: recipient17, name: FRONTEND_NAME, content: JSON.stringify(contentObj), source_url: location.origin }; const url = `${API_BASE}/api/add`; const r = await callJSON(url, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) }); if(!r.ok){ var errMsg = (r.json && r.json.error) ? r.json.error : r.text || `HTTP ${r.status}`; if(String(errMsg).toLowerCase().includes("frontend name not registered")){ const regOk = await registerFrontendIfNeeded(); if(regOk){ const r2 = await callJSON(url, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) }); if(!r2.ok){ var errMsg2 = (r2.json && r2.json.error) ? r2.json.error : r2.text || `HTTP ${r2.status}`; throw new Error(errMsg2); } return r2.json; } } throw new Error(errMsg); } return r.json; }
+async function registerFrontendIfNeeded(){ try{ const url = `${API_BASE}/admin/register-frontend`; const payload = { name: FRONTEND_NAME, callback_url: location.origin }; const r = await callJSON(url, { method:"POST", headers:{"Content-Type":"application/json","x-api-token": ADMIN_API_TOKEN}, body: JSON.stringify(payload) }); return r.ok; }catch(e){ return false; } }
+// password/profile endpoints to be implemented server-side
 async function apiHasPassword(tf17){ const url = `${API_BASE}/api/has-password?tfid=${encodeURIComponent(tf17)}`; const r = await callJSON(url); if(!r.ok) return false; return !!(r.json && r.json.hasPassword); }
 async function apiCheckPassword(tf17, pwHash){ const url = `${API_BASE}/api/check-password`; const r = await callJSON(url, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ tfid: tf17, hash: pwHash }) }); if(!r.ok) return false; return !!(r.json && r.json.ok); }
-async function apiSetPassword(tf17, pwHash){ const url = `${API_BASE}/api/set-password`; const r = await callJSON(url, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ tfid: tf17, hash: pwHash }) }); if(!r.ok) throw new Error(r.json?.error || r.text || `HTTP ${r.status}`); return r.json; }
-async function apiUpdateProfile(tf17, name, bio, photoUrl){ const url = `${API_BASE}/api/profile/update`; const r = await callJSON(url, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ tfid: tf17, name, bio, photo: photoUrl }) }); if(!r.ok) throw new Error(r.json?.error || r.text || `HTTP ${r.status}`); return r.json; }
+async function apiSetPassword(tf17, pwHash){ const url = `${API_BASE}/api/set-password`; const r = await callJSON(url, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ tfid: tf17, hash: pwHash }) }); if(!r.ok){ var errMsg = (r.json && r.json.error) ? r.json.error : r.text || `HTTP ${r.status}`; throw new Error(errMsg); } return r.json; }
+async function apiUpdateProfile(tf17, name, bio, photoUrl){ const url = `${API_BASE}/api/profile/update`; const r = await callJSON(url, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ tfid: tf17, name, bio, photo: photoUrl }) }); if(!r.ok){ var errMsg = (r.json && r.json.error) ? r.json.error : r.text || `HTTP ${r.status}`; throw new Error(errMsg); } return r.json; }
 
-/* ================== RENDER & UI ================== */
-function updateSettingsUI(){
-  editName.value = me.name || '';
-  editTfid.value = (me.tf17 || '').replace(/^TF-?/i, '').slice(-7);
-  editBio.value = localStorage.getItem('tfchat.me.bio') || '';
-  editPw.value = '';
-  if(me.avatarDataUrl){
-    editAvatar.innerHTML = '<img src="'+me.avatarDataUrl+'" alt="avatar">';
-  } else {
-    editAvatar.textContent = initials(me.name);
-  }
-}
-
-function renderContacts(filter=''){
-  contactsListEl.innerHTML = '';
-  const q = (filter||'').toLowerCase().trim();
-  const list = contacts.filter(function(c){
-    if(!q) return true;
-    return (c.name||'').toLowerCase().includes(q) || (c.tf17||'').toLowerCase().includes(q);
-  });
-  if(list.length === 0){
-    const div = document.createElement('div');
-    div.className = 'muted';
-    div.textContent = 'Pa gen kontak. Rechèch yon TFID oswa ajoute yon kontak.';
-    contactsListEl.appendChild(div);
-    return;
-  }
-  list.forEach(function(c){
-    const el = document.createElement('div');
-    el.className = 'contact';
-    el.dataset.tf17 = c.tf17 || '';
-    const avatarHtml = c.avatar ? '<img src="'+c.avatar+'" alt="avatar">' : escapeHtml((c.name||formatTFShort(c.tf17) || '').slice(0,2));
-    const unreadHtml = c.unread ? ('<span class="badge">'+c.unread+'</span>') : '';
-    el.innerHTML = '<div class="avatar">'+avatarHtml+'</div><div class="meta"><div class="meta-top"><div class="name">'+escapeHtml(c.name||formatTFShort(c.tf17)||'')+'</div><div class="time">'+(c.lastTs? timeAgo(c.lastTs): '')+'</div></div><div class="meta-bottom"><div class="snippet">'+escapeHtml(c.lastMsg||'')+'</div><div>'+unreadHtml+'</div></div></div>';
-    el.addEventListener('click', function(){ openChat(c.tf17, c); });
-    // clicking name opens contact modal
-    var nameEl = el.querySelector('.name');
-    if(nameEl){
-      nameEl.addEventListener('click', function(e){ e.stopPropagation(); openContactFullModal(c); });
-    }
-    contactsListEl.appendChild(el);
-  });
-}
-
-function renderHomeContacts(){
-  homeContacts.innerHTML = contactsListEl.innerHTML;
-}
-
-function timeAgo(ts){
-  if(!ts) return '';
-  var diff = Math.floor((Date.now()-ts)/1000);
-  if(diff<60) return diff+'s';
-  if(diff<3600) return Math.floor(diff/60)+'m';
-  if(diff<86400) return Math.floor(diff/3600)+'h';
-  return new Date(ts).toLocaleDateString();
-}
+/* ================== RENDER & UI LOGIC ================== */
+function updateSettingsUI(){ if(editName) editName.value = me.name || ''; if(editTfid) editTfid.value = (me.tf17 || '').replace(/^TF-?/i, '').slice(-7); if(editBio) editBio.value = localStorage.getItem('tfchat.me.bio') || ''; if(editPw) editPw.value = ''; if(editAvatar){ if(me.avatarDataUrl){ editAvatar.innerHTML = '<img src="'+me.avatarDataUrl+'" />'; } else { editAvatar.textContent = initials(me.name); } } }
+function renderContacts(filter=''){ if(!contactsListEl) return; contactsListEl.innerHTML = ''; const q = (filter||'').toLowerCase().trim(); const list = contacts.filter(function(c){ if(!q) return true; return (c.name||'').toLowerCase().includes(q) || (c.tf17||'').toLowerCase().includes(q); }); if(list.length === 0){ const div = document.createElement('div'); div.className = 'muted'; div.textContent = 'Pa gen kontak. Rechèch yon TFID oswa ajoute yon kontak.'; contactsListEl.appendChild(div); return; } list.forEach(function(c){ const el = document.createElement('div'); el.className = 'contact'; el.dataset.tf17 = c.tf17 || c.tf17; const avatarHtml = c.avatar ? '<img src="'+c.avatar+'" />' : escapeHtml((c.name||formatTFShort(c.tf17) || '').slice(0,2)); const unreadHtml = c.unread ? ('<span class="badge">'+c.unread+'</span>') : ''; el.innerHTML = '<div class="avatar">'+avatarHtml+'</div><div class="meta"><div class="meta-top"><div class="name">'+escapeHtml(c.name||formatTFShort(c.tf17)||'')+'</div><div class="time">'+(c.lastTs? timeAgo(c.lastTs): '')+'</div></div><div class="meta-bottom"><div class="snippet">'+escapeHtml(c.lastMsg||'')+'</div><div>'+unreadHtml+'</div></div></div>'; el.addEventListener('click', function(){ openChat(c.tf17, c); }); var nameElem = el.querySelector('.name'); if(nameElem){ nameElem.addEventListener('click', function(e){ e.stopPropagation(); openContactFullModal(c); }); } contactsListEl.appendChild(el); }); }
+function renderHomeContacts(){ if(homeContacts) homeContacts.innerHTML = contactsListEl.innerHTML; }
+function timeAgo(ts){ if(!ts) return ''; var diff=Math.floor((Date.now()-ts)/1000); if(diff<60) return diff+'s'; if(diff<3600) return Math.floor(diff/60)+'m'; if(diff<86400) return Math.floor(diff/3600)+'h'; return new Date(ts).toLocaleDateString(); }
 
 /* ================== CONVERSATION CACHE ================== */
 function convKey(a,b){ return a + '|' + b; }
-function messageUniqueKey(m){ if(m.cid) return "cid:"+m.cid; if(m.id) return "id:"+m.id; return "temp:" + (m._tempKey || (m._tempKey = Math.random().toString(36).slice(2))); }
-function compareMessagesAsc(a,b){
-  var ta = Date.parse(a._db_created_at || a.parsed_time || a.created_at || 0) || 0;
-  var tb = Date.parse(b._db_created_at || b.parsed_time || b.created_at || 0) || 0;
-  if(ta !== tb) return ta - tb;
-  if(a.id && b.id && a.id !== b.id) return Number(a.id) - Number(b.id);
-  if(a.cid && b.cid && a.cid !== b.cid) return a.cid < b.cid ? -1 : 1;
-  return 0;
-}
-function addOrUpdateMessageToCache(me17, other17, msg){
-  var key = convKey(me17, other17);
-  if(!conversationCache[key]) conversationCache[key] = [];
-  var list = conversationCache[key];
-  var findIndex = -1;
-  if(msg.cid){
-    findIndex = list.findIndex(function(x){ return x.cid && x.cid === msg.cid; });
-  } else if(msg.id){
-    findIndex = list.findIndex(function(x){ return x.id && String(x.id) === String(msg.id); });
-  }
-  if(findIndex !== -1){
-    list[findIndex] = Object.assign({}, list[findIndex], msg);
-  } else {
-    list.push(msg);
-  }
-  list.sort(compareMessagesAsc);
-}
+function messageUniqueKey(m){ if(m.cid) return 'cid:'+m.cid; if(m.id) return 'id:'+m.id; return 'temp:' + (m._tempKey || (m._tempKey = Math.random().toString(36).slice(2))); }
+function compareMessagesAsc(a,b){ var ta = Date.parse(a._db_created_at || a.parsed_time || a.created_at || 0) || 0; var tb = Date.parse(b._db_created_at || b.parsed_time || b.created_at || 0) || 0; if(ta !== tb) return ta - tb; if(a.id && b.id && a.id !== b.id) return Number(a.id) - Number(b.id); if(a.cid && b.cid && a.cid !== b.cid) return a.cid < b.cid ? -1 : 1; return 0; }
+function addOrUpdateMessageToCache(me17, other17, msg){ var key = convKey(me17, other17); if(!conversationCache[key]) conversationCache[key] = []; var list = conversationCache[key]; var findIndex = -1; if(msg.cid){ findIndex = list.findIndex(function(x){ return x.cid && x.cid === msg.cid; }); } else if(msg.id){ findIndex = list.findIndex(function(x){ return x.id && String(x.id) === String(msg.id); }); } if(findIndex !== -1){ list[findIndex] = Object.assign({}, list[findIndex], msg); } else { list.push(msg); } list.sort(compareMessagesAsc); }
+async function loadConversation(me17, other17){ var key = convKey(me17, other17); conversationCache[key] = conversationCache[key] || []; var seen = new Set(); function pushRow(r, expectedFrom){ var parsed = null; try { parsed = JSON.parse(r.content); } catch(e){ parsed = null; } var parsedFrom = parsed && parsed.from ? parsed.from : null; var parsedTime = parsed && parsed.time ? parsed.time : null; var parsedCid = parsed && parsed.cid ? parsed.cid : null; var parsedText = parsed && (parsed.text || parsed.message) ? (parsed.text || parsed.message) : (r.content || ''); if(!parsedFrom || parsedFrom !== expectedFrom) return; var m = { id: r.id || null, cid: parsedCid || null, from: parsedFrom, type: parsed.type || 'text', text: parsedText, url: parsed.url||null, parsed_time: parsedTime || null, _db_created_at: r.created_at || null, created_at: parsedTime || r.created_at || nowISO() }; var keyu = messageUniqueKey(m); if(seen.has(keyu)) return; seen.add(keyu); addOrUpdateMessageToCache(me17, other17, m); }
+  try { var outRows = await apiList(other17); for(var i=0;i<outRows.length;i++) pushRow(outRows[i], me17); } catch(e){ console.warn('LIST outgoing failed for', other17, e); }
+  try { var inRows = await apiList(me17); for(var j=0;j<inRows.length;j++) pushRow(inRows[j], other17); } catch(e){ console.warn('LIST incoming failed for', me17, e); }
+  renderConversation(me17, other17); }
 
-async function loadConversation(me17, other17){
-  var key = convKey(me17, other17);
-  conversationCache[key] = conversationCache[key] || [];
-  var seen = new Set();
-  function pushRow(r, expectedFrom){
-    var parsed = null;
-    try { parsed = JSON.parse(r.content); } catch(e){ parsed = null; }
-    var parsedFrom = parsed && parsed.from ? parsed.from : null;
-    var parsedTime = parsed && parsed.time ? parsed.time : null;
-    var parsedCid = parsed && parsed.cid ? parsed.cid : null;
-    var parsedText = parsed && (parsed.text || parsed.message) ? (parsed.text || parsed.message) : (r.content || "");
-    if(!parsedFrom || parsedFrom !== expectedFrom) return;
-    var m = {
-      id: r.id || null,
-      cid: parsedCid || null,
-      from: parsedFrom,
-      type: parsed.type || 'text',
-      text: parsedText,
-      url: parsed.url || null,
-      parsed_time: parsedTime || null,
-      _db_created_at: r.created_at || null,
-      created_at: parsedTime || r.created_at || nowISO()
-    };
-    var keyu = messageUniqueKey(m);
-    if(seen.has(keyu)) return;
-    seen.add(keyu);
-    addOrUpdateMessageToCache(me17, other17, m);
-  }
-
-  try {
-    var outRows = await apiList(other17);
-    for(var i=0;i<outRows.length;i++) pushRow(outRows[i], me17);
-  } catch(e) { console.warn("LIST outgoing failed for", other17, e); }
-
-  try {
-    var inRows = await apiList(me17);
-    for(var j=0;j<inRows.length;j++) pushRow(inRows[j], other17);
-  } catch(e) { console.warn("LIST incoming failed for", me17, e); }
-
-  renderConversation(me17, other17);
-}
-
-function ensureMessagesPadding(){
-  var wrap = document.getElementById('messagesWrap');
-  if(!wrap) return;
-  var inputRow = document.getElementById('chatInputRow');
-  var h = inputRow ? inputRow.getBoundingClientRect().height : 80;
-  wrap.style.paddingBottom = (h + 16) + 'px';
-}
+function ensureMessagesPadding(){ var wrap = document.querySelector('#chatModal .messages-wrap'); if(!wrap) return; var inputRow = document.getElementById('chatInputRow'); var h = inputRow ? inputRow.getBoundingClientRect().height : 80; wrap.style.paddingBottom = (h + 16) + 'px'; }
 window.addEventListener('resize', ensureMessagesPadding);
 
-function renderConversation(me17, other17){
-  ensureMessagesPadding();
-  var key = convKey(me17, other17);
-  var arr = conversationCache[key] ? conversationCache[key].slice() : [];
-  messagesEl.innerHTML = '';
-  if(arr.length === 0){
-    messagesEl.innerHTML = '<div class="muted">Pa gen mesaj ankò.</div>';
-  } else {
-    arr.sort(compareMessagesAsc);
-    for(var i=0;i<arr.length;i++){
-      var m = arr[i];
-      var d = document.createElement('div');
-      d.className = 'msg ' + (m.from === me17 ? 'user' : 'bot');
-      var ts = m.created_at ? (new Date(m.created_at)).toLocaleString() : '';
-      var contentHtml = '';
-      if(m.type === 'audio' && m.url){
-        contentHtml = '<audio controls src="'+m.url+'"></audio>';
-      } else if(m.type === 'profile'){
-        contentHtml = '<div style="font-weight:700">Profile update</div>';
-      } else {
-        contentHtml = escapeHtml(m.text || '');
-      }
-      var checksHtml = '';
-      if(m.from === me17){
-        if(m.id) checksHtml = '<span class="checks">✓✓</span>'; else checksHtml = '<span class="checks">✓</span>';
-      }
-      d.innerHTML = '<div>'+contentHtml+'</div><div style="font-size:11px;color:var(--muted);margin-top:6px">'+formatTFShort(m.from||'')+' • '+ts+' '+checksHtml+'</div>';
-      messagesEl.appendChild(d);
-    }
-  }
-  // smooth scroll to bottom
-  requestAnimationFrame(function(){
-    var wrap = messagesEl.parentElement;
-    if(wrap) wrap.scrollTop = wrap.scrollHeight;
-  });
-}
+function renderConversation(me17, other17){ ensureMessagesPadding(); var key = convKey(me17, other17); var arr = conversationCache[key] ? conversationCache[key].slice() : []; messagesEl.innerHTML = ''; if(arr.length === 0){ messagesEl.innerHTML = '<div class="muted">Pa gen mesaj ankò.</div>'; } else { arr.sort(compareMessagesAsc); for(var i=0;i<arr.length;i++){ var m = arr[i]; var d = document.createElement('div'); d.className = 'msg ' + (m.from === me17 ? 'user' : 'bot'); var ts = m.created_at ? (new Date(m.created_at)).toLocaleString() : ''; var contentHtml = ''; if(m.type === 'audio' && m.url){ contentHtml = '<audio controls src="'+m.url+'"></audio>'; } else if(m.type === 'profile'){ contentHtml = '<div style="font-weight:700">Profile update</div>'; } else { contentHtml = escapeHtml(m.text || ''); } var checksHtml = ''; if(m.from === me17){ if(m.id) checksHtml = '<span class="checks">✓✓</span>'; else checksHtml = '<span class="checks">✓</span>'; } d.innerHTML = '<div>'+contentHtml+'</div><div style="font-size:11px;color:var(--muted);margin-top:6px">'+formatTFShort(m.from||'')+' • '+ts+' '+checksHtml+'</div>'; messagesEl.appendChild(d); } }
+  requestAnimationFrame(function(){ var wrap = messagesEl.parentElement; if(wrap) wrap.scrollTop = wrap.scrollHeight; }); }
 
-/* ================== CHAT OPEN / SEND ================== */
-async function openChat(other17, contactObj){
-  if(!me.tf17){
-    var ok = await promptForMeModal();
-    if(!ok) return;
-  }
-  currentPartner = { tf17: other17, name: (contactObj && contactObj.name) || null };
-  chatTitleEl.textContent = (currentPartner.name || formatTFShort(currentPartner.tf17));
-  var c = contacts.find(function(x){ return x.tf17 === other17; });
-  if(c){ c.unread = 0; saveState(); renderContacts(); }
-  messagesEl.innerHTML = '<div class="muted">Chaje mesaj...</div>';
-  try { await loadConversation(me.tf17, other17); } catch(e){ messagesEl.innerHTML = '<div class="muted">Pa kapab chaje mesaj: '+escapeHtml(e.message||e)+'</div>'; }
-  showChatModal();
-}
+/* ================== CHAT OPEN/SEND ================== */
+async function openChat(other17, contactObj){ if(!me.tf17){ var ok = await promptForMeModal(); if(!ok) return; } currentPartner = { tf17: other17, name: (contactObj && contactObj.name) || null }; if(chatTitleEl) chatTitleEl.textContent = (currentPartner.name || formatTFShort(currentPartner.tf17)); var c = contacts.find(function(x){ return x.tf17 === other17; }); if(c){ c.unread = 0; saveState(); renderContacts(); } messagesEl.innerHTML = '<div class="muted">Chaje mesaj...</div>'; try { await loadConversation(me.tf17, other17); } catch(e){ messagesEl.innerHTML = '<div class="muted">Pa kapab chaje mesaj: '+escapeHtml(e.message||e)+'</div>'; } showChatModal(); }
+function showChatModal(){ if(chatModalEl) chatModalEl.style.display = 'flex'; ensureMessagesPadding(); setTimeout(function(){ if(chatTextEl) chatTextEl.focus(); }, 150); }
+function hideChatModal(){ if(chatModalEl) chatModalEl.style.display = 'none'; currentPartner = null; }
 
-function showChatModal(){
-  chatModalEl.style.display = 'flex';
-  chatModalEl.setAttribute('aria-hidden','false');
-  ensureMessagesPadding();
-  setTimeout(function(){ try{ chatTextEl.focus(); }catch(e){} }, 150);
-}
-function hideChatModal(){
-  chatModalEl.style.display = 'none';
-  chatModalEl.setAttribute('aria-hidden','true');
-  currentPartner = null;
-}
-
-async function sendTextMessage(txt){
-  if(!txt || !currentPartner) return;
-  if(!me.tf17){ alert('Pa gen TFID pou itilizatè a. Mete li nan Paramètres.'); return; }
-  var recipient17 = currentPartner.tf17;
-  var cid = makeCid();
-  var payload = { type:'text', from: me.tf17, text: txt, time: (new Date()).toISOString(), cid: cid, name: me.name || null };
-  addOrUpdateMessageToCache(me.tf17, recipient17, { id:null, cid:cid, from: me.tf17, text: txt, parsed_time: payload.time, _db_created_at:null, created_at: payload.time, _optimistic:true });
-  renderConversation(me.tf17, recipient17);
-  chatTextEl.value = '';
-  var cobj = contacts.find(function(x){ return x.tf17 === recipient17; });
-  if(cobj){ cobj.lastMsg = txt; cobj.lastTs = Date.now(); saveState(); renderContacts(); }
-  try { await apiAdd(recipient17, payload); startShortPollForMessage(recipient17, cid); } catch(e){ alert('Envoi echwe: ' + (e.message||e)); }
-}
-
-function startShortPollForMessage(target17, cid){
-  var tries = 0;
-  var maxTries = 6;
-  var interval = 1200;
-  var attempt = async function(){
-    tries++;
-    try {
-      var rows = await apiList(target17);
-      var found = rows.find(function(r){
-        try { var p = JSON.parse(r.content); return p && p.cid === cid; } catch(e){ return false; }
-      });
-      if(found){ await loadConversation(me.tf17, target17); return true; }
-    } catch(e){}
-    if(tries < maxTries) setTimeout(attempt, interval);
-  };
-  attempt();
-}
+async function sendTextMessage(txt){ if(!txt || !currentPartner) return; if(!me.tf17){ alert('Pa gen TFID pou itilizatè a. Mete li nan Paramètres.'); return; } var recipient17 = currentPartner.tf17; var cid = makeCid(); var payload = { type:'text', from: me.tf17, text: txt, time: (new Date()).toISOString(), cid: cid, name: me.name || null }; addOrUpdateMessageToCache(me.tf17, recipient17, { id:null, cid:cid, from: me.tf17, text: txt, parsed_time: payload.time, _db_created_at:null, created_at: payload.time, _optimistic:true }); renderConversation(me.tf17, recipient17); if(chatTextEl) chatTextEl.value = ''; var cobj = contacts.find(function(x){ return x.tf17 === recipient17; }); if(cobj){ cobj.lastMsg = txt; cobj.lastTs = Date.now(); saveState(); renderContacts(); } try{ await apiAdd(recipient17, payload); startShortPollForMessage(recipient17, cid); }catch(e){ alert('Envoi echwe: ' + (e.message||e)); } }
+function startShortPollForMessage(target17, cid){ var tries = 0; var maxTries = 6; var interval = 1200; var attempt = async function(){ tries++; try { var rows = await apiList(target17); var found = rows.find(function(r){ try { var p = JSON.parse(r.content); return p && p.cid === cid; } catch(e){ return false; } }); if(found){ await loadConversation(me.tf17, target17); return true; } } catch(e){} if(tries < maxTries) setTimeout(attempt, interval); }; attempt(); }
 
 /* ================== CONTACT HELPERS ================== */
-function ensureContactInList(tf17, name){
-  var c = contacts.find(function(x){ return x.tf17 === tf17; });
-  if(!c){
-    c = { tf17: tf17, short: formatTFShort(tf17), name: name||null, unread:0, blocked:false, avatar:null };
-    contacts.unshift(c);
-    saveState();
-    renderContacts();
-  }
-  return c;
-}
+function ensureContactInList(tf17, name){ var c = contacts.find(function(x){ return x.tf17 === tf17; }); if(!c){ c = { tf17: tf17, short: formatTFShort(tf17), name: name||null, unread:0, blocked:false, avatar:null }; contacts.unshift(c); saveState(); renderContacts(); } return c; }
 
-/* ================== PROMPT FOR ME (settings modal) ================== */
-function promptForMeModal(){
-  updateSettingsUI();
-  var settingsModal = document.getElementById('settingsModal');
-  settingsModal.style.display = 'flex';
-  settingsModal.setAttribute('aria-hidden','false');
-  try { editName.focus(); } catch(e){}
-  return new Promise(function(resolve){
-    function onSave(){
-      (async function(){
-        var nameVal = editName.value.trim();
-        var short = normalizeInputToDigits(editTfid.value.trim());
-        if(!short || short.length < 7){ alert('TFID invalide — antre 7 chif.'); return; }
-        var tfShort = short.slice(-7);
-        var tf17c = to17(tfShort);
-        // if backend says password exists, show modal
-        try {
-          var hasPw = await apiHasPassword(tf17c);
-          if(hasPw){
-            var ok = await showPasswordModal('TFID '+formatTFShort(tfShort)+' gen modpas. Antre li pou itilize kont sa.');
-            if(!ok){ alert('Modpas obligatwa pou kont sa.'); return; }
-          }
-        } catch(e){}
-        me.name = nameVal || me.name || 'Utilisateur';
-        me.short = tfShort;
-        me.tf17 = to17(me.short);
-        saveState();
-        settingsModal.style.display = 'none';
-        settingsModal.setAttribute('aria-hidden','true');
-        resolve(true);
-      })();
-    }
-    function onCancel(){
-      var settingsModal = document.getElementById('settingsModal');
-      settingsModal.style.display = 'none';
-      settingsModal.setAttribute('aria-hidden','true');
-      resolve(false);
-    }
-    var sbtn = document.getElementById('saveProfile');
-    var cbtn = document.getElementById('cancelProfile');
-    sbtn.addEventListener('click', onSave, { once:true });
-    cbtn.addEventListener('click', onCancel, { once:true });
-  });
-}
+/* ================== PROMPT FOR ME (settings modal) */
+function promptForMeModal(){ updateSettingsUI(); if(settingsModal) settingsModal.style.display = 'flex'; if(editName) try{ editName.focus(); }catch(e){} return new Promise(function(resolve){ function onSave(){ (async function(){ var nameVal = editName.value.trim(); var short = normalizeInputToDigits(editTfid.value.trim()); if(!short || short.length < 7){ alert('TFID invalide — antre 7 chif.'); return; } var tfShort = short.slice(-7); var tf17c = to17(tfShort); try{ var hasPw = await apiHasPassword(tf17c); if(hasPw){ var ok = await showPasswordModal('TFID '+formatTFShort(tfShort)+' gen modpas. Antre li pou itilize kont sa.'); if(!ok){ alert('Modpas obligatwa pou kont sa.'); return; } } }catch(e){} me.name = nameVal || me.name || 'Utilisateur'; me.short = tfShort; me.tf17 = to17(me.short); saveState(); if(settingsModal) settingsModal.style.display = 'none'; resolve(true); })(); }
+    function onCancel(){ if(settingsModal) settingsModal.style.display = 'none'; resolve(false); }
+    if(saveProfile) saveProfile.addEventListener('click', onSave, { once:true }); if(cancelProfile) cancelProfile.addEventListener('click', onCancel, { once:true }); }); }
 
 /* ================== PASSWORD MODAL ================== */
-function showPasswordModal(msg){
-  var modal = document.getElementById('pwModal');
-  modal.style.display = 'block';
-  modal.setAttribute('aria-hidden','false');
-  pwModalInput.value = '';
-  return new Promise(function(resolve){
-    function ok(){
-      (async function(){
-        var pw = pwModalInput.value || '';
-        if(!pw){ alert('Antre modpas.'); return; }
-        var hashed = await hashPasswordHex(pw);
-        var tf17 = me.tf17 || to17(normalizeInputToDigits(editTfid.value||'')?.slice(-7));
-        var valid = false;
-        try { valid = await apiCheckPassword(tf17, hashed); } catch(e){}
-        if(!valid){ alert('Modpas pa kòrèk.'); return; }
-        modal.style.display = 'none';
-        modal.setAttribute('aria-hidden','true');
-        resolve(true);
-      })();
-    }
-    function cancel(){ modal.style.display = 'none'; modal.setAttribute('aria-hidden','true'); resolve(false); }
-    pwModalOk.addEventListener('click', ok, { once:true });
-    pwModalCancel.addEventListener('click', cancel, { once:true });
-  });
-}
+function showPasswordModal(msg){ if(pwModal) pwModal.style.display = 'block'; if(pwModalInput) pwModalInput.value = ''; return new Promise(function(resolve){ function ok(){ (async function(){ var pw = pwModalInput.value || ''; if(!pw){ alert('Antre modpas.'); return; } var hashed = await hashPasswordHex(pw); var tf17 = me.tf17 || to17((normalizeInputToDigits(editTfid.value||'') || '').slice(-7)); var valid = false; try{ valid = await apiCheckPassword(tf17, hashed); }catch(e){} if(!valid){ alert('Modpas pa kòrèk.'); return; } if(pwModal) pwModal.style.display = 'none'; resolve(true); })(); }
+  function cancel(){ if(pwModal) pwModal.style.display = 'none'; resolve(false); }
+  if(pwModalOk) pwModalOk.addEventListener('click', ok, { once:true }); if(pwModalCancel) pwModalCancel.addEventListener('click', cancel, { once:true }); }); }
 
 /* ================== PROFILE EDIT / UPLOAD ================== */
-editAvatar.addEventListener('click', function(){ profileFileInput.click(); });
-profileFileInput.addEventListener('change', async function(e){
-  var f = e.target.files && e.target.files[0];
-  if(!f) return;
-  await showCropAndUpload(f);
-  e.target.value = '';
-});
+if(editAvatar){ editAvatar.addEventListener('click', function(){ if(profileFileInput) profileFileInput.click(); }); }
+if(profileFileInput){ profileFileInput.addEventListener('change', async function(e){ var f = e.target.files && e.target.files[0]; if(!f) return; await showCropAndUpload(f); e.target.value = ''; }); }
+async function showCropAndUpload(file){ var url = URL.createObjectURL(file); var cropWin = document.createElement('div'); cropWin.style.position='fixed'; cropWin.style.inset='0'; cropWin.style.zIndex='1600'; cropWin.style.background='rgba(0,0,0,0.85)'; cropWin.style.display='flex'; cropWin.style.alignItems='center'; cropWin.style.justifyContent='center'; var inner = document.createElement('div'); inner.style.width='360px'; inner.style.maxWidth='95%'; inner.style.background='#fff'; inner.style.padding='12px'; inner.style.borderRadius='12px'; inner.style.color='#000'; inner.innerHTML = '<div style="font-weight:700;margin-bottom:8px">Ajuste imaj la</div><div style="height:320px;display:flex;align-items:center;justify-content:center;background:#111;margin-bottom:8px"><img id="tmpCropImg" src="'+url+'" style="max-width:100%;max-height:100%;object-fit:cover"/></div><div style="display:flex;gap:8px;justify-content:flex-end"><button id="retakeBtn">Retounen</button><button id="acceptBtn" class="header-primary">Valide</button></div>'; cropWin.appendChild(inner); document.body.appendChild(cropWin); return new Promise(function(resolve){ var ret = inner.querySelector('#retakeBtn'); var acc = inner.querySelector('#acceptBtn'); if(ret) ret.addEventListener('click', function(){ document.body.removeChild(cropWin); resolve(false); }); if(acc) acc.addEventListener('click', async function(){ try{ var fd = new FormData(); fd.append('file', file); var resp = await fetch(PROFILE_UPLOAD_URL, { method:'POST', body: fd }); var json = await resp.json().catch(function(){ return null; }); if(!resp.ok || !json || !(json.url || json.path)){ alert('Upload échoué.'); document.body.removeChild(cropWin); resolve(false); return; } var photoUrl = json.url || json.path || (Array.isArray(json) ? json[0] : null); me.avatarDataUrl = photoUrl; saveState(); if(editAvatar) editAvatar.innerHTML = '<img src="'+photoUrl+'" />'; if(me.tf17){ try{ await apiUpdateProfile(me.tf17, (editName && editName.value)||me.name, (editBio && editBio.value)||'', photoUrl); }catch(e){ console.warn('profile update failed', e); } } contacts.forEach(function(c){ if(c.tf17 === me.tf17) c.avatar = photoUrl; }); saveState(); renderContacts(); document.body.removeChild(cropWin); resolve(true); }catch(e){ alert('Erreur upload: '+(e.message||e)); document.body.removeChild(cropWin); resolve(false); } }); }); }
 
-async function showCropAndUpload(file){
-  var url = URL.createObjectURL(file);
-  var cropWin = document.createElement('div');
-  cropWin.style.position='fixed';
-  cropWin.style.inset='0';
-  cropWin.style.zIndex='1600';
-  cropWin.style.background='rgba(0,0,0,0.85)';
-  cropWin.style.display='flex';
-  cropWin.style.alignItems='center';
-  cropWin.style.justifyContent='center';
-  var inner = document.createElement('div');
-  inner.style.width='360px';
-  inner.style.maxWidth='95%';
-  inner.style.background='#fff';
-  inner.style.padding='12px';
-  inner.style.borderRadius='12px';
-  inner.style.color='#000';
-  inner.innerHTML = '<div style="font-weight:700;margin-bottom:8px">Ajuste imaj la</div><div style="height:320px;display:flex;align-items:center;justify-content:center;background:#111;margin-bottom:8px"><img id="tmpCropImg" src="'+url+'" style="max-width:100%;max-height:100%;object-fit:cover"/></div><div style="display:flex;gap:8px;justify-content:flex-end"><button id="retakeBtn">Retounen</button><button id="acceptBtn" class="header-primary">Valide</button></div>';
-  cropWin.appendChild(inner);
-  document.body.appendChild(cropWin);
-
-  return new Promise(function(resolve){
-    inner.querySelector('#retakeBtn').addEventListener('click', function(){ document.body.removeChild(cropWin); resolve(false); });
-    inner.querySelector('#acceptBtn').addEventListener('click', async function(){
-      try {
-        var fd = new FormData();
-        fd.append('file', file);
-        var resp = await fetch(PROFILE_UPLOAD_URL, { method:'POST', body: fd });
-        var json = await resp.json().catch(function(){ return null; });
-        if(!resp.ok || !json || !(json.url || json.path)){
-          alert('Upload échoué.');
-          document.body.removeChild(cropWin);
-          resolve(false);
-          return;
-        }
-        var photoUrl = json.url || json.path || (Array.isArray(json) ? json[0] : null);
-        me.avatarDataUrl = photoUrl;
-        saveState();
-        editAvatar.innerHTML = '<img src="'+photoUrl+'" alt="avatar">';
-        if(me.tf17){
-          try { await apiUpdateProfile(me.tf17, editName.value||me.name, editBio.value||'', photoUrl); } catch(e){ console.warn('profile update failed', e); }
-        }
-        contacts.forEach(function(c){ if(c.tf17 === me.tf17) c.avatar = photoUrl; });
-        saveState();
-        renderContacts();
-        document.body.removeChild(cropWin);
-        resolve(true);
-      } catch(e){
-        alert('Erreur upload: '+(e.message||e));
-        document.body.removeChild(cropWin);
-        resolve(false);
-      }
-    });
-  });
-}
-
-saveProfile.addEventListener('click', async function(){
-  var name = editName.value.trim();
-  var bio = editBio.value.trim();
-  var short = normalizeInputToDigits(editTfid.value.trim());
-  if(!short || short.length < 7){ alert('TFID ki pa valab — antre 7 chif'); return; }
-  var tf17 = to17(short.slice(-7));
-  var newPw = editPw.value || '';
-  try {
-    if(newPw){
-      var hex = await hashPasswordHex(newPw);
-      await apiSetPassword(tf17, hex);
-    }
-    await apiUpdateProfile(tf17, name, bio, me.avatarDataUrl || null);
-    me.name = name || me.name;
-    me.short = short.slice(-7);
-    me.tf17 = tf17;
-    saveState();
-    var settingsModal = document.getElementById('settingsModal');
-    settingsModal.style.display = 'none';
-    settingsModal.setAttribute('aria-hidden','true');
-    alert('Profil sove.');
-  } catch(e){
-    alert('Echwe: ' + (e.message||e));
-  }
-});
-cancelProfile.addEventListener('click', function(){ var settingsModal = document.getElementById('settingsModal'); settingsModal.style.display = 'none'; settingsModal.setAttribute('aria-hidden','true'); });
+if(saveProfile){ saveProfile.addEventListener('click', async function(){ var name = (editName && editName.value.trim()) || ''; var bio = (editBio && editBio.value.trim()) || ''; var short = normalizeInputToDigits((editTfid && editTfid.value.trim()) || ''); if(!short || short.length<7){ alert('TFID ki pa valab — antre 7 chif'); return; } var tf17 = to17(short.slice(-7)); var newPw = (editPw && editPw.value) || ''; try{ if(newPw){ var hex = await hashPasswordHex(newPw); await apiSetPassword(tf17, hex); } await apiUpdateProfile(tf17, name, bio, me.avatarDataUrl || null); me.name = name || me.name; me.short = short.slice(-7); me.tf17 = tf17; saveState(); if(settingsModal) settingsModal.style.display = 'none'; alert('Profil sove.'); }catch(e){ alert('Echwe: ' + (e.message||e)); } }); }
+if(cancelProfile){ cancelProfile.addEventListener('click', function(){ if(settingsModal) settingsModal.style.display = 'none'; }); }
 
 /* ================== CONTACT FULL MODAL ================== */
-function openContactFullModal(c){
-  var modal = document.createElement('div');
-  modal.className = 'modal-full';
-  modal.style.display = 'flex';
-  modal.style.zIndex = 1500;
-  var inner = document.createElement('div');
-  inner.className = 'modal-panel';
-  inner.innerHTML = '<div class="modal-header"><button id="cfBack" class="header-btn">←</button><div style="flex:1;text-align:center;font-weight:700">'+escapeHtml(c.name||formatTFShort(c.tf17))+'</div><div style="width:44px"></div></div><div class="modal-body"><div style="display:flex;gap:12px;align-items:center;margin-bottom:12px"><div class="profile-circle" id="cfAvatar">'+(c.avatar?'<img src="'+c.avatar+'"/>':initials(c.name))+'</div><div><div style="font-weight:800">'+escapeHtml(c.name||formatTFShort(c.tf17))+'</div><div class="small">'+c.tf17+'</div></div></div><div style="display:flex;gap:8px"><button id="cfAdd" class="header-primary">Ajouter au contact</button><button id="cfDelete" style="background:#ef4444;color:white;border:none;padding:8px;border-radius:8px">Supprimer</button><button id="cfShare" style="padding:8px;border-radius:8px;border:1px solid #ccc">Partager</button></div></div>';
-  modal.appendChild(inner);
-  document.body.appendChild(modal);
-
-  inner.querySelector('#cfBack').addEventListener('click', function(){ document.body.removeChild(modal); });
-  inner.querySelector('#cfAdd').addEventListener('click', function(){ ensureContactInList(c.tf17,c.name); alert('Contact ajouté'); document.body.removeChild(modal); });
-  inner.querySelector('#cfDelete').addEventListener('click', function(){ contacts = contacts.filter(function(x){ return x.tf17 !== c.tf17; }); saveState(); renderContacts(); document.body.removeChild(modal); });
-  inner.querySelector('#cfShare').addEventListener('click', function(){ document.body.removeChild(modal); openShareModal(c); });
-}
+function openContactFullModal(c){ var modal = document.createElement('div'); modal.className='modal-full'; modal.style.display='flex'; modal.style.zIndex=1500; var inner = document.createElement('div'); inner.className='modal-panel'; inner.innerHTML = '<div class="modal-header"><button id="cfBack" class="header-btn">←</button><div style="flex:1;text-align:center;font-weight:700">'+escapeHtml(c.name||formatTFShort(c.tf17))+'</div><div style="width:44px"></div></div><div class="modal-body"><div style="display:flex;gap:12px;align-items:center;margin-bottom:12px"><div class="profile-circle" id="cfAvatar">'+(c.avatar?'<img src="'+c.avatar+'"/>':initials(c.name))+'</div><div><div style="font-weight:800">'+escapeHtml(c.name||formatTFShort(c.tf17))+'</div><div class="small">'+c.tf17+'</div></div></div><div style="display:flex;gap:8px"><button id="cfAdd" class="header-primary">Ajouter au contact</button><button id="cfDelete" style="background:#ef4444;color:white;border:none;padding:8px;border-radius:8px">Supprimer</button><button id="cfShare" style="padding:8px;border-radius:8px;border:1px solid #ccc">Partager</button></div></div>'; modal.appendChild(inner); document.body.appendChild(modal); var backBtn = inner.querySelector('#cfBack'); var addBtn = inner.querySelector('#cfAdd'); var delBtn = inner.querySelector('#cfDelete'); var shareBtn = inner.querySelector('#cfShare'); if(backBtn) backBtn.addEventListener('click', function(){ document.body.removeChild(modal); }); if(addBtn) addBtn.addEventListener('click', function(){ ensureContactInList(c.tf17,c.name); alert('Contact ajouté'); document.body.removeChild(modal); }); if(delBtn) delBtn.addEventListener('click', function(){ contacts = contacts.filter(function(x){ return x.tf17 !== c.tf17; }); saveState(); renderContacts(); document.body.removeChild(modal); }); if(shareBtn) shareBtn.addEventListener('click', function(){ document.body.removeChild(modal); openShareModal(c); }); }
 
 /* ================== SHARE MODAL ================== */
-function openShareModal(contactToShare){
-  shareListEl.innerHTML = '';
-  contacts.forEach(function(c){
-    var row = document.createElement('label');
-    row.style.display='flex';
-    row.style.alignItems='center';
-    row.style.gap='8px';
-    row.innerHTML = "<input type='checkbox' value='"+c.tf17+"'/> <div style='flex:1'>"+escapeHtml(c.name||formatTFShort(c.tf17))+"<div style='font-size:12px;color:#6b7280'>"+c.tf17+"</div></div><div style='width:40px'></div>";
-    shareListEl.appendChild(row);
-  });
-  shareModal.style.display = 'flex';
-  shareModal.setAttribute('aria-hidden','false');
-  shareSendBtn.onclick = async function(){
-    var boxes = shareListEl.querySelectorAll('input[type=checkbox]:checked');
-    if(!boxes.length){ alert('Seleksyone 1 kontak pou pataje'); return; }
-    var targets = Array.prototype.map.call(boxes, function(b){ return b.value; });
-    var payload = { type: 'contact_share', from: me.tf17, time: nowISO(), contact: { tf17: contactToShare.tf17, name: contactToShare.name } };
-    for(var i=0;i<targets.length;i++){
-      try{ await apiAdd(targets[i], payload); } catch(e){ console.warn('share failed for', targets[i], e); }
-    }
-    if(targets.length === 1){ openChat(targets[0]); }
-    shareModal.style.display = 'none';
-    shareModal.setAttribute('aria-hidden','true');
-  };
-}
+function openShareModal(contactToShare){ if(!shareListEl) return; shareListEl.innerHTML=''; contacts.forEach(function(c){ var row = document.createElement('label'); row.style.display='flex'; row.style.alignItems='center'; row.style.gap='8px'; row.innerHTML = "<input type='checkbox' value='"+c.tf17+"'/> <div style='flex:1'>"+escapeHtml(c.name||formatTFShort(c.tf17))+" <div style='font-size:12px;color:#6b7280'>"+c.tf17+"</div></div><div style='width:40px'></div>"; shareListEl.appendChild(row); }); if(shareModal) shareModal.style.display='flex'; if(shareSendBtn) shareSendBtn.onclick = async function(){ var boxes = shareListEl.querySelectorAll('input[type=checkbox]:checked'); if(!boxes.length){ alert('Seleksyone 1 kontak pou pataje'); return; } var targets = Array.prototype.map.call(boxes, function(b){ return b.value; }); var payload = { type: 'contact_share', from: me.tf17, time: nowISO(), contact: { tf17: contactToShare.tf17, name: contactToShare.name } }; for(var i=0;i<targets.length;i++){ try{ await apiAdd(targets[i], payload); }catch(e){ console.warn('share failed for', targets[i], e); } } if(targets.length === 1){ openChat(targets[0]); } if(shareModal) shareModal.style.display = 'none'; }; }
 
 /* ================== VOICE RECORDING & AUDIO UPLOAD ================== */
-var mediaRecorder = null;
-var recordedChunks = [];
-if(voiceBtn){
-  voiceBtn.addEventListener('click', async function(){
-    if((chatTextEl.value || '').trim()){
-      sendTextMessage(chatTextEl.value.trim());
-      return;
-    }
-    if(!currentPartner){ alert('Ouvri chat avan anrejistre.'); return; }
-    if(!mediaRecorder || mediaRecorder.state === 'inactive'){
-      try {
-        var stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        mediaRecorder = new MediaRecorder(stream);
-        recordedChunks = [];
-        mediaRecorder.ondataavailable = function(e){ if(e.data && e.data.size) recordedChunks.push(e.data); };
-        mediaRecorder.onstop = async function(){
-          var blob = new Blob(recordedChunks, { type: 'audio/webm' });
-          var fd = new FormData();
-          fd.append('file', blob, 'voice.webm');
-          try {
-            var resp = await fetch(PROFILE_UPLOAD_URL, { method:'POST', body: fd });
-            var json = await resp.json().catch(function(){ return null; });
-            if(!resp.ok || !json || !(json.url || json.path)){ alert('Upload audio échoué'); return; }
-            var audioUrl = json.url || json.path;
-            var payload = { type:'audio', from: me.tf17, url: audioUrl, time: nowISO(), cid: makeCid() };
-            await apiAdd(currentPartner.tf17, payload);
-            addOrUpdateMessageToCache(me.tf17, currentPartner.tf17, { cid: payload.cid, from: me.tf17, type:'audio', url: audioUrl, created_at: payload.time });
-            renderConversation(me.tf17, currentPartner.tf17);
-          } catch(e){ alert('Upload failed: '+(e.message||e)); }
-        };
-        mediaRecorder.start();
-        voiceBtn.textContent = '⏺️';
-      } catch(e){ alert('Impossible d\\'accéder au micro: '+(e.message||e)); }
-    } else {
-      if(mediaRecorder && mediaRecorder.state === 'recording'){ mediaRecorder.stop(); voiceBtn.textContent = '🎤'; }
-    }
-  });
-}
+var mediaRecorder = null; var recordedChunks = [];
+if(voiceBtn){ voiceBtn.addEventListener('click', async function(){ if((chatTextEl && chatTextEl.value || '').trim()){ if(chatTextEl) return sendTextMessage(chatTextEl.value.trim()); } if(!currentPartner){ alert('Ouvri chat avan anrejistre.'); return; } if(!mediaRecorder || mediaRecorder.state === 'inactive'){ try{ var stream = await navigator.mediaDevices.getUserMedia({ audio: true }); mediaRecorder = new MediaRecorder(stream); recordedChunks = []; mediaRecorder.ondataavailable = function(e){ if(e.data && e.data.size) recordedChunks.push(e.data); }; mediaRecorder.onstop = async function(){ var blob = new Blob(recordedChunks, { type: 'audio/webm' }); var fd = new FormData(); fd.append('file', blob, 'voice.webm'); try{ var resp = await fetch(PROFILE_UPLOAD_URL, { method:'POST', body: fd }); var json = await resp.json().catch(function(){ return null; }); if(!resp.ok || !json || !(json.url || json.path)){ alert('Upload audio échoué'); return; } var audioUrl = json.url || json.path; var payload = { type:'audio', from: me.tf17, url: audioUrl, time: nowISO(), cid: makeCid() }; await apiAdd(currentPartner.tf17, payload); addOrUpdateMessageToCache(me.tf17, currentPartner.tf17, { cid: payload.cid, from: me.tf17, type:'audio', url: audioUrl, created_at: payload.time }); renderConversation(me.tf17, currentPartner.tf17); }catch(e){ alert('Upload failed: '+(e.message||e)); } }; mediaRecorder.start(); voiceBtn.textContent = '⏺️'; }catch(e){ alert('Impossible d\'accéder au micro: '+(e.message||e)); } } else { if(mediaRecorder && mediaRecorder.state === 'recording'){ mediaRecorder.stop(); voiceBtn.textContent = '🎤'; } } }); }
 
-/* swap display of send/voice depending on input content */
-chatTextEl.addEventListener('input', function(){
-  var v = chatTextEl.value.trim();
-  if(v.length){
-    if(sendBtnEl) sendBtnEl.style.display = 'inline-block';
-    if(voiceBtn) voiceBtn.style.display = 'none';
-  } else {
-    if(sendBtnEl) sendBtnEl.style.display = 'none';
-    if(voiceBtn) voiceBtn.style.display = 'inline-block';
-  }
-});
-if(sendBtnEl) sendBtnEl.addEventListener('click', function(){ sendTextMessage(chatTextEl.value.trim()); });
-chatTextEl.addEventListener('keydown', function(e){
-  if(e.key === 'Enter'){
-    e.preventDefault();
-    sendTextMessage(chatTextEl.value.trim());
-  }
-});
+if(chatTextEl){ chatTextEl.addEventListener('input', function(){ var v = (chatTextEl.value || '').trim(); if(v.length){ if(sendBtnEl) sendBtnEl.style.display = 'inline-block'; if(voiceBtn) voiceBtn.style.display = 'none'; } else { if(sendBtnEl) sendBtnEl.style.display = 'none'; if(voiceBtn) voiceBtn.style.display = 'inline-block'; } }); chatTextEl.addEventListener('keydown', function(e){ if(e.key === 'Enter'){ e.preventDefault(); sendTextMessage((chatTextEl && chatTextEl.value || '').trim()); } }); }
+if(sendBtnEl){ sendBtnEl.addEventListener('click', function(){ sendTextMessage((chatTextEl && chatTextEl.value || '').trim()); }); }
 
 /* ================== SEARCH ================== */
-async function performSearchQuery(raw){
-  if(!raw) return;
-  var digits = normalizeInputToDigits(raw);
-  if(!digits){
-    renderContacts(raw);
-    return;
-  }
-  if(digits.length < 7){ alert('TFID dwe gen omwen 7 chif.'); return; }
-  var short7 = digits.slice(-7);
-  var tf17 = to17(short7);
-  var local = contacts.find(function(c){ return c.tf17 === tf17; });
-  if(local){ openChat(local.tf17, local); return; }
-  try {
-    var rows = await apiList(tf17);
-    if(rows && rows.length > 0){
-      var last = rows[rows.length-1] || rows[0];
-      var lastMsg = '';
-      try { var p = JSON.parse(last.content); lastMsg = p.text || p.message || last.content; } catch(e){ lastMsg = last.content || ''; }
-      var nameFromServer = (function(){ try { var p = JSON.parse(last.content); return p.name || null; } catch(e){ return null; } })();
-      var c = { tf17: tf17, name: nameFromServer || formatTFShort(short7), lastMsg: lastMsg, lastTs: Date.now(), unread:0, blocked:false, avatar:null };
-      contacts.unshift(c); saveState(); renderContacts(); openChat(c.tf17, c); return;
-    } else {
-      if(confirm('Pa jwenn done sou servèr. Kreye kontak lokal pou TFID sa a?')){
-        var cc = { tf17: tf17, name: formatTFShort(short7), lastMsg: '', lastTs: Date.now(), unread:0, blocked:false, avatar:null };
-        contacts.unshift(cc); saveState(); renderContacts(); openChat(cc.tf17, cc);
-      }
-    }
-  } catch(err){ alert('Erè lè w ap chèche sou servèr: ' + (err.message||err)); }
-}
+async function performSearchQuery(raw){ if(!raw) return; var digits = normalizeInputToDigits(raw); if(!digits){ renderContacts(raw); return; } if(digits.length < 7){ alert('TFID dwe gen omwen 7 chif.'); return; } var short7 = digits.slice(-7); var tf17 = to17(short7); var local = contacts.find(function(c){ return c.tf17 === tf17; }); if(local){ openChat(local.tf17, local); return; } try{ var rows = await apiList(tf17); if(rows && rows.length > 0){ var last = rows[rows.length-1] || rows[0]; var lastMsg = ''; try{ var p = JSON.parse(last.content); lastMsg = p.text || p.message || last.content; } catch(e){ lastMsg = last.content || ''; } var nameFromServer = (function(){ try{ var p = JSON.parse(last.content); return p.name || null; }catch(_){ return null; } })(); var c = { tf17: tf17, name: nameFromServer || formatTFShort(short7), lastMsg: lastMsg, lastTs: Date.now(), unread: 0, blocked:false, avatar:null }; contacts.unshift(c); saveState(); renderContacts(); openChat(c.tf17, c); return; } else { if(confirm('Pa jwenn done sou servèr. Kreye kontak lokal pou TFID sa a?')){ var c2 = { tf17: tf17, name: formatTFShort(short7), lastMsg: '', lastTs: Date.now(), unread:0, blocked:false, avatar:null }; contacts.unshift(c2); saveState(); renderContacts(); openChat(c2.tf17, c2); } } }catch(err){ alert('Erè lè w ap chèche sou servèr: ' + (err.message||err)); } }
 
 /* ================== UI EVENTS ================== */
-var el;
-el = document.getElementById('chatBack'); if(el) el.addEventListener('click', function(){ hideChatModal(); });
-if(searchBtn) searchBtn.addEventListener('click', function(){ performSearchQuery(searchInput.value.trim()); });
-if(homeBtnEl) homeBtnEl.addEventListener('click', function(){ renderHomeContacts(); homeModal.style.display = 'flex'; homeModal.setAttribute('aria-hidden','false'); });
-el = document.getElementById('homeBack'); if(el) el.addEventListener('click', function(){ homeModal.style.display = 'none'; homeModal.setAttribute('aria-hidden','true'); });
-if(homeSearchBtn) homeSearchBtn.addEventListener('click', function(){ performSearchQuery(homeSearchInput.value.trim()); });
-if(openSettingsBtn) openSettingsBtn.addEventListener('click', function(){ updateSettingsUI(); var m = document.getElementById('settingsModal'); m.style.display = 'flex'; m.setAttribute('aria-hidden','false'); });
-el = document.getElementById('settingsBack'); if(el) el.addEventListener('click', function(){ var m = document.getElementById('settingsModal'); m.style.display = 'none'; m.setAttribute('aria-hidden','true'); });
-chatTitleEl.addEventListener('click', function(){ if(!currentPartner) return; var contactObj = contacts.find(function(c){ return c.tf17 === currentPartner.tf17; }) || { tf17: currentPartner.tf17, name: currentPartner.name }; openContactFullModal(contactObj); });
+var chatBackBtn = document.getElementById('chatBack'); if(chatBackBtn) chatBackBtn.addEventListener('click', function(){ hideChatModal(); });
+if(searchBtn) searchBtn.addEventListener('click', function(){ performSearchQuery((searchInput && searchInput.value||'').trim()); });
+if(homeBtnEl) homeBtnEl.addEventListener('click', function(){ renderHomeContacts(); if(homeModal) homeModal.style.display='flex'; });
+if(homeBack) homeBack.addEventListener('click', function(){ if(homeModal) homeModal.style.display='none'; });
+if(homeSearchBtn) homeSearchBtn.addEventListener('click', function(){ performSearchQuery((homeSearchInput && homeSearchInput.value||'').trim()); });
+if(openSettingsBtn) openSettingsBtn.addEventListener('click', function(){ updateSettingsUI(); if(settingsModal) settingsModal.style.display='flex'; });
+var settingsBackBtn = document.getElementById('settingsBack'); if(settingsBackBtn) settingsBackBtn.addEventListener('click', function(){ if(settingsModal) settingsModal.style.display='none'; });
+if(chatTitleEl) chatTitleEl.addEventListener('click', function(){ if(!currentPartner) return; openContactFullModal(contacts.find(function(c){ return c.tf17===currentPartner.tf17; }) || { tf17: currentPartner.tf17, name: currentPartner.name }); });
 
 /* ================== BOOT ================== */
-renderContacts();
-if(me.avatarDataUrl){
-  var avatars = document.querySelectorAll('.avatar');
-  for(var i=0;i<avatars.length;i++){
-    var elA = avatars[i];
-    if(!elA.querySelector('img')) elA.innerHTML = '<img src="'+me.avatarDataUrl+'">';
-  }
-}
-if(!me.tf17){
-  setTimeout(function(){ promptForMeModal(); }, 250);
-}
+renderContacts(); if(me.avatarDataUrl){ var avatars = document.querySelectorAll('.avatar'); for(var i=0;i<avatars.length;i++){ var el = avatars[i]; if(!el.querySelector('img')) el.innerHTML = '<img src="'+me.avatarDataUrl+'" />'; } }
+if(!me.tf17){ setTimeout(function(){ promptForMeModal(); }, 250); }
 
-/* expose for debugging (optional) */
-window._tf_contacts = contacts;
-window._tf_me = me;
-</script>
-</body>
-  </html>
+window._tf_contacts = contacts; window._tf_me = me;
+</script></body>
+                                                </html>
