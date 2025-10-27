@@ -18,26 +18,20 @@
 }
 *{box-sizing:border-box}
 html,body{height:100%;margin:0;padding:0;background:var(--bg);color:var(--text);font-family:Roboto,system-ui,Arial,sans-serif;-webkit-font-smoothing:antialiased}
-header{
-  position:fixed;left:0;right:0;top:0;height:var(--header-h);
-  display:flex;align-items:center;justify-content:center;background:var(--panel);z-index:1000;
-  border-bottom:1px solid rgba(255,255,255,0.03);
-}
+header{position:fixed;left:0;right:0;top:0;height:var(--header-h);display:flex;align-items:center;justify-content:center;background:var(--panel);z-index:1000;border-bottom:1px solid rgba(255,255,255,0.03)}
 .app-title{font-weight:700;font-size:18px;cursor:pointer}
-.tabs {
-  position:fixed; left:0; right:0; top:var(--header-h); height:48px; display:flex;
-  background:transparent; z-index:1000; align-items:center; justify-content:center;
-  border-bottom:1px solid rgba(255,255,255,0.02)
-}
-.tab-bar { display:flex; gap:8px; background:transparent; padding:6px; border-radius:999px; }
+
+/* bottom tab bar */
+.tabs-bottom{position:fixed;left:0;right:0;bottom:0;height:60px;display:flex;align-items:center;justify-content:center;background:var(--panel);z-index:1000;border-top:1px solid rgba(255,255,255,0.03)}
+.tab-bar { display:flex; gap:12px; background:transparent; padding:6px; border-radius:999px; }
 .tab { padding:8px 16px; border-radius:999px; cursor:pointer; color:var(--muted); font-weight:600; }
 .tab.active { background: rgba(255,255,255,0.02); color:var(--text); }
 
-/* Main occupies full area under header+tabs */
+/* Main occupies full area between header and bottom tabs */
 main{
   position:fixed; left:0; right:0;
-  top: calc(var(--header-h) + 48px);
-  bottom:0; overflow:auto; padding:calc(var(--gutter) + 4px);
+  top: var(--header-h);
+  bottom: 60px; overflow:auto; padding:calc(var(--gutter) + 4px);
   -webkit-overflow-scrolling: touch;
   max-width: none; margin:0;
 }
@@ -49,7 +43,7 @@ main{
   background:var(--card); padding:10px; border-radius:999px;
   border:1px solid rgba(255,255,255,0.03);
   width:100%;
-  max-width:1200px; /* wide but not infinite */
+  max-width:1200px;
 }
 .search-box input{flex:1;background:transparent;border:0;outline:none;color:var(--text);font-size:15px}
 .search-btn{background:var(--accent);border:none;color:white;padding:8px 12px;border-radius:10px;cursor:pointer;font-weight:600}
@@ -68,9 +62,11 @@ main{
 .snippet{font-size:13px;color:var(--muted);overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
 .badge{background:var(--accent);color:white;padding:4px 8px;border-radius:999px;font-weight:600;font-size:13px}
 
-/* Chat modal */
+/* Chat modal - fullscreen */
 #chatModal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.96);z-index:1200}
-#chatModal .header{height:56px;display:flex;align-items:center;padding:8px 12px;border-bottom:1px solid rgba(255,255,255,0.03)}
+.chat-header{height:56px;display:flex;align-items:center;padding:8px 12px;border-bottom:1px solid rgba(255,255,255,0.03)}
+.chat-header .title{flex:1;text-align:center;font-weight:700;cursor:default}
+.chat-header .title .clickable{cursor:pointer;text-decoration:underline;color:var(--text)}
 .messages-wrap{padding:12px;height:calc(100% - 56px - 84px);overflow:auto;display:flex;flex-direction:column;gap:8px}
 .messages{display:flex;flex-direction:column;gap:8px}
 .msg{max-width:74%;padding:10px;border-radius:12px;margin-bottom:4px}
@@ -82,39 +78,26 @@ main{
 .send-btn{background:transparent;border:0;padding:8px;border-radius:10px;cursor:pointer;color:var(--accent)}
 .muted{text-align:center;color:var(--muted);padding:20px}
 
-/* profile modal */
-.profile-modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:1400;background:rgba(0,0,0,0.6)}
-.profile-card{ width:320px; background:#fff; color:#0b1220; padding:18px; border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,0.3)}
-.profile-avatar{width:64px;height:64px;border-radius:12px;background:#cbd5e1;display:flex;align-items:center;justify-content:center;font-weight:700;overflow:hidden}
+/* Fullscreen profile panel (slide from right) */
+.fullscreen-panel{position:fixed; inset:0; z-index:1300; display:none; background:rgba(0,0,0,0.6); align-items:flex-end; justify-content:flex-end;}
+.panel-card{ width:100%; max-width:420px; height:100%; background:#fff; color:#0b1220; padding:18px; box-shadow: -10px 0 30px rgba(0,0,0,0.4); overflow:auto; }
+.panel-avatar{width:120px;height:120px;border-radius:999px;background:#cbd5e1;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:36px;margin:18px auto}
+.panel-row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:8px}
+.panel-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
 
-/* settings modal */
-.settings-panel{width:420px;background:#fff;border-radius:12px;padding:18px;box-shadow:0 10px 30px rgba(11,18,32,0.2);color:#0b1220}
-.settings-label{font-size:13px;color:#374151}
+/* group panel (reuse panel-card) */
+.group-meta{font-size:14px;color:#374151;margin-top:8px}
 
-/* group modal */
-.group-modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:1450;background:rgba(0,0,0,0.6)}
-.group-card{ width:360px; background:#fff; color:#0b1220; padding:18px; border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,0.3)}
-.group-avatar{width:84px;height:84px;border-radius:999px;background:#cbd5e1;display:flex;align-items:center;justify-content:center;font-weight:700;overflow:hidden;margin:0 auto 12px}
-
-/* responsive tweaks */
+/* responsive */
 @media (max-width:600px){
-  .search-box{padding:8px}
-  .list{padding:0 8px}
-  .group-card{ width:92%; }
+  .panel-card{ max-width:100%; }
+  .avatar{width:48px;height:48px}
+  .panel-avatar{width:96px;height:96px}
 }
-/* ensure keyboard area safe space when OSK visible (adjusted by JS too) */
-.safe-bottom { padding-bottom: 120px; }
 </style>
 </head>
 <body>
   <header><div class="app-title" id="appTitle">TF-Chat</div></header>
-
-  <div class="tabs" role="tablist" aria-label="Sections">
-    <div class="tab-bar">
-      <div class="tab active" id="tabHome">Accueil</div>
-      <div class="tab" id="tabGroups">Groupe</div>
-    </div>
-  </div>
 
   <main id="mainArea">
     <section class="search">
@@ -127,27 +110,33 @@ main{
 
     <section class="list" id="contactsList" aria-live="polite"></section>
 
-    <!-- Groupe area (hidden when not active) -->
     <section id="groupsArea" style="display:none; margin-top:18px; width:100%; max-width:1200px; margin-left:auto; margin-right:auto">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
         <h3 style="margin:0">Vos Groupes</h3>
-        <button id="createGroupBtn" style="padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:transparent;color:var(--text);cursor:pointer">TF-Chat</button>
+        <button id="createGroupBtn" style="padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:transparent;color:var(--text);cursor:pointer">Nouveau</button>
       </div>
       <div id="groupsList"></div>
     </section>
 
   </main>
 
-  <!-- Chat modal -->
+  <div class="tabs-bottom">
+    <div class="tab-bar">
+      <div class="tab active" id="tabHome">Accueil</div>
+      <div class="tab" id="tabGroups">Groupe</div>
+    </div>
+  </div>
+
+  <!-- Chat modal (fullscreen) -->
   <div id="chatModal">
     <div style="height:100%;display:flex;flex-direction:column">
-      <div class="header">
+      <div class="chat-header">
         <button id="chatBack" style="background:transparent;border:0;color:var(--text);cursor:pointer">←</button>
-        <div style="flex:1;text-align:center;font-weight:700;cursor:pointer" id="chatTitle">Chat</div>
+        <div class="title" id="chatTitle"><span class="clickable" id="chatTitleInner">Chat</span></div>
         <div style="width:44px"></div>
       </div>
 
-      <div class="messages-wrap safe-bottom">
+      <div class="messages-wrap">
         <div class="messages" id="messages"></div>
       </div>
 
@@ -158,80 +147,58 @@ main{
     </div>
   </div>
 
-  <!-- invisible file input for avatar selection (me/profile) -->
-  <input type="file" id="profileFile" accept="image/*" style="display:none" />
+  <!-- Fullscreen user profile panel -->
+  <div class="fullscreen-panel" id="userPanel">
+    <div class="panel-card" id="userPanelCard" role="dialog" aria-modal="true">
+      <div style="display:flex;justify-content:flex-end"><button id="closeUserPanel" style="background:transparent;border:0;font-weight:700;cursor:pointer">X</button></div>
+      <div class="panel-avatar" id="userPanelAvatar">U</div>
+      <h2 id="userPanelName" style="text-align:center;margin:6px 0">Utilisateur</h2>
+      <div style="text-align:center;color:var(--muted)" id="userPanelTfid">TF-0000000</div>
 
-  <!-- group file input (for group avatar) -->
-  <input type="file" id="groupFile" accept="image/*" style="display:none" />
-
-  <!-- Profile modal -->
-  <div class="profile-modal" id="profileModal">
-    <div class="profile-card" role="dialog" aria-modal="true">
-      <div class="profile-row" style="display:flex;align-items:center;gap:12px;margin-bottom:10px">
-        <div class="profile-avatar" id="profileAvatar">U</div>
+      <div class="panel-row">
         <div>
-          <div id="profileName" style="font-weight:800">Utilisateur</div>
-          <div id="profileTfid" class="small">TF-0000000</div>
+          <div style="font-weight:700">Dernier message</div>
+          <div id="userPanelLastMsg" style="color:#6b7280;margin-top:6px">—</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:12px;color:var(--muted)" id="userPanelLastTime">—</div>
         </div>
       </div>
-      <div style="display:flex;gap:8px;justify-content:flex-end">
-        <button id="addContactBtn" style="padding:8px 12px;border-radius:8px;border:1px solid #e6edf3;background:white;cursor:pointer">Ajouter</button>
-        <button id="blockBtn" style="padding:8px 12px;border-radius:8px;background:#ef4444;color:white;border:none;cursor:pointer">Bloquer</button>
-        <button id="closeProfileBtn" style="padding:8px 12px;border-radius:8px;border:1px solid #e6edf3;background:white;cursor:pointer">Fermer</button>
+
+      <div class="panel-actions">
+        <button id="panelSendMsg" style="padding:10px 12px;border-radius:8px;background:var(--accent);color:white;border:none;cursor:pointer">Envoyer message</button>
+        <button id="panelAddContact" style="padding:10px 12px;border-radius:8px;border:1px solid #e6edf3;background:white;cursor:pointer">Ajouter</button>
+        <button id="panelBlock" style="padding:10px 12px;border-radius:8px;background:#ef4444;color:white;border:none;cursor:pointer">Bloquer</button>
+      </div>
+
+      <hr style="margin-top:18px"/>
+      <div style="font-size:13px;color:#374151;margin-top:10px">
+        <strong>Info</strong>
+        <div style="margin-top:8px" id="userPanelInfo">—</div>
       </div>
     </div>
   </div>
 
-  <!-- Settings modal -->
-  <div id="settingsModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:1200;align-items:center;justify-content:center;">
-    <div class="settings-panel" role="dialog" aria-modal="true">
-      <h3 style="margin:0 0 12px 0">Paramètres — Identité</h3>
+  <!-- Fullscreen group panel -->
+  <div class="fullscreen-panel" id="groupPanel">
+    <div class="panel-card" id="groupPanelCard" role="dialog" aria-modal="true">
+      <div style="display:flex;justify-content:flex-end"><button id="closeGroupPanel" style="background:transparent;border:0;font-weight:700;cursor:pointer">X</button></div>
+      <div class="panel-avatar" id="groupPanelAvatar">G</div>
+      <h2 id="groupPanelName" style="text-align:center;margin:6px 0">Groupe</h2>
+      <div style="text-align:center;color:var(--muted)" id="groupPanelOwner">—</div>
 
-      <div style="margin-bottom:8px">
-        <label class="settings-label">Pseudo affiché</label>
-        <input id="profileNameInput" style="width:100%;padding:10px;border-radius:8px;border:1px solid #e6eef3;margin-top:6px" />
-      </div>
+      <div class="group-meta" id="groupPanelBio">—</div>
 
-      <div style="margin-bottom:12px">
-        <label class="settings-label">TFID (7 chif) — ex: 0204143</label>
-        <input id="profileTfidInput" style="width:100%;padding:10px;border-radius:8px;border:1px solid #e6eef3;margin-top:6px" />
-        <div style="font-size:12px;color:#6b7280;margin-top:6px">Sere TFID tankou TF-XXXXXXX. Sistèm lan konvèti pou TF-17-chif otomatikman.</div>
-      </div>
-
-      <div style="margin-bottom:12px">
-        <label class="settings-label">Mot de passe (créer / changer)</label>
-        <input id="profilePwInput" type="password" placeholder="Nouveau mot de passe" style="width:100%;padding:10px;border-radius:8px;border:1px solid #e6eef3;margin-top:6px" />
-        <div style="font-size:12px;color:#6b7280;margin-top:6px">Le mot de passe est haché côté client et stocké localement. Ne partagez pas ce mot de passe.</div>
-      </div>
-
-      <div style="display:flex;justify-content:flex-end;gap:8px">
-        <button id="settingsCancel" style="padding:8px 12px;border-radius:8px;border:1px solid #e6edf3;background:white;cursor:pointer">Annuler</button>
-        <button id="profileSave" style="padding:8px 12px;border-radius:8px;background:#007aff;color:white;border:none;cursor:pointer">Sove</button>
+      <div class="panel-actions" style="margin-top:18px">
+        <button id="panelGroupOpenChat" style="padding:10px 12px;border-radius:8px;background:var(--accent);color:white;border:none;cursor:pointer">Ouvrir discussion</button>
+        <button id="panelGroupManage" style="padding:10px 12px;border-radius:8px;border:1px solid #e6edf3;background:white;cursor:pointer">Gérer membres</button>
       </div>
     </div>
   </div>
 
-  <!-- Group create modal -->
-  <div class="group-modal" id="groupModal">
-    <div class="group-card" role="dialog" aria-modal="true">
-      <div class="group-avatar" id="groupAvatar">G</div>
-      <div style="text-align:center;margin-bottom:12px">
-        <button id="uploadGroupAvatarBtn" style="padding:8px 12px;border-radius:8px;border:1px solid #e6edf3;background:white;cursor:pointer">Chwazi avatar</button>
-      </div>
-      <div style="margin-bottom:8px">
-        <label class="settings-label">Nom du groupe (obligatoire)</label>
-        <input id="groupNameInput" style="width:100%;padding:10px;border-radius:8px;border:1px solid #e6eef3;margin-top:6px" />
-      </div>
-      <div style="margin-bottom:12px">
-        <label class="settings-label">Bio (optionel)</label>
-        <textarea id="groupBioInput" style="width:100%;padding:10px;border-radius:8px;border:1px solid #e6eef3;margin-top:6px" rows="3"></textarea>
-      </div>
-      <div style="display:flex;justify-content:flex-end;gap:8px">
-        <button id="groupCancel" style="padding:8px 12px;border-radius:8px;border:1px solid #e6edf3;background:white;cursor:pointer">Retour</button>
-        <button id="groupCreate" style="padding:8px 12px;border-radius:8px;background:#007aff;color:white;border:none;cursor:pointer">Valider</button>
-      </div>
-    </div>
-  </div>
+  <!-- invisible file inputs -->
+  <input type="file" id="profileFile" accept="image/*" style="display:none" />
+  <input type="file" id="groupFile" accept="image/*" style="display:none" />
 
 <script>
 /* ================== CONFIG ================== */
@@ -272,34 +239,33 @@ const chatInputRow = document.getElementById('chatInputRow');
 const chatTextEl = document.getElementById('chatText');
 const sendBtnEl = document.getElementById('sendBtn');
 const appTitleEl = document.getElementById('appTitle');
-const chatTitleEl = document.getElementById('chatTitle');
+const chatTitleInner = document.getElementById('chatTitleInner');
 
-const settingsModal = document.getElementById('settingsModal');
-const profileNameInput = document.getElementById('profileNameInput');
-const profileTfidInput = document.getElementById('profileTfidInput');
-const profilePwInput = document.getElementById('profilePwInput');
-const profileSaveBtn = document.getElementById('profileSave');
-const settingsCancelBtn = document.getElementById('settingsCancel');
+const userPanel = document.getElementById('userPanel');
+const userPanelAvatar = document.getElementById('userPanelAvatar');
+const userPanelName = document.getElementById('userPanelName');
+const userPanelTfid = document.getElementById('userPanelTfid');
+const userPanelLastMsg = document.getElementById('userPanelLastMsg');
+const userPanelLastTime = document.getElementById('userPanelLastTime');
+const userPanelInfo = document.getElementById('userPanelInfo');
+const closeUserPanel = document.getElementById('closeUserPanel');
+const panelSendMsg = document.getElementById('panelSendMsg');
+const panelAddContact = document.getElementById('panelAddContact');
+const panelBlock = document.getElementById('panelBlock');
 
-const profileModal = document.getElementById('profileModal');
-const profileAvatar = document.getElementById('profileAvatar');
-const profileName = document.getElementById('profileName');
-const profileTfid = document.getElementById('profileTfid');
-const addContactBtn = document.getElementById('addContactBtn');
-const blockBtn = document.getElementById('blockBtn');
-const closeProfileBtn = document.getElementById('closeProfileBtn');
+const groupPanel = document.getElementById('groupPanel');
+const groupPanelAvatar = document.getElementById('groupPanelAvatar');
+const groupPanelName = document.getElementById('groupPanelName');
+const groupPanelOwner = document.getElementById('groupPanelOwner');
+const groupPanelBio = document.getElementById('groupPanelBio');
+const closeGroupPanel = document.getElementById('closeGroupPanel');
+const panelGroupOpenChat = document.getElementById('panelGroupOpenChat');
+const panelGroupManage = document.getElementById('panelGroupManage');
 
 const profileFile = document.getElementById('profileFile');
 const groupFile = document.getElementById('groupFile');
 
 const createGroupBtn = document.getElementById('createGroupBtn');
-const groupModal = document.getElementById('groupModal');
-const groupAvatarEl = document.getElementById('groupAvatar');
-const uploadGroupAvatarBtn = document.getElementById('uploadGroupAvatarBtn');
-const groupNameInput = document.getElementById('groupNameInput');
-const groupBioInput = document.getElementById('groupBioInput');
-const groupCancel = document.getElementById('groupCancel');
-const groupCreate = document.getElementById('groupCreate');
 
 /* ================== STORAGE HELPERS ================== */
 function saveState(){ localStorage.setItem('tfchat.me.short', me.short || ''); localStorage.setItem('tfchat.me.17', me.tf17 || ''); localStorage.setItem('tfchat.me.name', me.name || ''); if(me.avatarDataUrl) localStorage.setItem('tfchat.me.avatar', me.avatarDataUrl); localStorage.setItem('tfchat.contacts', JSON.stringify(contacts || [])); localStorage.setItem('tfchat.groups', JSON.stringify(groups || [])); }
@@ -310,7 +276,7 @@ function storePasswordHash(tf17, hexHash){ localStorage.setItem(pwKeyForTf(tf17)
 function getPasswordHash(tf17){ return localStorage.getItem(pwKeyForTf(tf17)); }
 
 /* ================== RENDER ================== */
-function updateSettingsUI(){ profileNameInput.value = me.name || ''; profileTfidInput.value = (me.tf17 || '').replace(/^TF-?/i, '').slice(-7); profilePwInput.value = ''; }
+function updateSettingsUI(){ document.getElementById('profileNameInput') && (document.getElementById('profileNameInput').value = me.name || ''); document.getElementById('profileTfidInput') && (document.getElementById('profileTfidInput').value = (me.tf17 || '').replace(/^TF-?/i, '').slice(-7)); }
 function renderContacts(filter=''){
   contactsListEl.innerHTML = '';
   const q = (filter||'').toLowerCase().trim();
@@ -362,13 +328,7 @@ function renderGroups(){
         </div>
       </div>`;
     row.addEventListener('click', ()=>{
-      // if TF-Chat group clicked, open special modal to create or open chat for group
-      if(g.name === 'TF-Chat'){
-        openGroupCreateModal();
-      } else {
-        // open group chat like regular chat: we treat group's tfid as group.name for URL slug
-        openGroupChat(g.name);
-      }
+      openGroupPanel(g);
     });
     groupsListEl.appendChild(row);
   });
@@ -376,11 +336,8 @@ function renderGroups(){
 
 /* ================== NETWORK HELPERS ================== */
 async function callJSON(url, opts = {}) { opts = Object.assign({}, opts); opts.headers = Object.assign({}, opts.headers || {}, { 'Accept': 'application/json' }); try { const r = await fetch(url, opts); const text = await r.text(); let json = null; try{ json = JSON.parse(text); }catch(e){} return { ok: r.ok, status: r.status, json, text }; } catch (err) { return { ok: false, error: err.message }; } }
-
 async function apiList(tf17){ const url = `${API_BASE}/api/list?tfid=${encodeURIComponent(tf17)}&name=${encodeURIComponent(FRONTEND_NAME)}`; const r = await callJSON(url); if(!r.ok) throw new Error(r.json?.error || r.text || `HTTP ${r.status}`); return r.json.rows || []; }
-
 async function apiAdd(recipient17, contentObj){ const body = { tfid: recipient17, name: FRONTEND_NAME, content: JSON.stringify(contentObj), source_url: location.origin }; const url = `${API_BASE}/api/add`; const r = await callJSON(url, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) }); if(!r.ok) { const errMsg = r.json?.error || r.text || `HTTP ${r.status}`; if(String(errMsg).toLowerCase().includes("frontend name not registered")) { const regOk = await registerFrontendIfNeeded(); if(regOk) { const r2 = await callJSON(url, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) }); if(!r2.ok) throw new Error(r2.json?.error || r2.text || `HTTP ${r2.status}`); return r2.json; } } throw new Error(errMsg); } return r.json; }
-
 async function registerFrontendIfNeeded(){ try { const url = `${API_BASE}/admin/register-frontend`; const payload = { name: FRONTEND_NAME, callback_url: location.origin }; const r = await callJSON(url, { method:"POST", headers:{"Content-Type":"application/json","x-api-token": ADMIN_API_TOKEN}, body: JSON.stringify(payload) }); return r.ok; } catch(e){ return false; } }
 
 /* ----------------- Upload helpers ----------------- */
@@ -389,7 +346,6 @@ async function uploadFileToProfileAPI(file, uploadUrl = PROFILE_UPLOAD_URL){
   fd.append('file', file);
   const r = await callJSON(uploadUrl, { method:'POST', body: fd });
   if(!r.ok) throw new Error(r.json?.error || r.text || `HTTP ${r.status}`);
-  // some servers return { ok:true, url: '...' } or { url } or { path } etc.
   const json = r.json || {};
   return json.url || json.path || json.sharePath || null;
 }
@@ -399,7 +355,29 @@ function convKey(a,b){ return `${a}|${b}`; }
 function messageUniqueKey(m){ if(m.cid) return "cid:"+m.cid; if(m.id) return "id:"+m.id; return "temp:"+ (m._tempKey || (m._tempKey = Math.random().toString(36).slice(2))); }
 function compareMessagesAsc(a,b){ const ta = parseDatePrefer(a._db_created_at, a.parsed_time); const tb = parseDatePrefer(b._db_created_at, b.parsed_time); if(ta !== tb) return ta - tb; if(a.id && b.id && a.id !== b.id) return Number(a.id) - Number(b.id); if(a.cid && b.cid && a.cid !== b.cid) return a.cid < b.cid ? -1 : 1; return 0; }
 function addOrUpdateMessageToCache(me17, other17, msg){ const key = convKey(me17, other17); if(!conversationCache[key]) conversationCache[key] = []; const list = conversationCache[key]; const findIndex = msg.cid ? list.findIndex(x => x.cid && x.cid === msg.cid) : (msg.id ? list.findIndex(x => x.id && String(x.id) === String(msg.id)) : -1); if(findIndex !== -1){ list[findIndex] = Object.assign({}, list[findIndex], msg); } else { list.push(msg); } list.sort(compareMessagesAsc); }
-async function loadConversation(me17, other17){ const key = convKey(me17, other7); /* just ensure not crashing if typo */ conversationCache[key] = conversationCache[key] || []; const seen = new Set(); function pushRow(r, expectedFrom){ let parsed = null; try { parsed = JSON.parse(r.content); } catch(e){ parsed = null; } const parsedFrom = parsed && parsed.from ? parsed.from : null; const parsedTime = parsed && parsed.time ? parsed.time : null; const parsedCid = parsed && parsed.cid ? parsed.cid : null; const parsedText = parsed && (parsed.text || parsed.message) ? (parsed.text || parsed.message) : (r.content || ""); if(!parsedFrom || parsedFrom !== expectedFrom) return; const m = { id: r.id || null, cid: parsedCid || null, from: parsedFrom, text: parsedText, parsed_time: parsedTime || null, _db_created_at: r.created_at || null, created_at: parsedTime || r.created_at || nowISO() }; const keyu = messageUniqueKey(m); if(seen.has(keyu)) return; seen.add(keyu); addOrUpdateMessageToCache(me17, other17, m); } try { const outRows = await apiList(other17); for(const r of outRows) pushRow(r, me17); } catch(e){ console.warn("LIST outgoing failed for", other17, e.message || e); } try { const inRows = await apiList(me17); for(const r of inRows) pushRow(r, other17); } catch(e){ console.warn("LIST incoming failed for", me17, e.message || e); } renderConversation(me17, other17); }
+async function loadConversation(me17, other17){
+  // fixed bug: used "other7" previously — now correct
+  const key = convKey(me17, other17);
+  conversationCache[key] = conversationCache[key] || [];
+  const seen = new Set();
+  function pushRow(r, expectedFrom){
+    let parsed = null;
+    try { parsed = JSON.parse(r.content); } catch(e){ parsed = null; }
+    const parsedFrom = parsed && parsed.from ? parsed.from : null;
+    const parsedTime = parsed && parsed.time ? parsed.time : null;
+    const parsedCid = parsed && parsed.cid ? parsed.cid : null;
+    const parsedText = parsed && (parsed.text || parsed.message) ? (parsed.text || parsed.message) : (r.content || "");
+    if(!parsedFrom || parsedFrom !== expectedFrom) return;
+    const m = { id: r.id || null, cid: parsedCid || null, from: parsedFrom, text: parsedText, parsed_time: parsedTime || null, _db_created_at: r.created_at || null, created_at: parsedTime || r.created_at || nowISO() };
+    const keyu = messageUniqueKey(m);
+    if(seen.has(keyu)) return;
+    seen.add(keyu);
+    addOrUpdateMessageToCache(me17, other17, m);
+  }
+  try { const outRows = await apiList(other17); for(const r of outRows) pushRow(r, me17); } catch(e){ console.warn("LIST outgoing failed for", other17, e.message || e); }
+  try { const inRows = await apiList(me17); for(const r of inRows) pushRow(r, other17); } catch(e){ console.warn("LIST incoming failed for", me17, e.message || e); }
+  renderConversation(me17, other17);
+}
 
 function ensureMessagesPadding(){ const wrap = document.querySelector('#chatModal .messages-wrap'); if(!wrap) return; const inputRow = document.getElementById('chatInputRow'); const h = inputRow ? inputRow.getBoundingClientRect().height : 80; wrap.style.paddingBottom = (h + 24) + 'px'; }
 window.addEventListener('resize', ensureMessagesPadding);
@@ -417,9 +395,18 @@ function renderConversation(me17, other17){
       const ts = m.created_at ? (new Date(m.created_at)).toLocaleString() : '';
       let checksHtml = '';
       if(m.from === me17){ if(m.id) checksHtml = '<span class="checks">✓✓</span>'; else checksHtml = '<span class="checks">✓</span>'; }
-      d.innerHTML = `<div>${escapeHtml(m.text)}</div><div style="font-size:11px;color:var(--muted);margin-top:6px">${formatTFShort(m.from||'')} • ${ts} ${checksHtml}</div>`;
+      // clickable sender label (opens profile)
+      const senderLabel = `<div style="font-weight:700;cursor:pointer;color:inherit;text-decoration:none" data-tfid="${escapeHtml(m.from)}" class="msg-sender">${escapeHtml(formatTFShort(m.from))}</div>`;
+      d.innerHTML = `<div>${senderLabel}<div style="margin-top:6px">${escapeHtml(m.text)}</div></div><div style="font-size:11px;color:var(--muted);margin-top:6px">${ts} ${checksHtml}</div>`;
       messagesEl.appendChild(d);
     }
+    // delegate click handler for sender labels
+    messagesEl.querySelectorAll('.msg-sender').forEach(el=>{
+      el.addEventListener('click', (ev)=>{
+        const tf = el.dataset.tfid;
+        if(tf) openUserPanel(tf);
+      });
+    });
   }
   setTimeout(()=> { messagesEl.parentElement.scrollTop = messagesEl.parentElement.scrollHeight; }, 50);
 }
@@ -427,8 +414,8 @@ function renderConversation(me17, other17){
 /* ================== CHAT OPEN/SEND ================== */
 async function openChat(other17, contactObj=null, pushHistory=true){
   if(!me.tf17){ alert('Pa gen TFID pou itilizatè a. Louver Paramèt pou mete TFID la.'); return; }
-  currentPartner = { tf17: other17, name: (contactObj && contactObj.name) || null };
-  chatTitleEl.textContent = (currentPartner.name || formatTFShort(currentPartner.tf17));
+  currentPartner = { tf17: other17, name: (contactObj && contactObj.name) || null, isGroup: false };
+  chatTitleInner.textContent = (currentPartner.name || formatTFShort(currentPartner.tf17));
   const c = contacts.find(x => x.tf17 === other17);
   if(c){ c.unread = 0; saveState(); renderContacts(); }
   messagesEl.innerHTML = '<div class="muted">Chaje mesaj...</div>';
@@ -454,6 +441,7 @@ async function sendMessageFromModal(){
   const recipient17 = currentPartner.tf17;
   const cid = makeCid();
   const payload = { type:'text', from: me.tf17, text: txt, time: (new Date()).toISOString(), cid, name: me.name || null };
+  // optimistic add and render
   addOrUpdateMessageToCache(me.tf17, recipient17, { id:null, cid, from: me.tf17, text: txt, parsed_time: payload.time, _db_created_at:null, created_at: payload.time, _optimistic:true });
   renderConversation(me.tf17, recipient17);
   chatTextEl.value = '';
@@ -481,44 +469,50 @@ function ensureContactInList(tf17, name){
   return c;
 }
 
-/* ================== PROMPT FOR ME (settings modal) ================== */
-function promptForMeModal(){
-  updateSettingsUI();
-  settingsModal.style.display = 'flex';
-  profileNameInput.focus();
-  return new Promise(resolve=>{
-    async function onSave(){
-      const nameVal = profileNameInput.value.trim();
-      const short = normalizeInputToDigits(profileTfidInput.value.trim());
-      if(!short || short.length < 7){ alert('TFID invalide — antre 7 chif.'); return; }
-      const tfShort = short.slice(-7);
-      const tf17c = to17(tfShort);
-      const existingHash = getPasswordHash(tf17c);
-      if(existingHash){
-        const pw = prompt('TFID sa egziste deja lokalman. Antre modpas pou kont sa:');
-        if(!pw){ alert('Modpas obligatwa pou kont sa.'); return; }
-        const has = await hashPasswordHex(pw);
-        if(has !== existingHash){ alert('Modpas pa kòrèk.'); return; }
-      }
-      me.name = nameVal || me.name || 'Utilisateur';
-      me.short = tfShort;
-      me.tf17 = to17(me.short);
-      saveState();
-      settingsModal.style.display = 'none';
-      cleanup();
-      registerFrontendIfNeeded().then(()=>{ if(ws && ws.readyState === WebSocket.OPEN){ try{ ws.send(JSON.stringify({ type:'subscribe', tfid: me.tf17 })); }catch(e){} } else connectWS(); });
-      resolve(true);
-    }
-    function onCancel(){ settingsModal.style.display = 'none'; cleanup(); resolve(false); }
-    function cleanup(){ profileSaveBtn.removeEventListener('click', onSave); settingsCancelBtn.removeEventListener('click', onCancel); }
-    profileSaveBtn.addEventListener('click', onSave);
-    settingsCancelBtn.addEventListener('click', onCancel);
-  });
+/* ================== PROFILE PANEL (user) ================== */
+function openUserPanel(tfid){
+  const c = contacts.find(x=>x.tf17===tfid) || { tf17, name: formatTFShort(tfid), lastMsg:'', lastTs:0, avatar:null, blocked:false };
+  userPanelAvatar.innerHTML = c.avatar ? `<img src="${c.avatar}" style="width:100%;height:100%;border-radius:999px" />` : initials(c.name || c.tf17);
+  userPanelName.textContent = c.name || formatTFShort(tfid);
+  userPanelTfid.textContent = c.tf17;
+  userPanelLastMsg.textContent = c.lastMsg || '—';
+  userPanelLastTime.textContent = c.lastTs ? new Date(c.lastTs).toLocaleString() : '';
+  userPanelInfo.textContent = `TFID: ${c.tf17}\nBloqué: ${c.blocked ? 'Wi' : 'Non'}`;
+  panelBlock.textContent = c.blocked ? 'Débloquer' : 'Bloquer';
+  userPanel.style.display = 'flex';
+  // wire actions
+  panelSendMsg.onclick = ()=>{
+    userPanel.style.display = 'none';
+    // open chat and focus
+    openChat(tfid, c, true);
+  };
+  panelAddContact.onclick = ()=>{
+    ensureContactInList(tfid, c.name || null);
+    alert('Contact ajouté: ' + (c.name || c.tf17));
+  };
+  panelBlock.onclick = async ()=>{
+    const cc = ensureContactInList(tfid, c.name || null);
+    cc.blocked = !cc.blocked;
+    saveState(); renderContacts();
+    panelBlock.textContent = cc.blocked ? 'Débloquer' : 'Bloquer';
+    // attempt to notify backend via apiAdd (best-effort)
+    try{ const payload = { type: cc.blocked ? 'block' : 'unblock', from: me.tf17, time: nowISO(), name: me.name || null }; await apiAdd(tfid, payload); }catch(e){ console.warn('notify block failed', e); }
+    userPanel.style.display = 'none';
+  };
 }
+closeUserPanel.addEventListener('click', ()=> userPanel.style.display = 'none');
 
-/* ================== PW BANNER/TIMERS ================== */
-function triggerPwBannerIfNeeded(){ /* (not used in this file) */ }
-function hidePwBanner(){ /* noop */ }
+/* ================== GROUP PANEL ================== */
+function openGroupPanel(g){
+  groupPanelAvatar.innerHTML = g.avatar_url ? `<img src="${g.avatar_url}" style="width:100%;height:100%;border-radius:999px" />` : (g.name?escapeHtml(g.name.slice(0,2)):'G');
+  groupPanelName.textContent = g.name;
+  groupPanelOwner.textContent = g.owner_name || '';
+  groupPanelBio.textContent = g.bio || '';
+  groupPanel.style.display = 'flex';
+  panelGroupOpenChat.onclick = ()=>{ groupPanel.style.display = 'none'; openGroupChat(g.name); };
+  panelGroupManage.onclick = ()=>{ alert('Gérer membres (non implémenté nan UI sa a)'); };
+}
+closeGroupPanel.addEventListener('click', ()=> groupPanel.style.display = 'none');
 
 /* ================== WEBSOCKET & Notifications ================== */
 function connectWS(){
@@ -542,7 +536,6 @@ function connectWS(){
         const msgObj = { id: payload.id || null, cid: parsed.cid || null, from, text: parsed.text || parsed.message || '', parsed_time: parsed.time || null, _db_created_at: payload.created_at || null, created_at: created };
         addOrUpdateMessageToCache(me.tf17, other, msgObj);
 
-        // update contact info
         if(parsed.name){
           const c = ensureContactInList(other, parsed.name);
           c.name = parsed.name;
@@ -555,10 +548,9 @@ function connectWS(){
           c.avatar = parsed.photo; c.name = parsed.name || c.name; c.lastTs = Date.now(); saveState(); renderContacts();
         }
 
-        // render in current chat if open
-        if(currentPartner && currentPartner.tf17 === other){ renderConversation(me.tf17, other); }
-        else if(recipient === me.tf17){
-          // increment unread, show notification
+        if(currentPartner && currentPartner.tf17 === other){
+          renderConversation(me.tf17, other);
+        } else if(recipient === me.tf17){
           const c = ensureContactInList(other, parsed && parsed.name ? parsed.name : null);
           c.unread = (c.unread||0) + 1; c.lastMsg = msgObj.text; c.lastTs = Date.now(); saveState(); renderContacts();
           showDesktopNotification(parsed.name || formatTFShort(other), msgObj.text, other);
@@ -583,9 +575,7 @@ async function showDesktopNotification(title, body, otherTfid){
   if(!ok) return;
   try{
     const n = new Notification('TF-Chat — Nouvo mesaj', { body: `${title}: ${body}`, tag: 'tf-chat-msg', renotify: true });
-    n.onclick = ()=>{ window.focus(); // open chat for that tfid
-      try{ openChat(otherTfid, contacts.find(c=>c.tf17===otherTfid)||null, true); } catch(e){} n.close();
-    };
+    n.onclick = ()=>{ window.focus(); try{ openChat(otherTfid, contacts.find(c=>c.tf17===otherTfid)||null, true); } catch(e){} n.close(); };
   } catch(e){ console.warn('notif failed', e); }
 }
 
@@ -616,74 +606,13 @@ async function performSearchQuery(raw){
   } catch(err){ alert('Erè lè w ap chèche sou servèr: ' + (err.message||err)); }
 }
 
-/* ================== PROFILE IMAGE UPLOAD ================== */
-profileAvatar?.addEventListener('click', ()=> { if(profileFile) profileFile.click(); });
-profileFile?.addEventListener('change', async (ev)=>{
-  const f = ev.target.files && ev.target.files[0]; if(!f) return;
-  try{
-    const url = await uploadFileToProfileAPI(f, PROFILE_UPLOAD_URL);
-    if(!url) throw new Error('No url returned');
-    me.avatarDataUrl = url; saveState();
-    // update UI avatars
-    document.querySelectorAll('.avatar').forEach(el=>{ /* best-effort update */ });
-    profileAvatar.innerHTML = `<img src="${url}" />`;
-    // notify contacts
-    const now = nowISO();
-    for(const c of contacts){
-      if(!c || !c.tf17 || c.tf17 === me.tf17) continue;
-      const cid = makeCid();
-      const payload = { type:'profile', from: me.tf17, name: me.name || null, photo: url, time: now, cid };
-      apiAdd(c.tf17, payload).catch(err => console.warn('profile push failed', err));
-    }
-  } catch(e){ alert('Upload échoué: ' + (e.message || e)); }
-});
-
-/* ================== GROUP CREATE FLOW ================== */
-function openGroupCreateModal(){ groupModal.style.display = 'flex'; groupAvatarEl.textContent = 'G'; groupNameInput.value=''; groupBioInput.value=''; }
-createGroupBtn?.addEventListener('click', openGroupCreateModal);
-uploadGroupAvatarBtn?.addEventListener('click', ()=> groupFile.click());
-
-groupFile?.addEventListener('change', async (ev)=>{
-  const f = ev.target.files && ev.target.files[0]; if(!f) return;
-  try{
-    const url = await uploadFileToProfileAPI(f, PROFILE_UPLOAD_URL);
-    if(!url) throw new Error('No url');
-    groupAvatarEl.innerHTML = `<img src="${url}" style="width:100%;height:100%;border-radius:999px" />`;
-    groupAvatarEl.dataset.url = url;
-  } catch(e){ alert('Upload échoué: ' + (e.message||e)); }
-});
-
-groupCancel?.addEventListener('click', ()=> { groupModal.style.display='none'; });
-groupCreate?.addEventListener('click', async ()=>{
-  const name = (groupNameInput.value || '').trim();
-  const bio = (groupBioInput.value || '').trim();
-  const avatar_url = groupAvatarEl.dataset.url || null;
-  if(!name){ alert('Nom du groupe obligatwa'); return; }
-  try{
-    // call backend admin create groups endpoint with API token
-    const url = `${API_BASE}/admin/groups/create`;
-    const r = await callJSON(url, { method:'POST', headers: {'Content-Type':'application/json', 'x-api-token': ADMIN_API_TOKEN}, body: JSON.stringify({ name, owner_name: me.name || null, bio: bio || null, avatar_url: avatar_url || null }) });
-    if(!r.ok){ throw new Error(r.json?.error || r.text || `HTTP ${r.status}`); }
-    // add local group
-    const created = { name, owner_name: me.name || null, avatar_url: avatar_url || null, bio: bio || null, created_at: nowISO() };
-    groups.unshift(created); saveState(); renderGroups();
-    alert('Groupe créé avèk siksè: ' + name);
-    groupModal.style.display='none';
-    // Optionally, if you want to notify members or create group members, call /admin/groups/add
-  } catch(e){
-    alert('Kreye gwoup echwe: ' + (e.message||e));
-  }
-});
-
-/* open group chat (this simple UI opens messages for that group by calling /api/group/messages) */
+/* ================== GROUP MESSAGES / OPEN ================== */
 async function openGroupChat(groupName){
   if(!me.tf17){ alert('Antre TFID an premye nan paramètres'); return; }
-  // fetch last messages
   try{
     const url = `${API_BASE}/api/group/messages?group_name=${encodeURIComponent(groupName)}&tfid=${encodeURIComponent(me.tf17)}&name=${encodeURIComponent(FRONTEND_NAME)}`;
     const res = await callJSON(url);
     if(!res.ok) throw new Error(res.json?.error || res.text || `HTTP ${res.status}`);
-    // build a simple modal view of last messages
     messagesEl.innerHTML = '';
     if(!res.json.rows || res.json.rows.length===0){
       messagesEl.innerHTML = `<div class="muted">Pa gen mesaj pou gwoup sa ankò.</div>`;
@@ -693,40 +622,83 @@ async function openGroupChat(groupName){
         div.className = 'msg bot';
         let parsedText = r.content;
         try{ const p = JSON.parse(r.content); parsedText = p.text || p.message || JSON.stringify(p); } catch(e){}
-        div.innerHTML = `<div>${escapeHtml(parsedText)}</div><div style="font-size:11px;color:var(--muted);margin-top:6px">${escapeHtml(r.name||'')}</div>`;
+        div.innerHTML = `<div style="font-weight:700">${escapeHtml(r.name||'')}</div><div style="margin-top:6px">${escapeHtml(parsedText)}</div><div style="font-size:11px;color:var(--muted);margin-top:6px">${escapeHtml(r.created_at||'')}</div>`;
         messagesEl.appendChild(div);
       }
     }
-    chatTitleEl.textContent = 'G:' + groupName;
+    chatTitleInner.textContent = 'G:' + groupName;
+    // mark currentPartner as group (so closing/opening behave)
+    currentPartner = { tf17: groupName, name: groupName, isGroup: true };
     showChatModal();
   } catch(e){
     alert('Pa kapab chaje mesaj gwoup la: ' + (e.message||e));
   }
 }
 
-/* ================== PROFILE MODAL ================== */
-let profileCurrent = null;
-chatTitleEl?.addEventListener('click', ()=>{ if(!currentPartner) return; openProfileModal(currentPartner.tf17); });
-function openProfileModal(tf17){
-  profileCurrent = tf17;
-  const c = contacts.find(x=>x.tf17===tf17) || { tf17, name: formatTFShort(tf17), blocked:false, avatar:null };
-  if(c.avatar) { profileAvatar.innerHTML = `<img src="${c.avatar}" />`; } else { profileAvatar.textContent = initials(c.name || c.tf17); }
-  profileName.textContent = c.name || formatTFShort(tf17);
-  profileTfid.textContent = c.tf17;
-  blockBtn.textContent = c.blocked ? 'Débloquer' : 'Bloquer';
-  profileModal.style.display = 'flex';
-}
-addContactBtn?.addEventListener('click', ()=>{ if(!profileCurrent) return; const c = ensureContactInList(profileCurrent, null); alert('Contact ajouté : ' + (c.name || c.tf17)); profileModal.style.display = 'none'; });
-blockBtn?.addEventListener('click', async ()=>{ if(!profileCurrent) return; const c = ensureContactInList(profileCurrent, null); c.blocked = !c.blocked; saveState(); renderContacts(); try{ const payload = { type: c.blocked ? 'block' : 'unblock', from: me.tf17, time: nowISO(), name: me.name || null }; await apiAdd(profileCurrent, payload); }catch(e){ console.warn('notify block failed', e); } openProfileModal(profileCurrent); });
-closeProfileBtn?.addEventListener('click', ()=>{ profileModal.style.display = 'none'; });
+/* ================== PROFILE IMAGE UPLOAD (me) ================== */
+profileFile?.addEventListener('change', async (ev)=>{
+  const f = ev.target.files && ev.target.files[0]; if(!f) return;
+  try{
+    const url = await uploadFileToProfileAPI(f, PROFILE_UPLOAD_URL);
+    if(!url) throw new Error('No url returned');
+    me.avatarDataUrl = url; saveState();
+    document.querySelectorAll('.avatar').forEach(el=>{ /* best-effort update */ });
+    // notify contacts
+    const now = nowISO();
+    for(const c of contacts){
+      if(!c || !c.tf17 || c.tf17 === me.tf17) continue;
+      const cid = makeCid();
+      const payload = { type:'profile', from: me.tf17, name: me.name || null, photo: url, time: now, cid };
+      apiAdd(c.tf17, payload).catch(err => console.warn('profile push failed', err));
+    }
+    alert('Avatar mis ajou.');
+  } catch(e){ alert('Upload échoué: ' + (e.message || e)); } finally { ev.target.value = ''; }
+});
+
+/* ================== GROUP CREATE (simple) ================== */
+/* When clicking createGroupBtn, open a prompt (to keep UI small) */
+createGroupBtn?.addEventListener('click', async ()=>{
+  const name = prompt('Non gwoup (unik):');
+  if(!name) return;
+  const bio = prompt('Bio (opsyonèl):') || '';
+  // optionally upload avatar
+  const choose = confirm('Soumèt avatar pou gwoup la kounye a? (Si wi, chwazi yon fichye apre OK)');
+  let avatar_url = null;
+  if(choose){
+    try {
+      // prompt file selection
+      groupFile.click();
+      // we'll wait user choose: attach handler
+      avatar_url = await new Promise((resolve)=>{
+        const handler = async (ev)=>{
+          const f = ev.target.files && ev.target.files[0];
+          try{ if(!f) return resolve(null); const url = await uploadFileToProfileAPI(f, PROFILE_UPLOAD_URL); resolve(url); } catch(e){ alert('Upload echoué: ' + (e.message||e)); resolve(null); } finally { groupFile.removeEventListener('change', handler); groupFile.value = ''; }
+        };
+        groupFile.addEventListener('change', handler);
+      });
+    } catch(e){}
+  }
+  try{
+    const r = await callJSON(`${API_BASE}/admin/groups/create`, { method:'POST', headers: {'Content-Type':'application/json','x-api-token': ADMIN_API_TOKEN}, body: JSON.stringify({ name, owner_name: me.name || null, bio, avatar_url }) });
+    if(!r.ok) throw new Error(r.json?.error || r.text || `HTTP ${r.status}`);
+    const created = { name, owner_name: me.name || null, avatar_url: avatar_url || null, bio: bio || null, created_at: nowISO() };
+    groups.unshift(created); saveState(); renderGroups();
+    alert('Groupe créé: ' + name);
+  } catch(e){ alert('Kreye gwoup echwe: ' + (e.message||e)); }
+});
 
 /* ================== UI EVENTS ================== */
 document.getElementById('chatBack')?.addEventListener('click', ()=>{
-  const path = location.pathname || '/';
-  if(path && path.replace(/^\//, '') !== '' ){
-    history.back();
-  } else {
+  if(currentPartner && currentPartner.isGroup){
     hideChatModal();
+    currentPartner = null;
+  } else {
+    const path = location.pathname || '/';
+    if(path && path.replace(/^\//, '') !== '' ){
+      history.back();
+    } else {
+      hideChatModal();
+    }
   }
 });
 sendBtnEl?.addEventListener('click', sendMessageFromModal);
@@ -734,72 +706,44 @@ chatTextEl?.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDef
 searchInput?.addEventListener('keydown', async (e)=>{ if(e.key==='Enter'){ e.preventDefault(); await performSearchQuery(searchInput.value.trim()); } });
 searchBtn?.addEventListener('click', async ()=>{ await performSearchQuery(searchInput.value.trim()); });
 
-// tabs
+// bottom tabs
 tabHome.addEventListener('click', ()=>{
   tabHome.classList.add('active'); tabGroups.classList.remove('active');
   groupsArea.style.display = 'none';
-  document.getElementById('contactsList').style.display = 'block';
+  contactsListEl.style.display = 'block';
 });
 tabGroups.addEventListener('click', ()=>{
   tabGroups.classList.add('active'); tabHome.classList.remove('active');
   groupsArea.style.display = 'block';
-  document.getElementById('contactsList').style.display = 'none';
+  contactsListEl.style.display = 'none';
   renderGroups();
 });
 
-// open settings modal when user clicks the TF-Chat title
-appTitleEl?.addEventListener('click', ()=> { updateSettingsUI(); settingsModal.style.display = 'flex'; });
-
-// profile save logic
-profileSaveBtn?.addEventListener('click', async ()=>{
-  const newName = profileNameInput.value.trim();
-  const short = normalizeInputToDigits(profileTfidInput.value.trim());
-  if(!short || short.length < 7){ alert('TFID pa valab — antre 7 chif.'); return; }
-  const tfShort = short.slice(-7); const tf17 = to17(tfShort);
-  const existingHash = getPasswordHash(tf17);
-  if(existingHash && (!me.tf17 || me.tf17 !== tf17)) {
-    const pw = prompt('Kont sa deja egziste lokalman. Antre modpas li pou itilize li:');
-    if(!pw) { alert('Modpas obligatwa.'); return; }
-    const has = await hashPasswordHex(pw);
-    if(has !== existingHash){ alert('Modpas pa kòrèk.'); return; }
+// clicking chat title opens profile for user or group
+chatTitleInner.addEventListener('click', ()=>{
+  if(!currentPartner) return;
+  if(currentPartner.isGroup){
+    const g = groups.find(x => x.name === currentPartner.tf17);
+    if(g) openGroupPanel(g);
+  } else {
+    openUserPanel(currentPartner.tf17);
   }
-  const newPw = profilePwInput.value || '';
-  if(newPw){ const hex = await hashPasswordHex(newPw); storePasswordHash(tf17, hex); }
-  me.name = newName || me.name; me.short = tfShort; me.tf17 = tf17; saveState();
-  settingsModal.style.display = 'none';
-  await registerFrontendIfNeeded();
-  if(ws && ws.readyState === WebSocket.OPEN){ try{ ws.send(JSON.stringify({ type:'subscribe', tfid: me.tf17 })); }catch(e){} } else connectWS();
-});
-settingsCancelBtn?.addEventListener('click', ()=> settingsModal.style.display = 'none');
-
-/* ================== POPSTATE / URL SLUG HANDLING ================== */
-window.addEventListener('popstate', (ev)=>{
-  const s = ev.state;
-  if(s && s.tfchat){ openChat(s.tfchat, contacts.find(c=>c.tf17===s.tfchat)||null, false); } else { hideChatModal(); }
 });
 
-/* if page loaded with a slug, try open chat */
-(function handleInitialPath(){
-  const raw = location.pathname.replace(/^\/+/, '');
-  if(!raw) return;
-  try {
-    if(/^TF-?\d{7,}$/.test(raw) || /^\d{7,}$/.test(raw) || /^\d{17,}$/.test(raw)){
-      const tf17 = raw.startsWith('TF-') ? raw : to17(raw);
-      let c = contacts.find(x=>x.tf17===tf17);
-      if(!c){ c = { tf17, name: formatTFShort(tf17), lastMsg:'', lastTs: Date.now(), unread:0, blocked:false, avatar:null }; contacts.unshift(c); saveState(); renderContacts(); }
-      if(me.tf17){ openChat(tf17, c, false); } else { /* don't auto-open settings here */ }
-    }
-  } catch(e){ console.warn('initial path parse failed', e); }
-})();
-
-/* ================== ON-SCREEN KEYBOARD HANDLING (desktop OSK) ================== */
-chatTextEl?.addEventListener('focus', ()=> {
-  // add safe-bottom to messages-wrap so OSK doesn't hide input
-  document.querySelectorAll('.safe-bottom').forEach(el => el.classList.remove('safe-bottom'));
-  document.querySelector('#chatModal .messages-wrap')?.classList.add('safe-bottom');
-});
-chatTextEl?.addEventListener('blur', ()=> {
-  setTimeout(()=>{ document.querySelector('#chatModal .messages-wrap')?.classList.remove('safe-bottom'); }, 250);
+// open settings modal when user clicks title (re-uses previous settings modal if present)
+appTitleEl?.addEventListener('click', ()=> {
+  // show a minimal prompt to set name/tfid
+  const newName = prompt('Pseudo affiché (laisser vide pour pa chanje):', me.name || '');
+  const newTfid = prompt('TFID (7 chif) — ex: 0204143 (laisser vide si pa chanje):', me.short || '');
+  if(newName) { me.name = newName; }
+  if(newTfid){
+    const short = normalizeInputToDigits(newTfid);
+    if(short && short.length>=7){ me.short = short.slice(-7); me.tf17 = to17(me.short); }
+    else { alert('TFID pa valab, sove anile'); }
+  }
+  saveState();
+  if(me.tf17) connectWS();
+  renderContacts();
 });
 
 /* ================== BOOT ================== */
@@ -807,21 +751,24 @@ renderContacts();
 renderGroups();
 if(me.avatarDataUrl){ document.querySelectorAll('.avatar').forEach(el => { if(!el.querySelector('img')) el.innerHTML = `<img src="${me.avatarDataUrl}" />`; }); }
 
-// Connect WS if user already defined
+// try to reconnect WS if me defined; otherwise ask once for TFID via prompt
 (async ()=>{
-  // request notification permission early (best-effort)
   if('Notification' in window && Notification.permission === 'default'){
     try{ await Notification.requestPermission(); }catch(e){}
   }
-
   if(me.tf17){
     connectWS();
   } else {
-    // show settings modal ONCE for new user
     const shownOnce = localStorage.getItem('tfchat.settings_shown_once');
     if(!shownOnce){
-      promptForMeModal().then(()=>{ /* no-op */ });
+      // quick prompt flow to set name and tfid
+      const nm = prompt('Byenveni. Antre pseudo ou (opsyonèl):', '');
+      const tf = prompt('Antre TFID 7 chif (eg: 0204143):', '');
+      if(tf){ const s = normalizeInputToDigits(tf); if(s && s.length>=7){ me.short = s.slice(-7); me.tf17 = to17(me.short); } }
+      if(nm) me.name = nm;
+      saveState();
       localStorage.setItem('tfchat.settings_shown_once', '1');
+      if(me.tf17) connectWS();
     }
   }
 })();
@@ -832,4 +779,4 @@ window._tf_me = me;
 window._tf_groups = groups;
 </script>
 </body>
-      </html>
+        </html>
