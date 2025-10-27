@@ -261,7 +261,7 @@ function saveLang(){ try{ localStorage.setItem(KEY_LANG, lang); }catch(e){ conso
 function normalizeInputToDigits(inp){ if(!inp) return null; const s=String(inp).trim().toUpperCase(); const digits=s.replace(/[^0-9]/g,''); return digits||null; }
 function to17(shortOrDigits){ if(!shortOrDigits) return null; const ds=String(shortOrDigits).replace(/[^0-9]/g,''); if(ds.length>17) return ds.slice(-17); return ds.padStart(17,'0'); }
 function formatTFShort(digitsString){ if(!digitsString) return ''; const s=String(digitsString).replace(/[^0-9]/g,''); const last7 = s.slice(-7); return 'TF-'+ last7.padStart(7,'0'); }
-function generateRandomShortTF(){ return 'TF-'+ Math.floor(100000 + Math.random()*900000); }
+function generateRandomShortTF(){ return 'TF-'+ Math.floor(1000000 + Math.random()*9000000); }
 function makeCid(){ return String(Date.now()) + '-' + Math.floor(Math.random()*100000).toString(16); }
 function escapeHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function initials(name){ if(!name) return 'U'; return name.split(' ').map(p=>p[0]).slice(0,2).join('').toUpperCase(); }
