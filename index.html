@@ -27,7 +27,7 @@ header{position:fixed;left:0;right:0;top:0;height:var(--header-h);display:flex;a
 .tab { padding:8px 16px; border-radius:999px; cursor:pointer; color:var(--muted); font-weight:600; }
 .tab.active { background: rgba(255,255,255,0.02); color:var(--text); }
 
-/* Main occupies full area between header and bottom tabs */
+/* Main area */
 main{
   position:fixed; left:0; right:0;
   top: var(--header-h);
@@ -78,19 +78,30 @@ main{
 .send-btn{background:transparent;border:0;padding:8px;border-radius:10px;cursor:pointer;color:var(--accent)}
 .muted{text-align:center;color:var(--muted);padding:20px}
 
-/* Fullscreen profile panel (slide from right) */
-.fullscreen-panel{position:fixed; inset:0; z-index:1300; display:none; background:rgba(0,0,0,0.6); align-items:flex-end; justify-content:flex-end;}
-.panel-card{ width:100%; max-width:420px; height:100%; background:#fff; color:#0b1220; padding:18px; box-shadow: -10px 0 30px rgba(0,0,0,0.4); overflow:auto; }
-.panel-avatar{width:120px;height:120px;border-radius:999px;background:#cbd5e1;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:36px;margin:18px auto}
+/* Fullscreen panels with blur backdrop-filter */
+.fullscreen-panel{position:fixed; inset:0; z-index:1300; display:none; background:rgba(0,0,0,0.45); align-items:center; justify-content:center; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+.panel-card{ width:100%; max-width:420px; background:rgba(255,255,255,0.95); color:#0b1220; padding:18px; box-shadow: 0 10px 30px rgba(0,0,0,0.4); border-radius:12px; overflow:auto; }
+.panel-avatar{width:120px;height:120px;border-radius:999px;background:#cbd5e1;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:36px;margin:14px auto; overflow:hidden}
+.panel-avatar img{width:100%;height:100%;object-fit:cover;border-radius:999px}
 .panel-row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:8px}
 .panel-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
 
 /* group panel (reuse panel-card) */
 .group-meta{font-size:14px;color:#374151;margin-top:8px}
 
+/* image viewer */
+.image-viewer{position:fixed;inset:0;z-index:1400;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.85)}
+.image-viewer img{max-width:95%;max-height:85%;border-radius:8px;box-shadow:0 8px 30px rgba(0,0,0,0.6)}
+
+/* group selection modal */
+.group-select-list{max-height:300px;overflow:auto;margin-top:8px;display:flex;flex-direction:column;gap:8px}
+
+/* toast */
+.toast{position:fixed;right:18px;bottom:86px;z-index:1600;background:rgba(17,24,39,0.95);color:#fff;padding:12px 16px;border-radius:10px;box-shadow:0 6px 24px rgba(0,0,0,0.4);display:none;align-items:center;gap:8px}
+
 /* responsive */
 @media (max-width:600px){
-  .panel-card{ max-width:100%; }
+  .panel-card{ max-width:94%; }
   .avatar{width:48px;height:48px}
   .panel-avatar{width:96px;height:96px}
 }
@@ -147,7 +158,7 @@ main{
     </div>
   </div>
 
-  <!-- Fullscreen user profile panel -->
+  <!-- Fullscreen user panel -->
   <div class="fullscreen-panel" id="userPanel">
     <div class="panel-card" id="userPanelCard" role="dialog" aria-modal="true">
       <div style="display:flex;justify-content:flex-end"><button id="closeUserPanel" style="background:transparent;border:0;font-weight:700;cursor:pointer">X</button></div>
@@ -168,7 +179,9 @@ main{
       <div class="panel-actions">
         <button id="panelSendMsg" style="padding:10px 12px;border-radius:8px;background:var(--accent);color:white;border:none;cursor:pointer">Envoyer message</button>
         <button id="panelAddContact" style="padding:10px 12px;border-radius:8px;border:1px solid #e6edf3;background:white;cursor:pointer">Ajouter</button>
+        <button id="panelAddToGroup" style="padding:10px 12px;border-radius:8px;border:1px solid #e6edf3;background:white;cursor:pointer">Ajouter au groupe</button>
         <button id="panelBlock" style="padding:10px 12px;border-radius:8px;background:#ef4444;color:white;border:none;cursor:pointer">Bloquer</button>
+        <button id="panelReport" style="padding:10px 12px;border-radius:8px;background:#f59e0b;color:white;border:none;cursor:pointer">Signaler</button>
       </div>
 
       <hr style="margin-top:18px"/>
@@ -196,12 +209,36 @@ main{
     </div>
   </div>
 
+  <!-- Group selection modal (for adding user to group) -->
+  <div class="fullscreen-panel" id="groupSelectModal">
+    <div class="panel-card">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <h3 style="margin:0">Choisir un groupe</h3>
+        <button id="closeGroupSelect" style="background:transparent;border:0;font-weight:700;cursor:pointer">X</button>
+      </div>
+      <div class="group-select-list" id="groupSelectList"></div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
+        <button id="createGroupFromSelect" style="padding:8px 12px;border-radius:8px;border:1px solid #e6edf3;background:white;cursor:pointer">Créer nouveau</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- image viewer -->
+  <div class="image-viewer" id="imageViewer"><img id="imageViewerImg" src="" alt="avatar"/><button id="closeImageViewer" style="position:absolute;top:18px;right:18px;background:transparent;border:0;color:#fff;font-weight:700;cursor:pointer">X</button></div>
+
+  <!-- toast + audio -->
+  <div class="toast" id="toast">Nouvo mesaj</div>
+  <audio id="notifSound" preload="auto">
+    <!-- short click/pop sound base64 -->
+    <source src="data:audio/mp3;base64,//uQZAAAAAAAAAAAAAAAAAAAAAA..." />
+  </audio>
+
   <!-- invisible file inputs -->
   <input type="file" id="profileFile" accept="image/*" style="display:none" />
   <input type="file" id="groupFile" accept="image/*" style="display:none" />
 
 <script>
-/* ================== CONFIG ================== */
+/* ================== CONFIG (modify if needed) ================== */
 const API_BASE = 'https://tf-sove.onrender.com';
 const PROFILE_UPLOAD_URL = 'https://tf-stream-url.onrender.com/upload';
 const FRONTEND_NAME = 'site1';
@@ -251,7 +288,9 @@ const userPanelInfo = document.getElementById('userPanelInfo');
 const closeUserPanel = document.getElementById('closeUserPanel');
 const panelSendMsg = document.getElementById('panelSendMsg');
 const panelAddContact = document.getElementById('panelAddContact');
+const panelAddToGroup = document.getElementById('panelAddToGroup');
 const panelBlock = document.getElementById('panelBlock');
+const panelReport = document.getElementById('panelReport');
 
 const groupPanel = document.getElementById('groupPanel');
 const groupPanelAvatar = document.getElementById('groupPanelAvatar');
@@ -261,6 +300,18 @@ const groupPanelBio = document.getElementById('groupPanelBio');
 const closeGroupPanel = document.getElementById('closeGroupPanel');
 const panelGroupOpenChat = document.getElementById('panelGroupOpenChat');
 const panelGroupManage = document.getElementById('panelGroupManage');
+
+const groupSelectModal = document.getElementById('groupSelectModal');
+const groupSelectList = document.getElementById('groupSelectList');
+const closeGroupSelect = document.getElementById('closeGroupSelect');
+const createGroupFromSelect = document.getElementById('createGroupFromSelect');
+
+const imageViewer = document.getElementById('imageViewer');
+const imageViewerImg = document.getElementById('imageViewerImg');
+const closeImageViewer = document.getElementById('closeImageViewer');
+
+const toastEl = document.getElementById('toast');
+const notifSound = document.getElementById('notifSound');
 
 const profileFile = document.getElementById('profileFile');
 const groupFile = document.getElementById('groupFile');
@@ -276,7 +327,6 @@ function storePasswordHash(tf17, hexHash){ localStorage.setItem(pwKeyForTf(tf17)
 function getPasswordHash(tf17){ return localStorage.getItem(pwKeyForTf(tf17)); }
 
 /* ================== RENDER ================== */
-function updateSettingsUI(){ document.getElementById('profileNameInput') && (document.getElementById('profileNameInput').value = me.name || ''); document.getElementById('profileTfidInput') && (document.getElementById('profileTfidInput').value = (me.tf17 || '').replace(/^TF-?/i, '').slice(-7)); }
 function renderContacts(filter=''){
   contactsListEl.innerHTML = '';
   const q = (filter||'').toLowerCase().trim();
@@ -288,7 +338,7 @@ function renderContacts(filter=''){
     const el = document.createElement('div'); el.className = 'contact'; el.dataset.tf17 = c.tf17 || '';
     const avatarHtml = c.logo ? `<img src="${c.logo}" style="width:100%;height:100%;border-radius:50%">` : (c.avatar ? `<img src="${c.avatar}" />` : escapeHtml((c.name||formatTFShort(c.tf17) || '').slice(0,2)));
     const blockedBadge = c.blocked ? ' <span style="color:#ffdcdc;font-weight:700"> (Bloqué)</span>' : '';
-    el.innerHTML = `<div class="avatar">${avatarHtml}</div>
+    el.innerHTML = `<div class="avatar" data-tfid="${c.tf17}">${avatarHtml}</div>
       <div class="meta">
         <div class="meta-top">
           <div class="name">${escapeHtml(c.name||formatTFShort(c.tf17)||'')}${blockedBadge}</div>
@@ -299,7 +349,16 @@ function renderContacts(filter=''){
           <div>${c.unread?'<span class="badge">'+c.unread+'</span>':''}</div>
         </div>
       </div>`;
-    el.addEventListener('click', ()=> { openChat(c.tf17, c, true); });
+    // click on whole row => open chat
+    el.addEventListener('click', (ev)=>{
+      // if clicked avatar specifically open image first
+      const tgt = ev.target;
+      if(tgt && tgt.closest && tgt.closest('.avatar')){
+        const img = tgt.closest('.avatar').querySelector('img');
+        if(img && img.src) { openImageViewer(img.src); ev.stopPropagation(); return; }
+      }
+      openChat(c.tf17, c, true);
+    });
     contactsListEl.appendChild(el);
   });
 }
@@ -340,7 +399,7 @@ async function apiList(tf17){ const url = `${API_BASE}/api/list?tfid=${encodeURI
 async function apiAdd(recipient17, contentObj){ const body = { tfid: recipient17, name: FRONTEND_NAME, content: JSON.stringify(contentObj), source_url: location.origin }; const url = `${API_BASE}/api/add`; const r = await callJSON(url, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) }); if(!r.ok) { const errMsg = r.json?.error || r.text || `HTTP ${r.status}`; if(String(errMsg).toLowerCase().includes("frontend name not registered")) { const regOk = await registerFrontendIfNeeded(); if(regOk) { const r2 = await callJSON(url, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) }); if(!r2.ok) throw new Error(r2.json?.error || r2.text || `HTTP ${r2.status}`); return r2.json; } } throw new Error(errMsg); } return r.json; }
 async function registerFrontendIfNeeded(){ try { const url = `${API_BASE}/admin/register-frontend`; const payload = { name: FRONTEND_NAME, callback_url: location.origin }; const r = await callJSON(url, { method:"POST", headers:{"Content-Type":"application/json","x-api-token": ADMIN_API_TOKEN}, body: JSON.stringify(payload) }); return r.ok; } catch(e){ return false; } }
 
-/* ----------------- Upload helpers ----------------- */
+/* upload helper */
 async function uploadFileToProfileAPI(file, uploadUrl = PROFILE_UPLOAD_URL){
   const fd = new FormData();
   fd.append('file', file);
@@ -356,7 +415,6 @@ function messageUniqueKey(m){ if(m.cid) return "cid:"+m.cid; if(m.id) return "id
 function compareMessagesAsc(a,b){ const ta = parseDatePrefer(a._db_created_at, a.parsed_time); const tb = parseDatePrefer(b._db_created_at, b.parsed_time); if(ta !== tb) return ta - tb; if(a.id && b.id && a.id !== b.id) return Number(a.id) - Number(b.id); if(a.cid && b.cid && a.cid !== b.cid) return a.cid < b.cid ? -1 : 1; return 0; }
 function addOrUpdateMessageToCache(me17, other17, msg){ const key = convKey(me17, other17); if(!conversationCache[key]) conversationCache[key] = []; const list = conversationCache[key]; const findIndex = msg.cid ? list.findIndex(x => x.cid && x.cid === msg.cid) : (msg.id ? list.findIndex(x => x.id && String(x.id) === String(msg.id)) : -1); if(findIndex !== -1){ list[findIndex] = Object.assign({}, list[findIndex], msg); } else { list.push(msg); } list.sort(compareMessagesAsc); }
 async function loadConversation(me17, other17){
-  // fixed bug: used "other7" previously — now correct
   const key = convKey(me17, other17);
   conversationCache[key] = conversationCache[key] || [];
   const seen = new Set();
@@ -395,12 +453,10 @@ function renderConversation(me17, other17){
       const ts = m.created_at ? (new Date(m.created_at)).toLocaleString() : '';
       let checksHtml = '';
       if(m.from === me17){ if(m.id) checksHtml = '<span class="checks">✓✓</span>'; else checksHtml = '<span class="checks">✓</span>'; }
-      // clickable sender label (opens profile)
       const senderLabel = `<div style="font-weight:700;cursor:pointer;color:inherit;text-decoration:none" data-tfid="${escapeHtml(m.from)}" class="msg-sender">${escapeHtml(formatTFShort(m.from))}</div>`;
       d.innerHTML = `<div>${senderLabel}<div style="margin-top:6px">${escapeHtml(m.text)}</div></div><div style="font-size:11px;color:var(--muted);margin-top:6px">${ts} ${checksHtml}</div>`;
       messagesEl.appendChild(d);
     }
-    // delegate click handler for sender labels
     messagesEl.querySelectorAll('.msg-sender').forEach(el=>{
       el.addEventListener('click', (ev)=>{
         const tf = el.dataset.tfid;
@@ -441,7 +497,6 @@ async function sendMessageFromModal(){
   const recipient17 = currentPartner.tf17;
   const cid = makeCid();
   const payload = { type:'text', from: me.tf17, text: txt, time: (new Date()).toISOString(), cid, name: me.name || null };
-  // optimistic add and render
   addOrUpdateMessageToCache(me.tf17, recipient17, { id:null, cid, from: me.tf17, text: txt, parsed_time: payload.time, _db_created_at:null, created_at: payload.time, _optimistic:true });
   renderConversation(me.tf17, recipient17);
   chatTextEl.value = '';
@@ -470,9 +525,11 @@ function ensureContactInList(tf17, name){
 }
 
 /* ================== PROFILE PANEL (user) ================== */
+let userPanelCurrent = null;
 function openUserPanel(tfid){
   const c = contacts.find(x=>x.tf17===tfid) || { tf17, name: formatTFShort(tfid), lastMsg:'', lastTs:0, avatar:null, blocked:false };
-  userPanelAvatar.innerHTML = c.avatar ? `<img src="${c.avatar}" style="width:100%;height:100%;border-radius:999px" />` : initials(c.name || c.tf17);
+  userPanelCurrent = c;
+  userPanelAvatar.innerHTML = c.avatar ? `<img src="${c.avatar}" />` : initials(c.name || c.tf17);
   userPanelName.textContent = c.name || formatTFShort(tfid);
   userPanelTfid.textContent = c.tf17;
   userPanelLastMsg.textContent = c.lastMsg || '—';
@@ -480,23 +537,36 @@ function openUserPanel(tfid){
   userPanelInfo.textContent = `TFID: ${c.tf17}\nBloqué: ${c.blocked ? 'Wi' : 'Non'}`;
   panelBlock.textContent = c.blocked ? 'Débloquer' : 'Bloquer';
   userPanel.style.display = 'flex';
-  // wire actions
+
   panelSendMsg.onclick = ()=>{
     userPanel.style.display = 'none';
-    // open chat and focus
     openChat(tfid, c, true);
   };
   panelAddContact.onclick = ()=>{
     ensureContactInList(tfid, c.name || null);
     alert('Contact ajouté: ' + (c.name || c.tf17));
+    userPanel.style.display = 'none';
+  };
+  panelAddToGroup.onclick = async ()=>{
+    openGroupSelectFor(tfid);
   };
   panelBlock.onclick = async ()=>{
     const cc = ensureContactInList(tfid, c.name || null);
     cc.blocked = !cc.blocked;
     saveState(); renderContacts();
     panelBlock.textContent = cc.blocked ? 'Débloquer' : 'Bloquer';
-    // attempt to notify backend via apiAdd (best-effort)
+    // notify server via apiAdd (best-effort)
     try{ const payload = { type: cc.blocked ? 'block' : 'unblock', from: me.tf17, time: nowISO(), name: me.name || null }; await apiAdd(tfid, payload); }catch(e){ console.warn('notify block failed', e); }
+    userPanel.style.display = 'none';
+  };
+  panelReport.onclick = async ()=>{
+    // call admin/report if possible
+    try{
+      if(!ADMIN_API_TOKEN){ alert('Signalisation indisponible: pas de token admin configuré'); return; }
+      const rsp = await callJSON(`${API_BASE}/admin/report`, { method:'POST', headers: {'Content-Type':'application/json','x-api-token': ADMIN_API_TOKEN}, body: JSON.stringify({ reported_tfid: tfid, reporter_tfid: me.tf17 || null, reason: 'Signal via client' }) });
+      if(!rsp.ok) throw new Error(rsp.json?.error || rsp.text || `HTTP ${rsp.status}`);
+      alert('Signalement envoyé. Merci.');
+    }catch(e){ alert('Signalement échoué: ' + (e.message||e)); }
     userPanel.style.display = 'none';
   };
 }
@@ -504,17 +574,54 @@ closeUserPanel.addEventListener('click', ()=> userPanel.style.display = 'none');
 
 /* ================== GROUP PANEL ================== */
 function openGroupPanel(g){
-  groupPanelAvatar.innerHTML = g.avatar_url ? `<img src="${g.avatar_url}" style="width:100%;height:100%;border-radius:999px" />` : (g.name?escapeHtml(g.name.slice(0,2)):'G');
+  groupPanelAvatar.innerHTML = g.avatar_url ? `<img src="${g.avatar_url}" />` : (g.name?escapeHtml(g.name.slice(0,2)):'G');
   groupPanelName.textContent = g.name;
   groupPanelOwner.textContent = g.owner_name || '';
   groupPanelBio.textContent = g.bio || '';
   groupPanel.style.display = 'flex';
   panelGroupOpenChat.onclick = ()=>{ groupPanel.style.display = 'none'; openGroupChat(g.name); };
-  panelGroupManage.onclick = ()=>{ alert('Gérer membres (non implémenté nan UI sa a)'); };
+  panelGroupManage.onclick = ()=>{ alert('Gérer membres: UI pas konplè (peut être ajoute si ou vle)'); };
 }
 closeGroupPanel.addEventListener('click', ()=> groupPanel.style.display = 'none');
 
-/* ================== WEBSOCKET & Notifications ================== */
+/* ================== GROUP SELECT FOR ADD USER ================== */
+let groupSelectTargetTfid = null;
+function openGroupSelectFor(tfid){
+  groupSelectTargetTfid = tfid;
+  groupSelectList.innerHTML = '';
+  if(!groups || groups.length===0){
+    groupSelectList.innerHTML = `<div class="muted">Ou pa gen gwoup ankò.</div>`;
+  } else {
+    groups.forEach(g=>{
+      const btn = document.createElement('button');
+      btn.textContent = g.name + (g.owner_name ? " • " + (g.owner_name) : "");
+      btn.style.padding = '10px';
+      btn.style.borderRadius = '8px';
+      btn.style.border = '1px solid rgba(0,0,0,0.06)';
+      btn.style.background = 'white';
+      btn.style.cursor = 'pointer';
+      btn.addEventListener('click', ()=> addUserToGroup(tfid, g.name));
+      groupSelectList.appendChild(btn);
+    });
+  }
+  groupSelectModal.style.display = 'flex';
+}
+closeGroupSelect.addEventListener('click', ()=> { groupSelectModal.style.display = 'none'; groupSelectTargetTfid = null; });
+createGroupFromSelect.addEventListener('click', ()=> { groupSelectModal.style.display = 'none'; createGroupBtn.click(); });
+
+async function addUserToGroup(tfid, groupName){
+  if(!ADMIN_API_TOKEN){ alert('Ajout gwoup echwe: Pa gen API token admin nan frontend.'); return; }
+  try{
+    const r = await callJSON(`${API_BASE}/admin/groups/add`, { method:'POST', headers: {'Content-Type':'application/json','x-api-token': ADMIN_API_TOKEN}, body: JSON.stringify({ group_name: groupName, tfid })});
+    if(!r.ok) throw new Error(r.json?.error || r.text || `HTTP ${r.status}`);
+    alert('Itilizatè ajoute nan gwoup: ' + groupName);
+    groupSelectModal.style.display = 'none';
+    // optionally notify user
+    try{ await apiAdd(tfid, { type:'group-invite', from: me.tf17, group: groupName, time: nowISO(), name: me.name || null }); } catch(e){}
+  }catch(e){ alert('Ajout gwoup echwe: ' + (e.message||e)); }
+}
+
+/* ================== WEBSOCKET & NOTIFICATIONS ================== */
 function connectWS(){
   if(!me.tf17){ return; }
   try { ws = new WebSocket(WS_URL); } catch(e){ scheduleReconnect(); return; }
@@ -550,10 +657,13 @@ function connectWS(){
 
         if(currentPartner && currentPartner.tf17 === other){
           renderConversation(me.tf17, other);
+          // immediate in-app visual
+          showToast(`${parsed.name || formatTFShort(other)}: ${truncate(parsed.text||msgObj.text,120)}`);
         } else if(recipient === me.tf17){
           const c = ensureContactInList(other, parsed && parsed.name ? parsed.name : null);
           c.unread = (c.unread||0) + 1; c.lastMsg = msgObj.text; c.lastTs = Date.now(); saveState(); renderContacts();
-          showDesktopNotification(parsed.name || formatTFShort(other), msgObj.text, other);
+          // show cross-device notification attempt
+          triggerIncomingNotification(parsed.name || formatTFShort(other), msgObj.text, other);
         }
       }
     } catch(err){ console.warn('WS parse err', err); }
@@ -563,20 +673,36 @@ function connectWS(){
 }
 function scheduleReconnect(){ if(reconnectTimer) return; reconnectTimer = setTimeout(()=>{ reconnectTimer=null; connectWS(); }, 3000); }
 
-/* Desktop notification helper */
-function ensureNotificationPermission(){
-  if(!('Notification' in window)) return Promise.resolve(false);
-  if(Notification.permission === 'granted') return Promise.resolve(true);
-  if(Notification.permission === 'denied') return Promise.resolve(false);
-  return Notification.requestPermission().then(p => p === 'granted');
+/* Helpers: truncate text */
+function truncate(s, n){ if(!s) return ''; return s.length>n? s.slice(0,n-1)+'…' : s; }
+
+/* Desktop / Mobile notification helper (sound + vibrate + toast + Notification API) */
+async function ensureNotificationPermission(){
+  if(!('Notification' in window)) return false;
+  if(Notification.permission === 'granted') return true;
+  if(Notification.permission === 'denied') return false;
+  try{ const p = await Notification.requestPermission(); return p === 'granted'; }catch(e){ return false; }
 }
-async function showDesktopNotification(title, body, otherTfid){
+function showToast(text, ms=3500){
+  toastEl.textContent = text;
+  toastEl.style.display = 'flex';
+  setTimeout(()=>{ toastEl.style.display = 'none'; }, ms);
+}
+async function triggerIncomingNotification(title, body, otherTfid){
+  // play sound
+  try{ if(notifSound){ notifSound.currentTime = 0; notifSound.play().catch(()=>{}); } } catch(e){}
+  // vibrate if supported
+  try{ if(navigator.vibrate) navigator.vibrate([50,30,50]); } catch(e){}
+  // in-app toast
+  showToast(`${title}: ${truncate(body,80)}`);
+  // browser notification
   const ok = await ensureNotificationPermission();
-  if(!ok) return;
-  try{
-    const n = new Notification('TF-Chat — Nouvo mesaj', { body: `${title}: ${body}`, tag: 'tf-chat-msg', renotify: true });
-    n.onclick = ()=>{ window.focus(); try{ openChat(otherTfid, contacts.find(c=>c.tf17===otherTfid)||null, true); } catch(e){} n.close(); };
-  } catch(e){ console.warn('notif failed', e); }
+  if(ok){
+    try{
+      const n = new Notification('TF-Chat — Nouvo mesaj', { body: `${title}: ${truncate(body,120)}`, tag: 'tf-chat-'+otherTfid, renotify: true });
+      n.onclick = ()=>{ window.focus(); try{ openChat(otherTfid, contacts.find(c=>c.tf17===otherTfid)||null, true); } catch(e){} n.close(); };
+    }catch(e){ console.warn('notif failed', e); }
+  }
 }
 
 /* ================== SEARCH ================== */
@@ -627,7 +753,6 @@ async function openGroupChat(groupName){
       }
     }
     chatTitleInner.textContent = 'G:' + groupName;
-    // mark currentPartner as group (so closing/opening behave)
     currentPartner = { tf17: groupName, name: groupName, isGroup: true };
     showChatModal();
   } catch(e){
@@ -642,7 +767,7 @@ profileFile?.addEventListener('change', async (ev)=>{
     const url = await uploadFileToProfileAPI(f, PROFILE_UPLOAD_URL);
     if(!url) throw new Error('No url returned');
     me.avatarDataUrl = url; saveState();
-    document.querySelectorAll('.avatar').forEach(el=>{ /* best-effort update */ });
+    renderContacts();
     // notify contacts
     const now = nowISO();
     for(const c of contacts){
@@ -656,23 +781,19 @@ profileFile?.addEventListener('change', async (ev)=>{
 });
 
 /* ================== GROUP CREATE (simple) ================== */
-/* When clicking createGroupBtn, open a prompt (to keep UI small) */
 createGroupBtn?.addEventListener('click', async ()=>{
   const name = prompt('Non gwoup (unik):');
   if(!name) return;
   const bio = prompt('Bio (opsyonèl):') || '';
-  // optionally upload avatar
-  const choose = confirm('Soumèt avatar pou gwoup la kounye a? (Si wi, chwazi yon fichye apre OK)');
+  const choose = confirm('Soumèt avatar pou gwoup la kounye a? (Si wi, chwazi fichye aprè OK)');
   let avatar_url = null;
   if(choose){
     try {
-      // prompt file selection
       groupFile.click();
-      // we'll wait user choose: attach handler
       avatar_url = await new Promise((resolve)=>{
         const handler = async (ev)=>{
           const f = ev.target.files && ev.target.files[0];
-          try{ if(!f) return resolve(null); const url = await uploadFileToProfileAPI(f, PROFILE_UPLOAD_URL); resolve(url); } catch(e){ alert('Upload echoué: ' + (e.message||e)); resolve(null); } finally { groupFile.removeEventListener('change', handler); groupFile.value = ''; }
+          try{ if(!f) return resolve(null); const url = await uploadFileToProfileAPI(f, PROFILE_UPLOAD_URL); resolve(url); } catch(e){ alert('Upload échoué: ' + (e.message||e)); resolve(null); } finally { groupFile.removeEventListener('change', handler); groupFile.value = ''; }
         };
         groupFile.addEventListener('change', handler);
       });
@@ -686,6 +807,14 @@ createGroupBtn?.addEventListener('click', async ()=>{
     alert('Groupe créé: ' + name);
   } catch(e){ alert('Kreye gwoup echwe: ' + (e.message||e)); }
 });
+
+/* ================== IMAGE VIEWER ================== */
+function openImageViewer(src){
+  if(!src) return;
+  imageViewerImg.src = src;
+  imageViewer.style.display = 'flex';
+}
+closeImageViewer.addEventListener('click', ()=> { imageViewer.style.display = 'none'; imageViewerImg.src = ''; });
 
 /* ================== UI EVENTS ================== */
 document.getElementById('chatBack')?.addEventListener('click', ()=>{
@@ -730,9 +859,8 @@ chatTitleInner.addEventListener('click', ()=>{
   }
 });
 
-// open settings modal when user clicks title (re-uses previous settings modal if present)
+// open settings modal when user clicks title (simple prompt)
 appTitleEl?.addEventListener('click', ()=> {
-  // show a minimal prompt to set name/tfid
   const newName = prompt('Pseudo affiché (laisser vide pour pa chanje):', me.name || '');
   const newTfid = prompt('TFID (7 chif) — ex: 0204143 (laisser vide si pa chanje):', me.short || '');
   if(newName) { me.name = newName; }
@@ -751,8 +879,8 @@ renderContacts();
 renderGroups();
 if(me.avatarDataUrl){ document.querySelectorAll('.avatar').forEach(el => { if(!el.querySelector('img')) el.innerHTML = `<img src="${me.avatarDataUrl}" />`; }); }
 
-// try to reconnect WS if me defined; otherwise ask once for TFID via prompt
 (async ()=>{
+  // request notification permission once
   if('Notification' in window && Notification.permission === 'default'){
     try{ await Notification.requestPermission(); }catch(e){}
   }
@@ -761,7 +889,6 @@ if(me.avatarDataUrl){ document.querySelectorAll('.avatar').forEach(el => { if(!e
   } else {
     const shownOnce = localStorage.getItem('tfchat.settings_shown_once');
     if(!shownOnce){
-      // quick prompt flow to set name and tfid
       const nm = prompt('Byenveni. Antre pseudo ou (opsyonèl):', '');
       const tf = prompt('Antre TFID 7 chif (eg: 0204143):', '');
       if(tf){ const s = normalizeInputToDigits(tf); if(s && s.length>=7){ me.short = s.slice(-7); me.tf17 = to17(me.short); } }
@@ -773,10 +900,10 @@ if(me.avatarDataUrl){ document.querySelectorAll('.avatar').forEach(el => { if(!e
   }
 })();
 
-/* expose debug */
+/* small helpers for debugging */
 window._tf_contacts = contacts;
 window._tf_me = me;
 window._tf_groups = groups;
 </script>
 </body>
-        </html>
+          </html>
