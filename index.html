@@ -1,914 +1,353 @@
 <!doctype html>
+
 <html lang="ht">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-  <title>TF-Chat</title>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;600;700&display=swap" rel="stylesheet">
-  <style>
-    :root{
-      --bg:#000000; --panel:#000000; --text:#e6eefb; --muted:#9aa6bf;
-      --card:#0b0b0b; --accent:#0b81ff; --header-h:56px;
-    }
-    *{box-sizing:border-box}
-    html,body{height:100%;margin:0;padding:0;background:var(--bg);color:var(--text);font-family:Roboto,system-ui,Arial,sans-serif;-webkit-font-smoothing:antialiased}
-    header{position:fixed;left:0;right:0;top:0;height:var(--header-h);display:flex;align-items:center;justify-content:space-between;background:var(--panel);z-index:1000;border-bottom:1px solid rgba(255,255,255,0.03);padding:0 12px}
-    .app-title{font-weight:700;font-size:18px;text-align:center;flex:1}
-    .header-left, .header-right{display:flex;gap:8px;align-items:center}
-    .header-btn{background:transparent;border:0;color:var(--text);padding:8px 10px;border-radius:8px;cursor:pointer}
-    .header-primary{background:var(--accent);color:white;padding:8px 12px;border-radius:10px}
-    main{position:fixed;left:0;right:0;top:var(--header-h);bottom:0;overflow:auto;padding:12px}
-    .search{padding:6px 0}
-    .search-box{display:flex;align-items:center;gap:8px;background:var(--card);padding:10px;border-radius:999px;border:1px solid rgba(255,255,255,0.03)}
-    .search-box input{flex:1;background:transparent;border:0;outline:none;color:var(--text);font-size:15px}
-    .search-btn{background:var(--accent);border:none;color:white;padding:8px 12px;border-radius:10px;cursor:pointer;font-weight:600}
-    .list{margin-top:12px}
-    .contact{display:flex;gap:12px;align-items:center;padding:12px;border-radius:12px;cursor:pointer}
-    .contact:hover{background:rgba(255,255,255,0.02)}
-    .avatar{width:56px;height:56px;border-radius:50%;background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;color:var(--text);flex-shrink:0;overflow:hidden}
-    .avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%}
-    .meta{flex:1;min-width:0}
-    .meta-top{display:flex;justify-content:space-between;align-items:flex-start}
-    .name{font-weight:600;font-size:16px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
-    .time{font-size:12px;color:var(--muted)}
-    .meta-bottom{display:flex;justify-content:space-between;margin-top:6px;align-items:center}
-    .snippet{font-size:13px;color:var(--muted);overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
-    .badge{background:var(--accent);color:white;padding:4px 8px;border-radius:999px;font-weight:600;font-size:13px}
-    .messages-wrap{padding:12px;height:calc(100% - 56px - 84px);overflow:auto;display:flex;flex-direction:column;gap:8px;-webkit-overflow-scrolling:touch}
-    .messages{display:flex;flex-direction:column;gap:8px}
-    .msg{max-width:74%;padding:10px;border-radius:12px;margin-bottom:4px}
-    .msg.bot{background:#121212;color:var(--text);align-self:flex-start}
-    .msg.user{background:linear-gradient(180deg,var(--accent),#0563c9);color:white;align-self:flex-end}
-    .msg .checks{font-size:11px;margin-left:8px;opacity:0.9}
-    .chat-input{display:flex;gap:8px;align-items:center;padding:12px;border-top:1px solid rgba(255,255,255,0.03);background:transparent}
-    .input{flex:1;padding:12px;border-radius:999px;border:1px solid rgba(255,255,255,0.03);background:var(--card);color:var(--text);outline:none}
-    .send-btn{background:transparent;border:0;padding:8px;border-radius:10px;cursor:pointer;color:var(--accent)}
-    .muted{text-align:center;color:var(--muted);padding:20px}
-    .bottom-right { position: fixed; right: 16px; bottom: 16px; z-index: 1100; display:flex; gap:8px; align-items:center; }
-    @media (min-width:900px){main{max-width:700px;margin:0 auto}}
-    .modal-full{position:fixed;inset:0;background:rgba(0,0,0,0.96);z-index:1200;display:none;align-items:center;justify-content:center}
-    .modal-panel{width:100%;height:100%;display:flex;flex-direction:column;background:transparent}
-    .modal-header{height:56px;display:flex;align-items:center;padding:8px 12px;border-bottom:1px solid rgba(255,255,255,0.03)}
-    .modal-body{flex:1;overflow:auto;padding:12px}
-    .profile-edit-panel{width:420px;max-width:95%;background:#fff;border-radius:12px;padding:18px;box-shadow:0 10px 30px rgba(11,18,32,0.2);color:#0b1220}
-    .setting-row{display:flex;gap:12px;align-items:center;margin-bottom:12px}
-    .profile-circle{width:96px;height:96px;border-radius:50%;background:#cbd5e1;display:flex;align-items:center;justify-content:center;font-weight:700;overflow:hidden}
-    .profile-circle img{width:100%;height:100%;object-fit:cover;border-radius:50%}
-    .input-full{width:100%;padding:10px;border-radius:8px;border:1px solid #e6eef3}
-    .small{font-size:12px;color:#6b7280}
-    .pw-modal{position:fixed;left:50%;top:30%;transform:translate(-50%,-30%);z-index:1400;background:#fff;padding:16px;border-radius:10px;color:#0b1220}
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1.0" />
+<title>TF-Chat — updated</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{ --bg:#000000; --panel:#000000; --text:#e6eefb; --muted:#9aa6bf; --card:#0b0b0b; --accent:#0b81ff; --header-h:56px; }
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;padding:0;background:var(--bg);color:var(--text);font-family:Roboto,system-ui,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+header{position:fixed;left:0;right:0;top:0;height:var(--header-h);display:flex;align-items:center;justify-content:center;background:var(--panel);z-index:1000;border-bottom:1px solid rgba(255,255,255,0.03)}
+.app-title{font-weight:700;font-size:18px}
+main{position:fixed;left:0;right:0;top:var(--header-h);bottom:0;overflow:auto;padding:12px}
+/* make search area responsive: full width on small devices, centered and max-width on large */
+.search{padding:8px 12px;display:flex;justify-content:center}
+.search-box{display:flex;align-items:center;gap:8px;background:var(--card);padding:10px;border-radius:999px;border:1px solid rgba(255,255,255,0.03);width:100%;max-width:980px}
+.search-box input{flex:1;background:transparent;border:0;outline:none;color:var(--text);font-size:15px}
+.search-btn{background:var(--accent);border:none;color:white;padding:8px 12px;border-radius:10px;cursor:pointer;font-weight:600}
+.list{margin-top:12px}
+.contact{display:flex;gap:12px;align-items:center;padding:12px;border-radius:12px;cursor:pointer}
+.contact:hover{background:rgba(255,255,255,0.02)}
+.avatar{width:56px;height:56px;border-radius:50%;background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;color:var(--text);flex-shrink:0;overflow:hidden}
+.avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+.meta{flex:1;min-width:0}
+.meta-top{display:flex;justify-content:space-between;align-items:flex-start}
+.name{font-weight:600;font-size:16px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.time{font-size:12px;color:var(--muted)}
+.meta-bottom{display:flex;justify-content:space-between;margin-top:6px;align-items:center}
+.snippet{font-size:13px;color:var(--muted);overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.badge{background:var(--accent);color:white;padding:4px 8px;border-radius:999px;font-weight:600;font-size:13px}
+.messages-wrap{padding:12px;height:calc(100% - 56px - 84px);overflow:auto;display:flex;flex-direction:column;gap:8px}
+.messages{display:flex;flex-direction:column;gap:8px}
+.msg{max-width:74%;padding:10px;border-radius:12px;margin-bottom:4px}
+.msg.bot{background:#121212;color:var(--text);align-self:flex-start}
+.msg.user{background:linear-gradient(180deg,var(--accent),#0563c9);color:white;align-self:flex-end}
+.msg .checks{font-size:11px;margin-left:8px;opacity:0.9}
+.chat-input{display:flex;gap:8px;align-items:center;padding:12px;border-top:1px solid rgba(255,255,255,0.03);background:transparent}
+.input{flex:1;padding:12px;border-radius:999px;border:1px solid rgba(255,255,255,0.03);background:var(--card);color:var(--text);outline:none}
+.send-btn{background:transparent;border:0;padding:8px;border-radius:10px;cursor:pointer;color:var(--accent)}
+.muted{text-align:center;color:var(--muted);padding:20px}
+.bottom-right { position: fixed; right: 16px; bottom: 16px; z-index: 1100; display:flex; gap:8px; align-items:center; }
+/* hide websocket text indicator per request; keep space available for settings */
+.ws-indicator{display:none}
+@media (min-width:900px){main{max-width:700px;margin:0 auto}}
+/* white settings panel on dark backdrop */
+.settings-panel{width:420px;background:#fff;border-radius:12px;padding:18px;box-shadow:0 10px 30px rgba(11,18,32,0.2);color:#0b1220}
+.settings-label{font-size:13px;color:#374151}
+/* small banner for password warning (disabled by JS) */
+.banner { position: fixed; left: 50%; transform: translateX(-50%); top: var(--header-h); z-index:1300; background: #fffbeb; color:#92400e; border:1px solid #f59e0b; padding:10px 14px;border-radius:10px;box-shadow:0 6px 20px rgba(0,0,0,0.2);font-weight:600; display:none; }
+/* contact fullscreen profile modal */
+.profile-modal { position:fixed; inset:0; display:none; align-items:center; justify-content:center; z-index:1400; background:rgba(0,0,0,0.6); }
+.profile-card { width:320px; background:#fff; color:#0b1220; padding:18px; border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,0.3); }
+.profile-row{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.profile-avatar{width:64px;height:64px;border-radius:12px;background:#cbd5e1;display:flex;align-items:center;justify-content:center;font-weight:700;overflow:hidden}
+.profile-avatar img{width:100%;height:100%;object-fit:cover;border-radius:12px}
+.small{font-size:12px;color:var(--muted)}
+/* ensure chat modal covers full height and messages area reserves space for input */
+#chatModal .messages-wrap { height: calc(100% - 56px - 64px - 24px); }
+</style>
 </head>
 <body>
-  <header>
-    <div class="header-left">
-      <button id="homeBtn" class="header-btn">Accueil</button>
-    </div>
-    <div class="app-title">TF-Chat</div>
-    <div class="header-right">
-      <button id="openSettingsBtn" class="header-btn">Paramètres</button>
-    </div>
-  </header>
-
-  <main>
+  <header><div class="app-title">TF-Chat</div></header>  <div class="banner" id="pwBanner">Tanpri mete yon modpas pou sekirize sesyon ou. Ou gen 2 min pou sove li.</div>  <main>
     <section class="search">
       <div class="search-box" role="search">
         <svg viewBox="0 0 24 24" width="16" height="16" fill="none"><path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="1.6"/><circle cx="11" cy="11" r="6" stroke="currentColor" stroke-width="1.6"/></svg>
-        <input id="searchInput" type="search" inputmode="search" enterkeyhint="search" autocomplete="off" placeholder="Recherche (TFID ou 7 chif)" aria-label="Recherche" />
+        <input id="searchInput" placeholder="Recherche (TFID ou 7 chif)" aria-label="Recherche" />
         <button id="searchBtn" class="search-btn">Rechercher</button>
       </div>
-    </section>
+    </section><section class="list" id="contactsList" aria-live="polite"></section>
 
-    <section class="list" id="contactsList" aria-live="polite"></section>
+<div class="bottom-right">
+  <div class="ws-indicator" id="wsStatus">WS: —</div>
+  <button id="settingsBtn" class="send-btn">Paramètres</button>
+</div>
 
-  </main>
-
-  <!-- Chat modal (full-screen) -->
-  <div id="chatModal" class="modal-full">
-    <div class="modal-panel">
-      <div class="modal-header">
-        <button id="chatBack" class="header-btn">←</button>
+  </main>  <!-- Chat modal -->  <div id="chatModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.96);z-index:1200">
+    <div style="height:100%;display:flex;flex-direction:column">
+      <div style="height:56px;display:flex;align-items:center;padding:8px 12px;border-bottom:1px solid rgba(255,255,255,0.03)">
+        <button id="chatBack" style="background:transparent;border:0;color:var(--text);cursor:pointer">←</button>
         <div style="flex:1;text-align:center;font-weight:700;cursor:pointer" id="chatTitle">Chat</div>
         <div style="width:44px"></div>
       </div>
-      <div class="modal-body">
-        <div class="messages-wrap">
-          <div class="messages" id="messages"></div>
-        </div>
+      <div class="messages-wrap">
+        <div class="messages" id="messages"></div>
       </div>
       <div class="chat-input" id="chatInputRow">
-        <input id="chatText" class="input" inputmode="text" enterkeyhint="send" autocomplete="off" placeholder="Ekri mesaj..." />
-        <button id="voiceBtn" class="send-btn" title="Voice">🎤</button>
-        <button id="sendBtn" class="send-btn" title="Send" style="display:none">➡️</button>
+        <input id="chatText" class="input" placeholder="Ekri mesaj..." autocomplete="off" />
+        <button id="sendBtn" class="send-btn">Envoyer</button>
       </div>
     </div>
-  </div>
-
-  <!-- Settings modal (full) -->
-  <div id="settingsModal" class="modal-full">
-    <div class="modal-panel">
-      <div class="modal-header">
-        <button id="settingsBack" class="header-btn">←</button>
-        <div style="flex:1;text-align:center;font-weight:700">Paramètres</div>
-        <div style="width:44px"></div>
-      </div>
-      <div class="modal-body" style="display:flex;align-items:center;justify-content:center">
-        <div class="profile-edit-panel" id="profileEditPanel">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-            <div style="font-weight:800">Identité</div>
-            <div class="small">Chwazi foto, non, bio, tfid, modpas</div>
-          </div>
-          <div style="display:flex;gap:12px;align-items:center;margin-bottom:12px">
-            <div class="profile-circle" id="editAvatar">U</div>
-            <div style="flex:1">
-              <input id="editName" class="input-full" placeholder="Nom" />
-              <input id="editBio" class="input-full" placeholder="Bio" style="margin-top:8px" />
-            </div>
-          </div>
-          <div style="margin-bottom:8px">
-            <label class="small">TFID (7 chif)</label>
-            <input id="editTfid" class="input-full" placeholder="0204143" />
-          </div>
-          <div style="margin-bottom:12px">
-            <label class="small">Nouveau mot de passe</label>
-            <input id="editPw" type="password" class="input-full" placeholder="Nouveau mot de passe" />
-          </div>
-          <div style="display:flex;justify-content:flex-end;gap:8px">
-            <button id="cancelProfile" style="padding:8px 12px;border-radius:8px;border:1px solid #e6edf3;background:white;cursor:pointer">Annuler</button>
-            <button id="saveProfile" style="padding:8px 12px;border-radius:8px;background:#007aff;color:white;border:none;cursor:pointer">Sove</button>
-          </div>
+  </div>  <!-- invisible file input for avatar selection -->  <input type="file" id="profileFile" accept="image/*" style="display:none" />  <!-- Profile modal (fullscreen contact info) -->  <div class="profile-modal" id="profileModal">
+    <div class="profile-card" role="dialog" aria-modal="true">
+      <div class="profile-row">
+        <div class="profile-avatar" id="profileAvatar">U</div>
+        <div>
+          <div id="profileName" style="font-weight:800">Utilisateur</div>
+          <div id="profileTfid" class="small">TF-0000000</div>
         </div>
       </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end">
+        <button id="addContactBtn" style="padding:8px 12px;border-radius:8px;border:1px solid #e6edf3;background:white;cursor:pointer">Ajouter</button>
+        <button id="blockBtn" style="padding:8px 12px;border-radius:8px;background:#ef4444;color:white;border:none;cursor:pointer">Bloquer</button>
+        <button id="closeProfileBtn" style="padding:8px 12px;border-radius:8px;border:1px solid #e6edf3;background:white;cursor:pointer">Fermer</button>
+      </div>
     </div>
+  </div>  <!-- Settings modal: white inner panel -->  <div id="settingsModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:1200;align-items:center;justify-content:center;display:flex;">
+    <div class="settings-panel" role="dialog" aria-modal="true">
+      <h3 style="margin:0 0 12px 0">Paramètres — Identité</h3><div style="margin-bottom:8px">
+    <label class="settings-label">Pseudo affiché</label>
+    <input id="profileNameInput" style="width:100%;padding:10px;border-radius:8px;border:1px solid #e6eef3;margin-top:6px" />
   </div>
 
-  <!-- Password modal -->
-  <div id="pwModal" class="pw-modal" style="display:none;">
-    <div style="font-weight:700;margin-bottom:8px" id="pwModalTitle">Antre modpas pou TFID sa</div>
-    <input id="pwModalInput" type="password" placeholder="Modpas" style="width:260px;padding:8px;border-radius:6px;border:1px solid #ddd;margin-bottom:8px" />
-    <div style="display:flex;gap:8px;justify-content:flex-end">
-      <button id="pwModalCancel">Anile</button>
-      <button id="pwModalOk">Valide</button>
-    </div>
+  <div style="margin-bottom:12px">
+    <label class="settings-label">TFID (7 chif) — ex: 0204143</label>
+    <input id="profileTfidInput" style="width:100%;padding:10px;border-radius:8px;border:1px solid #e6eef3;margin-top:6px" />
+    <div style="font-size:12px;color:#6b7280;margin-top:6px">Sere TFID tankou TF-XXXXXXX. Sistèm lan konvèti pou TF-17-chif otomatikman.</div>
   </div>
 
-  <!-- Share modal -->
-  <div id="shareModal" class="modal-full">
-    <div class="modal-panel">
-      <div class="modal-header"><button id="shareBack" class="header-btn">←</button><div style="flex:1;text-align:center;font-weight:700">Partager</div><div style="width:44px"></div></div>
-      <div class="modal-body"><div class="share-list" id="shareList"></div><div style="display:flex;justify-content:flex-end;margin-top:12px"><button id="shareSend" class="header-primary">Envoyer</button></div></div>
-    </div>
+  <!-- PASSWORD UI (new) -->
+  <div style="margin-bottom:12px">
+    <label class="settings-label">Mot de passe (créer / changer)</label>
+    <input id="profilePwInput" type="password" placeholder="Nouveau mot de passe" style="width:100%;padding:10px;border-radius:8px;border:1px solid #e6eef3;margin-top:6px" />
+    <div style="font-size:12px;color:#6b7280;margin-top:6px">Le mot de passe est haché côté client et stocké localement. Ne partagez pas ce mot de passe.</div>
   </div>
 
-  <!-- Crop/upload modal will be created dynamically -->
+  <div style="display:flex;justify-content:flex-end;gap:8px">
+    <button id="settingsCancel" style="padding:8px 12px;border-radius:8px;border:1px solid #e6edf3;background:white;cursor:pointer">Annuler</button>
+    <button id="profileSave" style="padding:8px 12px;border-radius:8px;background:#007aff;color:white;border:none;cursor:pointer">Sove</button>
+  </div>
+</div>
 
-  <!-- invisible inputs -->
-  <input type="file" id="profileFile" accept="image/*" style="display:none" />
-  <input type="file" id="audioFile" accept="audio/*" style="display:none" />
-
-<script>
+  </div><script>
 /* ================== CONFIG ================== */
-var API_BASE = 'https://tf-sove.onrender.com';
-var PROFILE_UPLOAD_URL = 'https://tf-stream-url.onrender.com/upload';
-var FRONTEND_NAME = 'site1';
-var ADMIN_API_TOKEN = 'tfstream_45dd9c02d4e34f18a42d';
+const API_BASE = 'https://tf-sove.onrender.com';
+const PROFILE_UPLOAD_URL = 'https://tf-stream-url.onrender.com/upload';
+const FRONTEND_NAME = 'site1';
+const ADMIN_API_TOKEN = 'tfstream_45dd9c02d4e34f18a42d';
+const WS_URL = (location.protocol === "https:" ? "wss://" : "ws://") + "tf-sove.onrender.com/ws";
 
 /* ================== HELPERS ================== */
-function normalizeInputToDigits(inp){ if(!inp) return null; var s=String(inp).trim().toUpperCase(); var digits=s.replace(/[^0-9]/g,''); return digits||null; }
-function to17(shortOrDigits){ if(!shortOrDigits) return null; var ds=String(shortOrDigits).replace(/[^0-9]/g,''); if(ds.length>17) return ds.slice(-17); return ds.padStart(17,'0'); }
-function formatTFShort(digitsString){ if(!digitsString) return ''; var s=String(digitsString).replace(/[^0-9]/g,''); var last7 = s.slice(-7); return 'TF-'+ last7.padStart(7,'0'); }
+function normalizeInputToDigits(inp){ if(!inp) return null; const s=String(inp).trim().toUpperCase(); const digits=s.replace(/[^0-9]/g,''); return digits||null; }
+function to17(shortOrDigits){ if(!shortOrDigits) return null; const ds=String(shortOrDigits).replace(/[^0-9]/g,''); if(ds.length>17) return ds.slice(-17); return ds.padStart(17,'0'); }
+function formatTFShort(digitsString){ if(!digitsString) return ''; const s=String(digitsString).replace(/[^0-9]/g,''); const last7 = s.slice(-7); return 'TF-'+ last7.padStart(7,'0'); }
 function nowISO(){ return (new Date()).toISOString(); }
 function escapeHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function makeCid(){ return String(Date.now()) + '-' + Math.floor(Math.random()*100000).toString(16); }
-function hashPasswordHex(pw){
-  var enc = new TextEncoder();
-  var data = enc.encode(String(pw));
-  return crypto.subtle.digest('SHA-256', data).then(function(hashBuffer){
-    var hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map(function(b){ return b.toString(16).padStart(2,'0'); }).join('');
-  });
-}
+function parseDatePrefer(isoOrDb, parsedTime){ const t1 = parsedTime ? Date.parse(parsedTime) : NaN; if(!isNaN(t1)) return t1; const t2 = Date.parse(isoOrDb || ""); return isNaN(t2) ? 0 : t2; }
+async function hashPasswordHex(pw){ const enc = new TextEncoder(); const data = enc.encode(String(pw)); const hashBuffer = await crypto.subtle.digest('SHA-256', data); const hashArray = Array.from(new Uint8Array(hashBuffer)); return hashArray.map(b => b.toString(16).padStart(2,'0')).join(''); }
 
 /* ================== STATE ================== */
-var me = {
-  short: localStorage.getItem('tfchat.me.short') || null,
-  tf17: localStorage.getItem('tfchat.me.17') || null,
-  name: localStorage.getItem('tfchat.me.name') || 'Utilisateur',
-  avatarDataUrl: localStorage.getItem('tfchat.me.avatar') || null
-};
-var contacts = JSON.parse(localStorage.getItem('tfchat.contacts') || '[]');
-var currentPartner = null;
-var conversationCache = {};
-var mediaRecorder = null;
-var recordedChunks = [];
+let me = { short: localStorage.getItem('tfchat.me.short') || null, tf17: localStorage.getItem('tfchat.me.17') || null, name: localStorage.getItem('tfchat.me.name') || 'Utilisateur', avatarDataUrl: localStorage.getItem('tfchat.me.avatar') || null };
+let contacts = JSON.parse(localStorage.getItem('tfchat.contacts') || '[]');
+let ws = null; let reconnectTimer = null; let currentPartner = null; const conversationCache = {}; let pwWarningTimer = null; let pwForceReloadTimer = null;
 
 /* ================== DOM REFS ================== */
-var searchInput = document.getElementById('searchInput');
-var searchBtn = document.getElementById('searchBtn');
-var contactsListEl = document.getElementById('contactsList');
-var chatModalEl = document.getElementById('chatModal');
-var messagesEl = document.getElementById('messages');
-var chatInputRow = document.getElementById('chatInputRow');
-var chatTextEl = document.getElementById('chatText');
-var sendBtnEl = document.getElementById('sendBtn');
-var voiceBtn = document.getElementById('voiceBtn');
-var openSettingsBtn = document.getElementById('openSettingsBtn');
-var homeBtnEl = document.getElementById('homeBtn');
-var profileFileInput = document.getElementById('profileFile');
-var editAvatar = document.getElementById('editAvatar');
-var editName = document.getElementById('editName');
-var editBio = document.getElementById('editBio');
-var editTfid = document.getElementById('editTfid');
-var editPw = document.getElementById('editPw');
-var saveProfile = document.getElementById('saveProfile');
-var cancelProfile = document.getElementById('cancelProfile');
-var pwModal = document.getElementById('pwModal');
-var pwModalInput = document.getElementById('pwModalInput');
-var pwModalOk = document.getElementById('pwModalOk');
-var pwModalCancel = document.getElementById('pwModalCancel');
-var settingsModal = document.getElementById('settingsModal');
-var shareModal = document.getElementById('shareModal');
-var shareListEl = document.getElementById('shareList');
-var shareSendBtn = document.getElementById('shareSend');
-var chatTitleEl = document.getElementById('chatTitle');
-var settingsBackBtn = document.getElementById('settingsBack');
-var homeModal = document.getElementById('homeModal');
-var homeBack = document.getElementById('homeBack');
-var homeSearchInput = document.getElementById('homeSearchInput');
-var homeSearchBtn = document.getElementById('homeSearchBtn');
-var homeContacts = document.getElementById('homeContacts');
+const searchInput = document.getElementById('searchInput');
+const searchBtn = document.getElementById('searchBtn');
+const contactsListEl = document.getElementById('contactsList');
+const chatModalEl = document.getElementById('chatModal');
+const messagesEl = document.getElementById('messages');
+const chatInputRow = document.getElementById('chatInputRow');
+const chatTextEl = document.getElementById('chatText');
+const sendBtnEl = document.getElementById('sendBtn');
+const wsStatusEl = document.getElementById('wsStatus');
+const settingsBtn = document.getElementById('settingsBtn');
+const settingsModal = document.getElementById('settingsModal');
+const profileNameInput = document.getElementById('profileNameInput');
+const profileTfidInput = document.getElementById('profileTfidInput');
+const profilePwInput = document.getElementById('profilePwInput');
+const profileSaveBtn = document.getElementById('profileSave');
+const settingsCancelBtn = document.getElementById('settingsCancel');
+const pwBanner = document.getElementById('pwBanner');
+
+const profileModal = document.getElementById('profileModal');
+const profileAvatar = document.getElementById('profileAvatar');
+const profileName = document.getElementById('profileName');
+const profileTfid = document.getElementById('profileTfid');
+const addContactBtn = document.getElementById('addContactBtn');
+const blockBtn = document.getElementById('blockBtn');
+const closeProfileBtn = document.getElementById('closeProfileBtn');
+const fileInput = document.getElementById('profileFile');
 
 /* ================== STORAGE HELPERS ================== */
-function saveState(){
-  localStorage.setItem('tfchat.me.short', me.short || '');
-  localStorage.setItem('tfchat.me.17', me.tf17 || '');
-  localStorage.setItem('tfchat.me.name', me.name || '');
-  if(me.avatarDataUrl) localStorage.setItem('tfchat.me.avatar', me.avatarDataUrl);
-  localStorage.setItem('tfchat.contacts', JSON.stringify(contacts || []));
-}
-function initials(name){ if(!name) return 'U'; return name.split(' ').map(function(p){ return p[0]; }).slice(0,2).join('').toUpperCase(); }
+function saveState(){ localStorage.setItem('tfchat.me.short', me.short || ''); localStorage.setItem('tfchat.me.17', me.tf17 || ''); localStorage.setItem('tfchat.me.name', me.name || ''); if(me.avatarDataUrl) localStorage.setItem('tfchat.me.avatar', me.avatarDataUrl); localStorage.setItem('tfchat.contacts', JSON.stringify(contacts || [])); }
+function initials(name){ if(!name) return 'U'; return name.split(' ').map(p=>p[0]).slice(0,2).join('').toUpperCase(); }
+function pwKeyForTf(tf17){ return `tfchat.pw.${tf17}`; }
+function hasPasswordFor(tf17){ return !!localStorage.getItem(pwKeyForTf(tf17)); }
+function storePasswordHash(tf17, hexHash){ localStorage.setItem(pwKeyForTf(tf17), hexHash); }
+function getPasswordHash(tf17){ return localStorage.getItem(pwKeyForTf(tf17)); }
 
-/* ================== NETWORK HELPERS ================== */
-function callJSON(url, opts){
-  opts = opts || {};
-  opts.headers = Object.assign({}, opts.headers || {}, { 'Accept': 'application/json' });
-  return fetch(url, opts).then(function(r){
-    return r.text().then(function(text){
-      var json = null;
-      try{ json = JSON.parse(text); }catch(e){ json = null; }
-      return { ok: r.ok, status: r.status, json: json, text: text, headers: r.headers };
-    });
-  }).catch(function(err){
-    return { ok: false, error: err.message };
-  });
-}
-function apiList(tf17){
-  var url = API_BASE + '/api/list?tfid=' + encodeURIComponent(tf17) + '&name=' + encodeURIComponent(FRONTEND_NAME);
-  return callJSON(url).then(function(r){
-    if(!r.ok){ var err = (r.json && r.json.error) ? r.json.error : r.text || ('HTTP ' + r.status); throw new Error(err); }
-    return (r.json && r.json.rows) ? r.json.rows : [];
-  });
-}
-function apiAdd(recipient17, contentObj){
-  var body = { tfid: recipient17, name: FRONTEND_NAME, content: JSON.stringify(contentObj), source_url: location.origin };
-  var url = API_BASE + '/api/add';
-  return callJSON(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).then(function(r){
-    if(!r.ok){
-      var err = (r.json && r.json.error) ? r.json.error : r.text || ('HTTP ' + r.status);
-      if(String(err).toLowerCase().indexOf('frontend name not registered') !== -1){
-        return registerFrontendIfNeeded().then(function(regOk){
-          if(regOk){
-            return callJSON(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).then(function(r2){
-              if(!r2.ok){ var err2 = (r2.json && r2.json.error) ? r2.json.error : r2.text || ('HTTP ' + r2.status); throw new Error(err2); }
-              return r2.json;
-            });
-          }
-          throw new Error(err);
-        });
-      }
-      throw new Error(err);
-    }
-    return r.json;
-  });
-}
-function registerFrontendIfNeeded(){
-  var url = API_BASE + '/admin/register-frontend';
-  var payload = { name: FRONTEND_NAME, callback_url: location.origin };
-  return callJSON(url, { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-api-token': ADMIN_API_TOKEN }, body: JSON.stringify(payload) }).then(function(r){ return !!r.ok; }).catch(function(){ return false; });
-}
-
-/* password/profile endpoints - client-side robust handling */
-function apiHasPassword(tf17){
-  var url = API_BASE + '/api/has-password?tfid=' + encodeURIComponent(tf17);
-  return callJSON(url).then(function(r){ if(!r.ok) return false; return !!(r.json && r.json.hasPassword); }).catch(function(){ return false; });
-}
-function apiCheckPassword(tf17, pwHash){
-  var url = API_BASE + '/api/check-password';
-  return callJSON(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tfid: tf17, hash: pwHash }) }).then(function(r){
-    if(!r.ok){
-      // handle HTML error or 404 gracefully
-      return false;
-    }
-    return !!(r.json && r.json.ok);
-  }).catch(function(){ return false; });
-}
-function apiSetPassword(tf17, pwHash){
-  var url = API_BASE + '/api/set-password';
-  return callJSON(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tfid: tf17, hash: pwHash }) }).then(function(r){
-    if(!r.ok){
-      // if backend returns HTML (Cannot POST...) or 404, create a friendly error
-      var msg = 'Server error when setting password.';
-      if(r.text && r.text.indexOf('Cannot POST') !== -1) msg = 'Backend: endpoint /api/set-password not found (Cannot POST).';
-      else if(r.status === 404) msg = 'Backend returned 404 for /api/set-password.';
-      else if(r.json && r.json.error) msg = r.json.error;
-      var e = new Error(msg);
-      e.serverText = r.text;
-      throw e;
-    }
-    return r.json;
-  });
-}
-function apiUpdateProfile(tf17, name, bio, photoUrl){
-  var url = API_BASE + '/api/profile/update';
-  return callJSON(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tfid: tf17, name: name, bio: bio, photo: photoUrl }) }).then(function(r){
-    if(!r.ok){
-      var err = (r.json && r.json.error) ? r.json.error : r.text || ('HTTP ' + r.status);
-      throw new Error(err);
-    }
-    return r.json;
-  });
-}
-
-/* ================== RENDER & UI ================== */
-function updateSettingsUI(){
-  if(editName) editName.value = me.name || '';
-  if(editTfid) editTfid.value = (me.tf17 || '').replace(/^TF-?/i, '').slice(-7);
-  if(editBio) editBio.value = localStorage.getItem('tfchat.me.bio') || '';
-  if(editPw) editPw.value = '';
-  if(editAvatar){
-    if(me.avatarDataUrl) editAvatar.innerHTML = '<img src="' + me.avatarDataUrl + '" />';
-    else editAvatar.textContent = initials(me.name);
-  }
-}
-function renderContacts(filter){
-  filter = filter || '';
-  if(!contactsListEl) return;
-  contactsListEl.innerHTML = '';
-  var q = filter.toLowerCase().trim();
-  var list = contacts.filter(function(c){
-    if(!q) return true;
-    return (c.name || '').toLowerCase().indexOf(q) !== -1 || (c.tf17 || '').toLowerCase().indexOf(q) !== -1;
-  });
-  if(list.length === 0){
-    var div = document.createElement('div');
-    div.className = 'muted';
-    div.textContent = 'Pa gen kontak. Rechèch yon TFID oswa ajoute yon kontak.';
-    contactsListEl.appendChild(div);
-    return;
-  }
-  for(var i=0;i<list.length;i++){
-    var c = list[i];
-    var el = document.createElement('div');
-    el.className = 'contact';
-    el.dataset.tf17 = c.tf17 || '';
-    var avatarHtml = c.avatar ? '<img src="' + c.avatar + '" />' : escapeHtml((c.name || formatTFShort(c.tf17) || '').slice(0,2));
-    var unreadHtml = c.unread ? ('<span class="badge">' + c.unread + '</span>') : '';
-    el.innerHTML = '<div class="avatar">' + avatarHtml + '</div>' +
-      '<div class="meta"><div class="meta-top"><div class="name">' + escapeHtml(c.name || formatTFShort(c.tf17) || '') + '</div><div class="time">' + (c.lastTs ? timeAgo(c.lastTs) : '') + '</div></div>' +
-      '<div class="meta-bottom"><div class="snippet">' + escapeHtml(c.lastMsg || '') + '</div><div>' + unreadHtml + '</div></div></div>';
-    (function(contact){ el.addEventListener('click', function(){ openChat(contact.tf17, contact); }); var nameElem = el.querySelector('.name'); if(nameElem){ nameElem.addEventListener('click', function(e){ e.stopPropagation(); openContactFullModal(contact); }); } })(c);
+/* ================== RENDER ================== */
+function updateSettingsUI(){ profileNameInput.value = me.name || ''; profileTfidInput.value = (me.tf17 || '').replace(/^TF-?/i, '').slice(-7); profilePwInput.value = ''; }
+function renderContacts(filter=''){ contactsListEl.innerHTML = ''; const q = (filter||'').toLowerCase().trim(); const list = contacts.filter(c => { if(!q) return true; return (c.name||'').toLowerCase().includes(q) || (c.tf17||'').toLowerCase().includes(q); }); if(list.length === 0){ const div = document.createElement('div'); div.className = 'muted'; div.textContent = 'Pa gen kontak. Rechèch yon TFID oswa ajoute yon kontak.'; contactsListEl.appendChild(div); return; } list.forEach(c => { const el = document.createElement('div'); el.className = 'contact'; el.dataset.tf17 = c.tf17 || c.tf17; const avatarHtml = c.logo ? `<img src="${c.logo}" style="width:100%;height:100%;border-radius:50%">` : (c.avatar ? `<img src="${c.avatar}" />` : escapeHtml((c.name||formatTFShort(c.tf17) || '').slice(0,2))); const blockedBadge = c.blocked ? ' <span style="color:#ffdcdc;font-weight:700"> (Bloqué)</span>' : ''; el.innerHTML = `<div class="avatar">${avatarHtml}</div>\n      <div class="meta">\n        <div class="meta-top">\n          <div class="name">${escapeHtml(c.name||formatTFShort(c.tf17)||'')}${blockedBadge}</div>\n          <div class="time">${c.lastTs? timeAgo(c.lastTs): ''}</div>\n        </div>\n        <div class="meta-bottom">\n          <div class="snippet">${escapeHtml(c.lastMsg||'')}</div>\n          <div>${c.unread?'<span class="badge">'+c.unread+'</span>':''}</div>\n        </div>\n      </div>`;
+    el.addEventListener('click', ()=> { openChat(c.tf17, c, true); });
     contactsListEl.appendChild(el);
-  }
-}
-function renderHomeContacts(){
-  if(homeContacts) homeContacts.innerHTML = contactsListEl.innerHTML;
-}
-function timeAgo(ts){ if(!ts) return ''; var diff = Math.floor((Date.now() - ts) / 1000); if(diff < 60) return diff + 's'; if(diff < 3600) return Math.floor(diff/60) + 'm'; if(diff < 86400) return Math.floor(diff/3600) + 'h'; return new Date(ts).toLocaleDateString(); }
+  }); }
+function timeAgo(ts){ if(!ts) return ''; const diff=Math.floor((Date.now()-ts)/1000); if(diff<60) return diff+'s'; if(diff<3600) return Math.floor(diff/60)+'m'; if(diff<86400) return Math.floor(diff/3600)+'h'; return new Date(ts).toLocaleDateString(); }
+
+/* ================== NETWORK ================== */
+async function callJSON(url, opts = {}) { opts = Object.assign({}, opts); opts.headers = Object.assign({}, opts.headers || {}, { 'Accept': 'application/json' }); try { const r = await fetch(url, opts); const text = await r.text(); let json = null; try{ json = JSON.parse(text); }catch(e){} return { ok: r.ok, status: r.status, json, text }; } catch (err) { return { ok: false, error: err.message }; } }
+async function apiList(tf17){ const url = `${API_BASE}/api/list?tfid=${encodeURIComponent(tf17)}&name=${encodeURIComponent(FRONTEND_NAME)}`; const r = await callJSON(url); if(!r.ok) throw new Error(r.json?.error || r.text || `HTTP ${r.status}`); return r.json.rows || []; }
+async function apiAdd(recipient17, contentObj){ const body = { tfid: recipient17, name: FRONTEND_NAME, content: JSON.stringify(contentObj), source_url: location.origin }; const url = `${API_BASE}/api/add`; const r = await callJSON(url, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) }); if(!r.ok) { const errMsg = r.json?.error || r.text || `HTTP ${r.status}`; if(String(errMsg).toLowerCase().includes("frontend name not registered")) { const regOk = await registerFrontendIfNeeded(); if(regOk) { const r2 = await callJSON(url, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) }); if(!r2.ok) throw new Error(r2.json?.error || r2.text || `HTTP ${r2.status}`); return r2.json; } } throw new Error(errMsg); } return r.json; }
+async function registerFrontendIfNeeded(){ try { const url = `${API_BASE}/admin/register-frontend`; const payload = { name: FRONTEND_NAME, callback_url: location.origin }; const r = await callJSON(url, { method:"POST", headers:{"Content-Type":"application/json","x-api-token": ADMIN_API_TOKEN}, body: JSON.stringify(payload) }); return r.ok; } catch(e){ return false; } }
 
 /* ================== CONVERSATION CACHE ================== */
-function convKey(a,b){ return a + '|' + b; }
-function messageUniqueKey(m){ if(m.cid) return 'cid:' + m.cid; if(m.id) return 'id:' + m.id; return 'temp:' + (m._tempKey || (m._tempKey = Math.random().toString(36).slice(2))); }
-function compareMessagesAsc(a,b){
-  var ta = Date.parse(a._db_created_at || a.parsed_time || a.created_at || 0) || 0;
-  var tb = Date.parse(b._db_created_at || b.parsed_time || b.created_at || 0) || 0;
-  if(ta !== tb) return ta - tb;
-  if(a.id && b.id && a.id !== b.id) return Number(a.id) - Number(b.id);
-  if(a.cid && b.cid && a.cid !== b.cid) return (a.cid < b.cid) ? -1 : 1;
-  return 0;
+function convKey(a,b){ return `${a}|${b}`; }
+function messageUniqueKey(m){ if(m.cid) return "cid:"+m.cid; if(m.id) return "id:"+m.id; return "temp:"+ (m._tempKey || (m._tempKey = Math.random().toString(36).slice(2))); }
+function compareMessagesAsc(a,b){ const ta = parseDatePrefer(a._db_created_at, a.parsed_time); const tb = parseDatePrefer(b._db_created_at, b.parsed_time); if(ta !== tb) return ta - tb; if(a.id && b.id && a.id !== b.id) return Number(a.id) - Number(b.id); if(a.cid && b.cid && a.cid !== b.cid) return a.cid < b.cid ? -1 : 1; return 0; }
+function addOrUpdateMessageToCache(me17, other17, msg){ const key = convKey(me17, other17); if(!conversationCache[key]) conversationCache[key] = []; const list = conversationCache[key]; const findIndex = msg.cid ? list.findIndex(x => x.cid && x.cid === msg.cid) : (msg.id ? list.findIndex(x => x.id && String(x.id) === String(msg.id)) : -1); if(findIndex !== -1){ list[findIndex] = Object.assign({}, list[findIndex], msg); } else { list.push(msg); } list.sort(compareMessagesAsc); }
+async function loadConversation(me17, other17){ const key = convKey(me17, other17); conversationCache[key] = conversationCache[key] || []; const seen = new Set(); function pushRow(r, expectedFrom){ let parsed = null; try { parsed = JSON.parse(r.content); } catch(e){ parsed = null; } const parsedFrom = parsed && parsed.from ? parsed.from : null; const parsedTime = parsed && parsed.time ? parsed.time : null; const parsedCid = parsed && parsed.cid ? parsed.cid : null; const parsedText = parsed && (parsed.text || parsed.message) ? (parsed.text || parsed.message) : (r.content || ""); if(!parsedFrom || parsedFrom !== expectedFrom) return; const m = { id: r.id || null, cid: parsedCid || null, from: parsedFrom, text: parsedText, parsed_time: parsedTime || null, _db_created_at: r.created_at || null, created_at: parsedTime || r.created_at || nowISO() }; const keyu = messageUniqueKey(m); if(seen.has(keyu)) return; seen.add(keyu); addOrUpdateMessageToCache(me17, other17, m); }
+  try { const outRows = await apiList(other17); for(const r of outRows) pushRow(r, me17); } catch(e){ console.warn("LIST outgoing failed for", other17, e.message || e); }
+  try { const inRows = await apiList(me17); for(const r of inRows) pushRow(r, other17); } catch(e){ console.warn("LIST incoming failed for", me17, e.message || e); }
+  renderConversation(me17, other17);
 }
-function addOrUpdateMessageToCache(me17, other17, msg){
-  var key = convKey(me17, other17);
-  if(!conversationCache[key]) conversationCache[key] = [];
-  var list = conversationCache[key];
-  var findIndex = -1;
-  if(msg.cid){
-    for(var i=0;i<list.length;i++){ if(list[i].cid && list[i].cid === msg.cid){ findIndex = i; break; } }
-  } else if(msg.id){
-    for(var j=0;j<list.length;j++){ if(list[j].id && String(list[j].id) === String(msg.id)){ findIndex = j; break; } }
-  }
-  if(findIndex !== -1){
-    list[findIndex] = Object.assign({}, list[findIndex], msg);
-  } else {
-    list.push(msg);
-  }
-  list.sort(compareMessagesAsc);
-}
-function renderConversation(me17, other17){
-  ensureMessagesPadding();
-  var key = convKey(me17, other17);
-  var arr = (conversationCache[key] || []).slice();
-  messagesEl.innerHTML = '';
-  if(arr.length === 0){
-    messagesEl.innerHTML = '<div class="muted">Pa gen mesaj ankò.</div>';
-  } else {
-    arr.sort(compareMessagesAsc);
-    for(var i=0;i<arr.length;i++){
-      var m = arr[i];
-      var d = document.createElement('div');
-      d.className = 'msg ' + (m.from === me17 ? 'user' : 'bot');
-      var ts = m.created_at ? (new Date(m.created_at)).toLocaleString() : '';
-      var contentHtml = '';
-      if(m.type === 'audio' && m.url){
-        contentHtml = '<audio controls src="' + m.url + '"></audio>';
-      } else {
-        contentHtml = escapeHtml(m.text || '');
-      }
-      var checksHtml = '';
-      if(m.from === me17){
-        if(m.id) checksHtml = '<span class="checks">✓✓</span>'; else checksHtml = '<span class="checks">✓</span>';
-      }
-      d.innerHTML = '<div>' + contentHtml + '</div><div style="font-size:11px;color:var(--muted);margin-top:6px">' + formatTFShort(m.from || '') + ' • ' + ts + ' ' + checksHtml + '</div>';
-      messagesEl.appendChild(d);
-    }
-  }
-  requestAnimationFrame(function(){ var wrap = messagesEl.parentElement; if(wrap) wrap.scrollTop = wrap.scrollHeight; });
-}
-function ensureMessagesPadding(){
-  var wrap = document.querySelector('#chatModal .messages-wrap');
-  if(!wrap) return;
-  var inputRow = document.getElementById('chatInputRow');
-  var h = inputRow ? inputRow.getBoundingClientRect().height : 80;
-  wrap.style.paddingBottom = (h + 16) + 'px';
+function ensureMessagesPadding(){ const wrap = document.querySelector('#chatModal .messages-wrap'); if(!wrap) return; const inputRow = document.getElementById('chatInputRow'); const h = inputRow ? inputRow.getBoundingClientRect().height : 80; wrap.style.paddingBottom = (h + 16) + 'px'; }
+window.addEventListener('resize', ensureMessagesPadding);
+
+function renderConversation(me17, other17){ ensureMessagesPadding(); const key = convKey(me17, other17); const arr = conversationCache[key] ? [...conversationCache[key]] : []; messagesEl.innerHTML = ''; if(arr.length === 0){ messagesEl.innerHTML = `<div class="muted">Pa gen mesaj ankò.</div>`; } else { arr.sort(compareMessagesAsc); for(const m of arr){ const d = document.createElement('div'); d.className = 'msg ' + (m.from === me17 ? 'user' : 'bot'); const ts = m.created_at ? (new Date(m.created_at)).toLocaleString() : ''; let checksHtml = ''; if(m.from === me17){ if(m.id) checksHtml = '<span class="checks">✓✓</span>'; else checksHtml = '<span class="checks">✓</span>'; } d.innerHTML = `<div>${escapeHtml(m.text)}</div><div style="font-size:11px;color:var(--muted);margin-top:6px">${formatTFShort(m.from||'')} • ${ts} ${checksHtml}</div>`; messagesEl.appendChild(d); } }
+  setTimeout(()=> { messagesEl.parentElement.scrollTop = messagesEl.parentElement.scrollHeight; }, 50);
 }
 
 /* ================== CHAT OPEN/SEND ================== */
-function openChat(other17, contactObj){
-  if(!me.tf17){
-    promptForMeModal().then(function(ok){ if(ok) openChat(other17, contactObj); });
+async function openChat(other17, contactObj=null, pushHistory=true){
+  if(!me.tf17){ // do not auto prompt on open — ask user to open settings instead
+    alert('Pa gen TFID pou itilizatè a. Louver Paramèt pou mete TFID la.');
     return;
   }
+  if(contactObj && contactObj.blocked){ /* allowed to view but sending prevented */ }
   currentPartner = { tf17: other17, name: (contactObj && contactObj.name) || null };
-  if(chatTitleEl) chatTitleEl.textContent = (currentPartner.name || formatTFShort(currentPartner.tf17));
-  var c = null;
-  for(var i=0;i<contacts.length;i++){ if(contacts[i].tf17 === other17){ c = contacts[i]; break; } }
+  chatTitleEl.textContent = (currentPartner.name || formatTFShort(currentPartner.tf17));
+  const c = contacts.find(x => x.tf17 === other17);
   if(c){ c.unread = 0; saveState(); renderContacts(); }
   messagesEl.innerHTML = '<div class="muted">Chaje mesaj...</div>';
-  // load conversation (best-effort)
-  loadConversation(me.tf17, other17).then(function(){ renderConversation(me.tf17, other17); }).catch(function(){ renderConversation(me.tf17, other17); });
-  if(chatModalEl) chatModalEl.style.display = 'flex';
-  ensureMessagesPadding();
-  setTimeout(function(){ if(chatTextEl) chatTextEl.focus(); }, 150);
-}
-function hideChatModal(){ if(chatModalEl) chatModalEl.style.display = 'none'; currentPartner = null; }
+  try { await loadConversation(me.tf17, other17); } catch(e){ messagesEl.innerHTML = `<div class="muted">Pa kapab chaje mesaj: ${escapeHtml(e.message||e)}</div>`; }
+  showChatModal();
 
-function sendTextMessage(txt){
-  if(!txt || !currentPartner) return;
-  if(!me.tf17){ alert('Pa gen TFID pou itilizatè a. Mete li nan Paramètres.'); return; }
-  var c = null;
-  for(var i=0;i<contacts.length;i++){ if(contacts[i].tf17 === currentPartner.tf17){ c = contacts[i]; break; } }
-  if(c && c.blocked){ alert('Ou bloke kontak sa — ou pa ka voye mesaj.'); return; }
-  var recipient17 = currentPartner.tf17;
-  var cid = makeCid();
-  var payload = { type: 'text', from: me.tf17, text: txt, time: nowISO(), cid: cid, name: me.name || null };
-  addOrUpdateMessageToCache(me.tf17, recipient17, { id: null, cid: cid, from: me.tf17, text: txt, parsed_time: payload.time, _db_created_at: null, created_at: payload.time, _optimistic: true });
-  renderConversation(me.tf17, recipient17);
-  if(chatTextEl) chatTextEl.value = '';
-  if(c){ c.lastMsg = txt; c.lastTs = Date.now(); saveState(); renderContacts(); }
-  apiAdd(recipient17, payload).then(function(){ startShortPollForMessage(recipient17, cid); }).catch(function(e){ alert('Envoi echwe: ' + (e.message || e)); });
+  // push URL slug so back button works — use TF17 as slug
+  try {
+    const slug = encodeURIComponent(other17);
+    if(pushHistory){
+      // replace current state with a marker first (so a single back returns to base)
+      if(!history.state || !history.state._tfchat_init){ history.replaceState(Object.assign({}, history.state || {}, {_tfchat_init:true}), '', location.pathname); }
+      history.pushState({tfchat: other17}, '', '/' + slug);
+    }
+  } catch(e){ console.warn('history push failed', e); }
 }
-function startShortPollForMessage(target17, cid){
-  var tries = 0;
-  var maxTries = 6;
-  var interval = 1200;
-  (function attempt(){
-    tries++;
-    apiList(target17).then(function(rows){
-      var found = null;
-      for(var i=0;i<rows.length;i++){
-        try{ var p = JSON.parse(rows[i].content); if(p && p.cid === cid){ found = rows[i]; break; } }catch(e){}
-      }
-      if(found){ loadConversation(me.tf17, target17).then(function(){ renderConversation(me.tf17, target17); }); return; }
-      if(tries < maxTries) setTimeout(attempt, interval);
-    }).catch(function(){ if(tries < maxTries) setTimeout(attempt, interval); });
-  })();
-}
+function showChatModal(){ chatModalEl.style.display = 'block'; ensureMessagesPadding(); setTimeout(()=> chatTextEl?.focus(), 150); }
+function hideChatModal(){ chatModalEl.style.display = 'none'; currentPartner = null; }
 
-/* ================== CONTACT HELPERS ================== */
-function ensureContactInList(tf17, name){
-  var c = null;
-  for(var i=0;i<contacts.length;i++){ if(contacts[i].tf17 === tf17){ c = contacts[i]; break; } }
-  if(!c){
-    c = { tf17: tf17, short: formatTFShort(tf17), name: name || null, unread: 0, blocked: false, avatar: null };
-    contacts.unshift(c);
-    saveState();
-    renderContacts();
-  }
-  return c;
-}
+async function sendMessageFromModal(){ const txt = (chatTextEl?.value || '').trim(); if(!txt || !currentPartner) return; if(!me.tf17){ alert('Pa gen TFID pou itilizatè a. Mete li nan Paramètres.'); return; } const c = contacts.find(x=>x.tf17===currentPartner.tf17); if(c && c.blocked){ alert('Ou bloke kontak sa — ou pa ka voye mesaj.'); return; } const recipient17 = currentPartner.tf17; const cid = makeCid(); const payload = { type:'text', from: me.tf17, text: txt, time: (new Date()).toISOString(), cid, name: me.name || null }; addOrUpdateMessageToCache(me.tf17, recipient17, { id:null, cid, from: me.tf17, text: txt, parsed_time: payload.time, _db_created_at:null, created_at: payload.time, _optimistic:true }); renderConversation(me.tf17, recipient17); chatTextEl.value = ''; const cobj = contacts.find(x=>x.tf17===recipient17); if(cobj){ cobj.lastMsg = txt; cobj.lastTs = Date.now(); saveState(); renderContacts(); } try { await apiAdd(recipient17, payload); startShortPollForMessage(recipient17, cid); } catch(e){ alert('Envoi echwe: ' + (e.message||e)); } }
+function startShortPollForMessage(target17, cid){ let tries = 0; const maxTries = 6; const interval = 1200; const attempt = async ()=>{ tries++; try { const rows = await apiList(target17); const found = rows.find(r => { try { const p = JSON.parse(r.content); return p && p.cid === cid; } catch(e){ return false; } }); if(found){ await loadConversation(me.tf17, target17); return true; } } catch(e){} if(tries < maxTries) setTimeout(attempt, interval); }; attempt(); }
 
-/* ================== PROMPT FOR ME (settings modal) */
-function promptForMeModal(){
-  updateSettingsUI();
-  if(settingsModal) settingsModal.style.display = 'flex';
-  if(editName) try{ editName.focus(); }catch(e){}
-  return new Promise(function(resolve){
-    function onSaveClick(){
-      var nameVal = (editName && editName.value.trim()) || '';
-      var short = normalizeInputToDigits((editTfid && editTfid.value.trim()) || '');
-      if(!short || short.length < 7){ alert('TFID invalide — antre 7 chif.'); return; }
-      var tfShort = short.slice(-7);
-      var tf17c = to17(tfShort);
-      apiHasPassword(tf17c).then(function(hasPw){
-        if(hasPw){
-          // show pw modal and validate
-          showPasswordModal('TFID ' + formatTFShort(tfShort) + ' gen modpas. Antre li pou itilize kont sa.').then(function(ok){
-            if(!ok){ alert('Modpas obligatwa pou kont sa.'); return; }
-            me.name = nameVal || me.name || 'Utilisateur';
-            me.short = tfShort;
-            me.tf17 = to17(me.short);
-            saveState();
-            if(settingsModal) settingsModal.style.display = 'none';
-            resolve(true);
-          });
-        } else {
-          me.name = nameVal || me.name || 'Utilisateur';
-          me.short = tfShort;
-          me.tf17 = to17(me.short);
-          saveState();
-          if(settingsModal) settingsModal.style.display = 'none';
-          resolve(true);
+/* ================== CONTACTS HELPERS ================== */
+function ensureContactInList(tf17, name){ let c = contacts.find(x=>x.tf17===tf17); if(!c){ c = { tf17, short: formatTFShort(tf17), name: name||null, unread:0, blocked:false, avatar:null }; contacts.unshift(c); saveState(); renderContacts(); } return c; }
+
+/* ================== PROMPT FOR ME (settings modal) ================== */
+function promptForMeModal(){ updateSettingsUI(); settingsModal.style.display = 'flex'; profileNameInput.focus(); return new Promise(resolve=>{ async function onSave(){ const nameVal = profileNameInput.value.trim(); const short = normalizeInputToDigits(profileTfidInput.value.trim()); if(!short || short.length < 7){ alert('TFID invalide — antre 7 chif.'); return; } const tfShort = short.slice(-7); const tf17c = to17(tfShort); const existingHash = getPasswordHash(tf17c); if(existingHash){ const pw = prompt('TFID sa egziste deja lokalman. Antre modpas pou kont sa:'); if(!pw){ alert('Modpas obligatwa pou kont sa.'); return; } const has = await hashPasswordHex(pw); if(has !== existingHash){ alert('Modpas pa kòrèk.'); return; } }
+      me.name = nameVal || me.name || 'Utilisateur'; me.short = tfShort; me.tf17 = to17(me.short); saveState(); settingsModal.style.display = 'none'; cleanup(); registerFrontendIfNeeded().then(()=>{ if(ws && ws.readyState === WebSocket.OPEN){ try{ ws.send(JSON.stringify({ type:'subscribe', tfid: me.tf17 })); }catch(e){} } else connectWS(); }); resolve(true); }
+    function onCancel(){ settingsModal.style.display = 'none'; cleanup(); resolve(false); }
+    function cleanup(){ profileSaveBtn.removeEventListener('click', onSave); settingsCancelBtn.removeEventListener('click', onCancel); }
+    profileSaveBtn.addEventListener('click', onSave); settingsCancelBtn.addEventListener('click', onCancel);
+  }); }
+
+/* ================== PW BANNER/TIMERS ================== */
+function triggerPwBannerIfNeeded(){ /* intentionally disabled: do not force banner/reloads on refresh */ }
+function hidePwBanner(){ pwBanner.style.display = 'none'; if(pwWarningTimer) { clearTimeout(pwWarningTimer); pwWarningTimer=null; } if(pwForceReloadTimer){ clearTimeout(pwForceReloadTimer); pwForceReloadTimer=null; } }
+
+/* ================== WEBSOCKET ================== */
+function connectWS(){ if(!me.tf17){ wsStatusEl.textContent = ''; return; } try { ws = new WebSocket(WS_URL); } catch(e){ scheduleReconnect(); return; } ws.onopen = ()=>{ wsStatusEl.textContent = ''; try{ ws.send(JSON.stringify({ type:'subscribe', tfid: me.tf17 })); } catch(e){} }; ws.onmessage = (ev)=>{ try { const data = JSON.parse(ev.data); if(data.type === 'subscribed') return; if(data.type === 'message'){ const payload = data; let parsed = null; try{ parsed = JSON.parse(payload.content); } catch(e){ parsed = null; } if(!parsed || !parsed.from) return; const recipient = payload.tfid || null; const from = parsed.from; const other = (recipient === me.tf17) ? from : recipient; if(!other) return; const created = parsed.time || payload.created_at || nowISO(); const msgObj = { id: payload.id || null, cid: parsed.cid || null, from, text: parsed.text || parsed.message || '', parsed_time: parsed.time || null, _db_created_at: payload.created_at || null, created_at: created }; addOrUpdateMessageToCache(me.tf17, other, msgObj);
+            if(parsed.name){ const c = ensureContactInList(other, parsed.name); c.name = parsed.name; c.lastMsg = msgObj.text; c.lastTs = Date.now(); saveState(); renderContacts(); }
+            if(parsed.type === 'profile' && parsed.photo){ const c = ensureContactInList(other, parsed.name || null); c.avatar = parsed.photo; c.name = parsed.name || c.name; c.lastTs = Date.now(); saveState(); renderContacts(); }
+            if(currentPartner && currentPartner.tf17 === other){ renderConversation(me.tf17, other); }
+            else if(recipient === me.tf17){ const c = ensureContactInList(other, parsed && parsed.name ? parsed.name : null); c.unread = (c.unread||0) + 1; c.lastMsg = msgObj.text; c.lastTs = Date.now(); saveState(); renderContacts(); }
         }
-      }).catch(function(){
-        me.name = nameVal || me.name || 'Utilisateur';
-        me.short = tfShort;
-        me.tf17 = to17(me.short);
-        saveState();
-        if(settingsModal) settingsModal.style.display = 'none';
-        resolve(true);
-      });
-    }
-    function onCancelClick(){
-      if(settingsModal) settingsModal.style.display = 'none';
-      resolve(false);
-    }
-    if(saveProfile) saveProfile.addEventListener('click', onSaveClick, { once: true });
-    if(cancelProfile) cancelProfile.addEventListener('click', onCancelClick, { once: true });
-  });
+    } catch(err){ console.warn('WS parse err', err); } };
+  ws.onclose = ()=>{ wsStatusEl.textContent = ''; scheduleReconnect(); };
+  ws.onerror = (e)=>{ console.warn('WS error', e); wsStatusEl.textContent = ''; try{ ws.close(); }catch(e){} };
 }
-
-/* ================== PASSWORD MODAL ================== */
-function showPasswordModal(msg){
-  var title = document.getElementById('pwModalTitle');
-  if(title) title.textContent = msg || 'Antre modpas';
-  if(pwModal) pwModal.style.display = 'block';
-  if(pwModalInput) pwModalInput.value = '';
-  return new Promise(function(resolve){
-    function ok(){
-      var pw = (pwModalInput && pwModalInput.value) || '';
-      if(!pw){ alert('Antre modpas.'); return; }
-      hashPasswordHex(pw).then(function(hashed){
-        var tf17 = me.tf17 || to17((normalizeInputToDigits((editTfid && editTfid.value) || '') || '').slice(-7));
-        apiCheckPassword(tf17, hashed).then(function(valid){
-          if(!valid){ alert('Modpas pa kòrèk.'); return; }
-          if(pwModal && pwModal.parentNode) pwModal.style.display = 'none';
-          resolve(true);
-        }).catch(function(){ alert('Verifikasyon echwe'); });
-      }).catch(function(){ alert('Echwe hash'); });
-    }
-    function cancel(){
-      if(pwModal && pwModal.parentNode) pwModal.style.display = 'none';
-      resolve(false);
-    }
-    if(pwModalOk) pwModalOk.addEventListener('click', ok, { once: true });
-    if(pwModalCancel) pwModalCancel.addEventListener('click', cancel, { once: true });
-  });
-}
-
-/* ================== PROFILE EDIT / UPLOAD ================== */
-if(editAvatar){
-  editAvatar.addEventListener('click', function(){ if(profileFileInput) profileFileInput.click(); });
-}
-if(profileFileInput){
-  profileFileInput.addEventListener('change', function(e){
-    var f = e.target.files && e.target.files[0];
-    if(!f) return;
-    showCropAndUpload(f).then(function(){ e.target.value = ''; });
-  });
-}
-function showCropAndUpload(file){
-  var url = URL.createObjectURL(file);
-  // create cropWin
-  var cropWin = document.createElement('div');
-  cropWin.style.position = 'fixed';
-  cropWin.style.inset = '0';
-  cropWin.style.zIndex = '1600';
-  cropWin.style.background = 'rgba(0,0,0,0.85)';
-  cropWin.style.display = 'flex';
-  cropWin.style.alignItems = 'center';
-  cropWin.style.justifyContent = 'center';
-  var inner = document.createElement('div');
-  inner.style.width = '360px';
-  inner.style.maxWidth = '95%';
-  inner.style.background = '#fff';
-  inner.style.padding = '12px';
-  inner.style.borderRadius = '12px';
-  inner.style.color = '#000';
-  inner.innerHTML = '<div style="font-weight:700;margin-bottom:8px">Ajuste imaj la</div>' +
-    '<div style="height:320px;display:flex;align-items:center;justify-content:center;background:#111;margin-bottom:8px">' +
-    '<img id="tmpCropImg" src="' + url + '" style="max-width:100%;max-height:100%;object-fit:cover" />' +
-    '</div>' +
-    '<div style="display:flex;gap:8px;justify-content:flex-end">' +
-    '<button id="retakeBtn">Retounen</button>' +
-    '<button id="acceptBtn" class="header-primary">Valide</button>' +
-    '</div>';
-  cropWin.appendChild(inner);
-  document.body.appendChild(cropWin);
-
-  function safeRemove(el){
-    try{
-      if(!el) return;
-      if(el.parentNode) el.parentNode.removeChild(el);
-      else if(typeof el.remove === 'function') el.remove();
-    }catch(e){
-      // ignore
-    }
-  }
-
-  return new Promise(function(resolve){
-    var ret = inner.querySelector('#retakeBtn');
-    var acc = inner.querySelector('#acceptBtn');
-
-    var cleaned = false;
-    function cleanupAndResolve(val){
-      if(cleaned) return;
-      cleaned = true;
-      safeRemove(cropWin);
-      try{ URL.revokeObjectURL(url); }catch(e){}
-      resolve(val);
-    }
-
-    if(ret) ret.addEventListener('click', function(){ cleanupAndResolve(false); }, { once: true });
-
-    if(acc) acc.addEventListener('click', function(){
-      // upload file
-      var fd = new FormData();
-      fd.append('file', file);
-      fetch(PROFILE_UPLOAD_URL, { method: 'POST', body: fd }).then(function(resp){
-        return resp.json().catch(function(){ return null; });
-      }).then(function(json){
-        if(!json || !(json.url || json.path)){
-          var serverText = (json && typeof json === 'object') ? JSON.stringify(json) : 'no-json';
-          alert('Upload échoué. Repons server: ' + serverText);
-          cleanupAndResolve(false);
-          return;
-        }
-        var photoUrl = json.url || json.path || (Array.isArray(json) ? json[0] : null);
-        me.avatarDataUrl = photoUrl;
-        saveState();
-        if(editAvatar) editAvatar.innerHTML = '<img src="' + photoUrl + '" />';
-        if(me.tf17){
-          apiUpdateProfile(me.tf17, (editName && editName.value) || me.name, (editBio && editBio.value) || '', photoUrl).catch(function(){});
-        }
-        for(var i=0;i<contacts.length;i++){ if(contacts[i].tf17 === me.tf17) contacts[i].avatar = photoUrl; }
-        saveState();
-        renderContacts();
-        cleanupAndResolve(true);
-      }).catch(function(e){
-        alert('Erreur upload: ' + (e && e.message || e));
-        cleanupAndResolve(false);
-      });
-    }, { once: true });
-  });
-}
-
-/* ================== PROFILE SAVE (set password + profile update) ================== */
-if(saveProfile){
-  saveProfile.addEventListener('click', function(){
-    var name = (editName && editName.value.trim()) || '';
-    var bio = (editBio && editBio.value.trim()) || '';
-    var short = normalizeInputToDigits((editTfid && editTfid.value.trim()) || '');
-    if(!short || short.length < 7){ alert('TFID ki pa valab — antre 7 chif'); return; }
-    var tf17 = to17(short.slice(-7));
-    var newPw = (editPw && editPw.value) || '';
-    if(newPw){
-      // Try to set password on backend; if backend missing endpoint, show clear message
-      hashPasswordHex(newPw).then(function(hex){
-        apiSetPassword(tf17, hex).then(function(){
-          // on success, update profile
-          apiUpdateProfile(tf17, name, bio, me.avatarDataUrl || null).then(function(){
-            me.name = name || me.name;
-            me.short = short.slice(-7);
-            me.tf17 = tf17;
-            saveState();
-            if(settingsModal) settingsModal.style.display = 'none';
-            alert('Profil sove (modpas mete).');
-          }).catch(function(e){ alert('Echwe update profile: ' + (e && e.message || e)); });
-        }).catch(function(err){
-          // friendly feedback
-          alert('Echwe mete modpas sou server la: ' + (err && err.message || 'unknown') + '\nSi ou vle, mete endpoint /api/set-password sou backend la.');
-        });
-      }).catch(function(){ alert('Echwe hash'); });
-    } else {
-      apiUpdateProfile(tf17, name, bio, me.avatarDataUrl || null).then(function(){
-        me.name = name || me.name;
-        me.short = short.slice(-7);
-        me.tf17 = tf17;
-        saveState();
-        if(settingsModal) settingsModal.style.display = 'none';
-        alert('Profil sove.');
-      }).catch(function(e){ alert('Echwe update profile: ' + (e && e.message || e)); });
-    }
-  });
-}
-if(cancelProfile){
-  cancelProfile.addEventListener('click', function(){ if(settingsModal) settingsModal.style.display = 'none'; });
-}
-
-/* ================== CONTACT FULL MODAL ================== */
-function openContactFullModal(c){
-  var modal = document.createElement('div');
-  modal.className = 'modal-full';
-  modal.style.display = 'flex';
-  modal.style.zIndex = '1500';
-  var inner = document.createElement('div');
-  inner.className = 'modal-panel';
-  inner.innerHTML = '<div class="modal-header"><button id="cfBack" class="header-btn">←</button><div style="flex:1;text-align:center;font-weight:700">' + escapeHtml(c.name || formatTFShort(c.tf17)) + '</div><div style="width:44px"></div></div>' +
-    '<div class="modal-body"><div style="display:flex;gap:12px;align-items:center;margin-bottom:12px"><div class="profile-circle" id="cfAvatar">' + (c.avatar ? '<img src="' + c.avatar + '"/>' : initials(c.name)) + '</div><div><div style="font-weight:800">' + escapeHtml(c.name || formatTFShort(c.tf17)) + '</div><div class="small">' + escapeHtml(c.tf17) + '</div></div></div>' +
-    '<div style="display:flex;gap:8px"><button id="cfAdd" class="header-primary">Ajouter au contact</button><button id="cfDelete" style="background:#ef4444;color:white;border:none;padding:8px;border-radius:8px">Supprimer</button><button id="cfShare" style="padding:8px;border-radius:8px;border:1px solid #ccc">Partager</button></div></div>';
-  modal.appendChild(inner);
-  document.body.appendChild(modal);
-  var backBtn = inner.querySelector('#cfBack');
-  var addBtn = inner.querySelector('#cfAdd');
-  var delBtn = inner.querySelector('#cfDelete');
-  var shareBtn = inner.querySelector('#cfShare');
-  if(backBtn) backBtn.addEventListener('click', function(){ if(modal.parentNode) modal.parentNode.removeChild(modal); });
-  if(addBtn) addBtn.addEventListener('click', function(){ ensureContactInList(c.tf17, c.name); alert('Contact ajouté'); if(modal.parentNode) modal.parentNode.removeChild(modal); });
-  if(delBtn) delBtn.addEventListener('click', function(){ contacts = contacts.filter(function(x){ return x.tf17 !== c.tf17; }); saveState(); renderContacts(); if(modal.parentNode) modal.parentNode.removeChild(modal); });
-  if(shareBtn) shareBtn.addEventListener('click', function(){ if(modal.parentNode) modal.parentNode.removeChild(modal); openShareModal(c); });
-}
-
-/* ================== SHARE MODAL ================== */
-function openShareModal(contactToShare){
-  if(!shareListEl) return;
-  shareListEl.innerHTML = '';
-  for(var i=0;i<contacts.length;i++){
-    var c = contacts[i];
-    var row = document.createElement('label');
-    row.style.display = 'flex';
-    row.style.alignItems = 'center';
-    row.style.gap = '8px';
-    row.innerHTML = "<input type='checkbox' value='" + c.tf17 + "'/> <div style='flex:1'>" + escapeHtml(c.name || formatTFShort(c.tf17)) + "<div style='font-size:12px;color:#6b7280'>" + c.tf17 + "</div></div><div style='width:40px'></div>";
-    shareListEl.appendChild(row);
-  }
-  if(shareModal) shareModal.style.display = 'flex';
-  if(shareSendBtn) shareSendBtn.onclick = function(){
-    var boxes = shareListEl.querySelectorAll('input[type=checkbox]:checked');
-    if(!boxes.length){ alert('Seleksyone 1 kontak pou pataje'); return; }
-    var targets = [];
-    for(var j=0;j<boxes.length;j++) targets.push(boxes[j].value);
-    var payload = { type: 'contact_share', from: me.tf17, time: nowISO(), contact: { tf17: contactToShare.tf17, name: contactToShare.name } };
-    (function sendToTargets(i){
-      if(i >= targets.length){
-        if(targets.length === 1) openChat(targets[0]);
-        if(shareModal) shareModal.style.display = 'none';
-        return;
-      }
-      apiAdd(targets[i], payload).finally(function(){ sendToTargets(i+1); });
-    })(0);
-  };
-}
-
-/* ================== VOICE RECORDING & AUDIO UPLOAD ================== */
-if(voiceBtn){
-  voiceBtn.addEventListener('click', function(){
-    var inputVal = (chatTextEl && chatTextEl.value || '').trim();
-    if(inputVal.length){
-      sendTextMessage(inputVal);
-      return;
-    }
-    if(!currentPartner){ alert('Ouvri chat avan anrejistre.'); return; }
-    if(!mediaRecorder || mediaRecorder.state === 'inactive'){
-      navigator.mediaDevices.getUserMedia({ audio: true }).then(function(stream){
-        mediaRecorder = new MediaRecorder(stream);
-        recordedChunks = [];
-        mediaRecorder.ondataavailable = function(e){ if(e.data && e.data.size) recordedChunks.push(e.data); };
-        mediaRecorder.onstop = function(){
-          var blob = new Blob(recordedChunks, { type: 'audio/webm' });
-          var fd = new FormData();
-          fd.append('file', blob, 'voice.webm');
-          fetch(PROFILE_UPLOAD_URL, { method: 'POST', body: fd }).then(function(resp){ return resp.json().catch(function(){ return null; }); }).then(function(json){
-            if(!json || !(json.url || json.path)){ alert('Upload audio échoué'); return; }
-            var audioUrl = json.url || json.path;
-            var payload = { type: 'audio', from: me.tf17, url: audioUrl, time: nowISO(), cid: makeCid() };
-            apiAdd(currentPartner.tf17, payload).then(function(){ addOrUpdateMessageToCache(me.tf17, currentPartner.tf17, { cid: payload.cid, from: me.tf17, type: 'audio', url: audioUrl, created_at: payload.time }); renderConversation(me.tf17, currentPartner.tf17); }).catch(function(e){ alert('Envoi echwe: ' + (e && e.message || e)); });
-          }).catch(function(e){ alert('Upload failed: ' + (e && e.message || e)); });
-        };
-        mediaRecorder.start();
-        voiceBtn.textContent = '⏺️';
-      }).catch(function(e){ alert("Impossible d'accéder au micro: " + (e && e.message || e)); });
-    } else {
-      if(mediaRecorder && mediaRecorder.state === 'recording'){ mediaRecorder.stop(); voiceBtn.textContent = '🎤'; }
-    }
-  });
-}
-
-/* input behavior: show send when text typed */
-if(chatTextEl){
-  chatTextEl.addEventListener('input', function(){
-    var v = (chatTextEl.value || '').trim();
-    if(v.length){
-      if(sendBtnEl) sendBtnEl.style.display = 'inline-block';
-      if(voiceBtn) voiceBtn.style.display = 'none';
-    } else {
-      if(sendBtnEl) sendBtnEl.style.display = 'none';
-      if(voiceBtn) voiceBtn.style.display = 'inline-block';
-    }
-  });
-  chatTextEl.addEventListener('keydown', function(e){
-    if(e.key === 'Enter'){
-      e.preventDefault();
-      sendTextMessage((chatTextEl && chatTextEl.value || '').trim());
-    }
-  });
-}
-if(sendBtnEl){
-  sendBtnEl.addEventListener('click', function(){ sendTextMessage((chatTextEl && chatTextEl.value || '').trim()); });
-}
+function scheduleReconnect(){ if(reconnectTimer) return; reconnectTimer = setTimeout(()=>{ reconnectTimer=null; connectWS(); }, 3000); }
 
 /* ================== SEARCH ================== */
-function performSearchQuery(raw){
-  raw = raw || '';
-  var digits = normalizeInputToDigits(raw);
-  if(!digits){ renderContacts(raw); return; }
-  if(digits.length < 7){ alert('TFID dwe gen omwen 7 chif.'); return; }
-  var short7 = digits.slice(-7);
-  var tf17 = to17(short7);
-  for(var i=0;i<contacts.length;i++){ if(contacts[i].tf17 === tf17){ openChat(contacts[i].tf17, contacts[i]); return; } }
-  apiList(tf17).then(function(rows){
-    if(rows && rows.length > 0){
-      var last = rows[rows.length - 1] || rows[0];
-      var lastMsg = '';
-      try{ var p = JSON.parse(last.content); lastMsg = p.text || p.message || last.content; }catch(e){ lastMsg = last.content || ''; }
-      var nameFromServer = null;
-      try{ var p2 = JSON.parse(last.content); nameFromServer = p2.name || null; }catch(e){}
-      var c = { tf17: tf17, name: nameFromServer || formatTFShort(short7), lastMsg: lastMsg, lastTs: Date.now(), unread: 0, blocked: false, avatar: null };
-      contacts.unshift(c);
-      saveState();
-      renderContacts();
-      openChat(c.tf17, c);
-      return;
-    } else {
-      if(confirm('Pa jwenn done sou servèr. Kreye kontak lokal pou TFID sa a?')){
-        var c2 = { tf17: tf17, name: formatTFShort(short7), lastMsg: '', lastTs: Date.now(), unread: 0, blocked: false, avatar: null };
-        contacts.unshift(c2);
-        saveState();
-        renderContacts();
-        openChat(c2.tf17, c2);
-      }
-    }
-  }).catch(function(err){ alert('Erè lè w ap chèche sou servèr: ' + (err && err.message || err)); });
+async function performSearchQuery(raw){ if(!raw) return; const digits = normalizeInputToDigits(raw); if(!digits){ renderContacts(raw); return; } if(digits.length < 7){ alert('TFID dwe gen omwen 7 chif.'); return; } const short7 = digits.slice(-7); const tf17 = to17(short7); let local = contacts.find(c => c.tf17 === tf17); if(local){ openChat(local.tf17, local, true); return; } try { const rows = await apiList(tf17); if(rows && rows.length > 0){ const last = rows[rows.length-1] || rows[0]; let lastMsg = ''; try{ const p = JSON.parse(last.content); lastMsg = p.text || p.message || last.content; } catch(e){ lastMsg = last.content || ''; } const nameFromServer = (() => { try { const p = JSON.parse(last.content); return p.name || null } catch(_) { return null } })(); const c = { tf17, name: nameFromServer || formatTFShort(short7), lastMsg, lastTs: Date.now(), unread: 0, blocked:false, avatar:null }; contacts.unshift(c); saveState(); renderContacts(); openChat(c.tf17, c, true); return; } else { if(confirm('Pa jwenn done sou servèr. Kreye kontak lokal pou TFID sa a?')){ const c = { tf17, name: formatTFShort(short7), lastMsg: '', lastTs: Date.now(), unread:0, blocked:false, avatar:null }; contacts.unshift(c); saveState(); renderContacts(); openChat(c.tf17, c, true); } } } catch(err){ alert('Erè lè w ap chèche sou servèr: ' + (err.message||err)); } }
+
+/* ================== PROFILE MODAL ================== */
+let profileCurrent = null; const chatTitleEl = document.getElementById('chatTitle'); chatTitleEl?.addEventListener('click', ()=>{ if(!currentPartner) return; openProfileModal(currentPartner.tf17); });
+function openProfileModal(tf17){ profileCurrent = tf17; const c = contacts.find(x=>x.tf17===tf17) || { tf17, name: formatTFShort(tf17), blocked:false, avatar:null }; if(c.avatar) { profileAvatar.innerHTML = `<img src="${c.avatar}" />`; } else { profileAvatar.textContent = initials(c.name || c.tf17); } profileName.textContent = c.name || formatTFShort(tf17); profileTfid.textContent = c.tf17; blockBtn.textContent = c.blocked ? 'Débloquer' : 'Bloquer'; profileModal.style.display = 'flex'; }
+addContactBtn?.addEventListener('click', ()=>{ if(!profileCurrent) return; const c = ensureContactInList(profileCurrent, null); alert('Contact ajouté : ' + (c.name || c.tf17)); profileModal.style.display = 'none'; });
+blockBtn?.addEventListener('click', async ()=>{ if(!profileCurrent) return; const c = ensureContactInList(profileCurrent, null); c.blocked = !c.blocked; saveState(); renderContacts(); try{ const payload = { type: c.blocked ? 'block' : 'unblock', from: me.tf17, time: nowISO(), name: me.name || null }; await apiAdd(profileCurrent, payload); }catch(e){ console.warn('notify block failed', e); } openProfileModal(profileCurrent); });
+closeProfileBtn?.addEventListener('click', ()=>{ profileModal.style.display = 'none'; });
+profileAvatar?.addEventListener('click', ()=> { if(fileInput) fileInput.click(); });
+
+window.addEventListener('paste', (ev)=>{ const items = ev.clipboardData && ev.clipboardData.items; if(!items) return; for(const it of items){ if(it.kind === 'file' && it.type && it.type.startsWith('image/')){ const f = it.getAsFile(); if(f) { autoUploadProfileFile(f); ev.preventDefault(); break; } } } }, false);
+
+async function autoUploadProfileFile(file){ if(!file) return; if(!file.type || !file.type.startsWith('image/')) { alert('Se sèlman imaj ki aksepte (jpg/png...).'); return; }
+  const input = fileInput; if(input) input.disabled = true; try { const fd = new FormData(); fd.append('file', file); const resp = await fetch(PROFILE_UPLOAD_URL, { method: 'POST', body: fd }); const json = await resp.json().catch(()=>null); if(!resp.ok || !json || !(json.ok || json.success) || !(json.url || json.path)) { console.warn('Upload failed', resp.status, json); alert('Upload échoué. Tcheke serve a.'); return; } const url = json.url || json.path; me.avatarDataUrl = url; saveState(); contacts.forEach(c => { if(c.tf17 === me.tf17) c.avatar = url; }); document.querySelectorAll('.avatar').forEach(el=>{ if(el.dataset && el.dataset.tf17 && el.dataset.tf17 === me.tf17){ el.innerHTML = `<img src="${url}" />`; } }); profileAvatar.innerHTML = `<img src="${url}" />`; if(!me.tf17) { console.warn('No me.tf17 — profile update saved locally but not pushed'); return; } const now = (new Date()).toISOString(); const contactsToNotify = Array.isArray(contacts) ? contacts.slice() : []; for(const c of contactsToNotify){ if(!c || !c.tf17 || c.tf17 === me.tf17) continue; const cid = makeCid(); const payload = { type: 'profile', from: me.tf17, name: me.name || null, photo: url, time: now, cid }; apiAdd(c.tf17, payload).catch(err => { console.warn('Push profile update failed for', c.tf17, err); }); }
+  } catch(err){ console.error('autoUploadProfileFile error', err); alert('Erè pandan upload: ' + (err.message || err)); } finally { if(input) { input.disabled = false; input.value = ''; } }
 }
 
 /* ================== UI EVENTS ================== */
-var chatBackBtn = document.getElementById('chatBack'); if(chatBackBtn) chatBackBtn.addEventListener('click', function(){ hideChatModal(); });
-if(searchBtn) searchBtn.addEventListener('click', function(){ performSearchQuery((searchInput && searchInput.value) || ''); });
-if(homeBtnEl) homeBtnEl.addEventListener('click', function(){ renderHomeContacts(); if(homeModal) homeModal.style.display = 'flex'; });
-if(homeBack) homeBack.addEventListener('click', function(){ if(homeModal) homeModal.style.display = 'none'; });
-if(homeSearchBtn) homeSearchBtn.addEventListener('click', function(){ performSearchQuery((homeSearchInput && homeSearchInput.value) || ''); });
-if(openSettingsBtn) openSettingsBtn.addEventListener('click', function(){ updateSettingsUI(); if(settingsModal) settingsModal.style.display = 'flex'; });
-if(settingsBackBtn) settingsBackBtn.addEventListener('click', function(){ if(settingsModal) settingsModal.style.display = 'none'; });
-if(chatTitleEl) chatTitleEl.addEventListener('click', function(){ if(!currentPartner) return; var found = null; for(var i=0;i<contacts.length;i++){ if(contacts[i].tf17 === currentPartner.tf17){ found = contacts[i]; break; } } openContactFullModal(found || { tf17: currentPartner.tf17, name: currentPartner.name }); });
+document.getElementById('chatBack')?.addEventListener('click', ()=>{
+  // if a slug is present, go back so the URL returns to base; otherwise just hide modal
+  const path = location.pathname || '/';
+  if(path && path.replace(/^\/+/, '') !== '' ){
+    history.back();
+  } else {
+    hideChatModal();
+  }
+});
+sendBtnEl?.addEventListener('click', sendMessageFromModal);
+chatTextEl?.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); sendMessageFromModal(); } });
+searchInput?.addEventListener('keydown', async (e)=>{ if(e.key==='Enter'){ e.preventDefault(); await performSearchQuery(searchInput.value.trim()); } });
+searchBtn?.addEventListener('click', async ()=>{ await performSearchQuery(searchInput.value.trim()); });
+document.getElementById('settingsBtn')?.addEventListener('click', ()=> { updateSettingsUI(); settingsModal.style.display = 'flex'; });
 
-/* search input enter */
-if(searchInput) searchInput.addEventListener('keydown', function(e){ if(e.key === 'Enter'){ e.preventDefault(); performSearchQuery(searchInput.value); } });
-if(homeSearchInput) homeSearchInput.addEventListener('keydown', function(e){ if(e.key === 'Enter'){ e.preventDefault(); performSearchQuery(homeSearchInput.value); } });
+/* profileSave logic */
+profileSaveBtn?.addEventListener('click', async ()=>{ const newName = profileNameInput.value.trim(); const short = normalizeInputToDigits(profileTfidInput.value.trim()); if(!short || short.length < 7){ alert('TFID pa valab — antre 7 chif.'); return; } const tfShort = short.slice(-7); const tf17 = to17(tfShort); const existingHash = getPasswordHash(tf17); if(existingHash && (!me.tf17 || me.tf17 !== tf17)) { const pw = prompt('Kont sa deja egziste lokalman. Antre modpas li pou itilize li:'); if(!pw) { alert('Modpas obligatwa.'); return; } const has = await hashPasswordHex(pw); if(has !== existingHash){ alert('Modpas pa kòrèk.'); return; } } const newPw = profilePwInput.value || ''; if(newPw){ const hex = await hashPasswordHex(newPw); storePasswordHash(tf17, hex); } me.name = newName || me.name; me.short = tfShort; me.tf17 = tf17; saveState(); settingsModal.style.display = 'none'; await registerFrontendIfNeeded(); if(ws && ws.readyState === WebSocket.OPEN){ try{ ws.send(JSON.stringify({ type:'subscribe', tfid: me.tf17 })); }catch(e){} } else connectWS(); triggerPwBannerIfNeeded(); });
+settingsCancelBtn?.addEventListener('click', ()=> settingsModal.style.display = 'none');
+
+/* ================== POPSTATE / URL SLUG HANDLING ================== */
+window.addEventListener('popstate', (ev)=>{
+  const s = ev.state;
+  if(s && s.tfchat){ // open chat for this tf
+    openChat(s.tfchat, contacts.find(c=>c.tf17===s.tfchat)||null, false);
+  } else {
+    // no state -> close chat
+    hideChatModal();
+  }
+});
+
+/* if page loaded with a slug, try open chat */
+(function handleInitialPath(){ const raw = location.pathname.replace(/^\/+/, ''); if(!raw) return; let candidate = raw; try { // if path looks like TF-... or digits
+      if(/^TF-?\d{7,}$/.test(candidate) || /^\d{7,}$/.test(candidate) || /^\d{17,}$/.test(candidate)){
+        const tf17 = candidate.startsWith('TF-') ? candidate : to17(candidate);
+        // try to find contact or create a local one and open chat (no history push)
+        let c = contacts.find(x=>x.tf17===tf17);
+        if(!c){ c = { tf17, name: formatTFShort(tf17), lastMsg:'', lastTs: Date.now(), unread:0, blocked:false, avatar:null }; contacts.unshift(c); saveState(); renderContacts(); }
+        // if user doesn't have a me.tf17, do not auto-open but show notice
+        if(me.tf17){ openChat(tf17, c, false); } else { /* could show a toast asking user to set TFID */ }
+      }
+    } catch(e){ console.warn('initial path parse failed', e); }
+})();
 
 /* ================== BOOT ================== */
 renderContacts();
-if(me.avatarDataUrl){
-  var avatars = document.querySelectorAll('.avatar');
-  for(var i=0;i<avatars.length;i++){
-    var el = avatars[i];
-    if(!el.querySelector('img')) el.innerHTML = '<img src="' + me.avatarDataUrl + '" />';
-  }
-}
-if(!me.tf17){
-  setTimeout(function(){ promptForMeModal(); }, 250);
-}
+if(me.avatarDataUrl){ document.querySelectorAll('.avatar').forEach(el => { if(!el.querySelector('img')) el.innerHTML = `<img src="${me.avatarDataUrl}" />`; }); }
+if(me.tf17){ connectWS(); /* do not trigger pw banner automatically */ } else { /* DO NOT auto open settings on refresh */ }
 
-/* expose debug (dev only) */
-window._tf_contacts = contacts;
-window._tf_me = me;
-</script>
-</body>
+/* expose debug */
+window._tf_contacts = contacts; window._tf_me = me;
+</script></body>
   </html>
