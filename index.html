@@ -6,7 +6,7 @@
   <title>TF-Chat</title>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
-    :root{--bg:#000000;--panel:#000000;--text:#e6eefb;--muted:#9aa6bf;--card:#0b0b0b;--accent:#0b81ff;--header-h:56px}
+    :root{--bg:#000000;--panel:#000000;--text:#e6eefb;--muted:#9aa6bf;--card:#0b0b0b;--accent:#0b81ff;--header-h:56px;--radius:12px}
     *{box-sizing:border-box}
     html,body{height:100%;margin:0;padding:0;background:var(--bg);color:var(--text);font-family:Roboto,system-ui,Arial,sans-serif;-webkit-font-smoothing:antialiased}
     header{position:fixed;left:0;right:0;top:0;height:var(--header-h);display:flex;align-items:center;justify-content:center;background:var(--panel);z-index:1000;border-bottom:1px solid rgba(255,255,255,0.03)}
@@ -17,6 +17,7 @@
     .search-box input{flex:1;background:transparent;border:0;outline:none;color:var(--text);font-size:15px}
     .list{margin-top:12px}
     .contact{display:flex;gap:12px;align-items:center;padding:12px;border-radius:12px;cursor:pointer}
+    .contact:active{transform:translateY(1px)}
     .avatar{width:56px;height:56px;border-radius:50%;background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;color:var(--text);flex-shrink:0}
     .meta{flex:1;min-width:0}
     .meta-top{display:flex;justify-content:space-between;align-items:flex-start}
@@ -25,6 +26,13 @@
     .meta-bottom{display:flex;justify-content:space-between;margin-top:6px;align-items:center}
     .snippet{font-size:13px;color:var(--muted);overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
     .badge{background:var(--accent);color:white;padding:4px 8px;border-radius:999px;font-weight:600;font-size:13px}
+    .fab{position:fixed;right:18px;bottom:22px;width:62px;height:62px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;border:0;color:white;box-shadow:0 10px 30px rgba(11,129,255,0.22);z-index:1100}
+    .modal{position:fixed;inset:0;background:rgba(0,0,0,0.96);display:none;z-index:1200}
+    .modal.show{display:block}
+    .modal .full{height:100%;display:flex;flex-direction:column}
+    .modal-header{height:56px;display:flex;align-items:center;padding:8px 12px;border-bottom:1px solid rgba(255,255,255,0.03)}
+    .modal-body{overflow:auto;padding:12px;flex:1}
+    .modal-footer{padding:12px;border-top:1px solid rgba(255,255,255,0.03)}
     .messages{padding:12px;height:calc(100% - 56px - 84px);overflow:auto;display:flex;flex-direction:column;gap:8px}
     .msg{max-width:74%;padding:10px;border-radius:12px;margin-bottom:4px}
     .msg.bot{background:#121212;color:var(--text);align-self:flex-start}
@@ -44,7 +52,7 @@
     <section class="search">
       <div class="search-box">
         <svg viewBox="0 0 24 24" width="16" height="16" fill="none"><path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="1.6"/><circle cx="11" cy="11" r="6" stroke="currentColor" stroke-width="1.6"/></svg>
-        <input id="searchInput" placeholder="Recherche (TFID ou 7 chif)" aria-label="Recherche" />
+        <input id="searchInput" placeholder="Recherche (TFID oswa 7 chif)" aria-label="Recherche" />
         <button id="clearSearch" type="button" style="display:none;background:transparent;border:0;color:var(--muted);cursor:pointer">✖</button>
       </div>
     </section>
@@ -56,18 +64,24 @@
     </div>
   </main>
 
-  <!-- Chat modal -->
-  <div id="chatModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.96);z-index:1200">
-    <div style="height:100%;display:flex;flex-direction:column">
-      <div style="height:56px;display:flex;align-items:center;padding:8px 12px;border-bottom:1px solid rgba(255,255,255,0.03)">
-        <button id="chatBack" style="background:transparent;border:0;color:var(--text);cursor:pointer">←</button>
-        <div style="flex:1;text-align:center;font-weight:700" id="chatTitle">Chat</div>
+  <!-- Chat modal (original layout preserved) -->
+  <div class="modal" id="chatModal" aria-hidden="true">
+    <div class="full">
+      <div class="modal-header">
+        <button id="chatBack" type="button" class="send-btn" aria-label="Retour">←</button>
+        <div style="flex:1;display:flex;align-items:center;gap:12px">
+          <div id="chatAvatarSmall" class="avatar" style="width:44px;height:44px;font-size:16px"></div>
+          <div style="min-width:0">
+            <div id="chatTitle" style="font-weight:700;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></div>
+            <div id="chatSubtitle" style="font-size:12px;color:var(--muted)"></div>
+          </div>
+        </div>
         <div style="width:44px"></div>
       </div>
-      <div style="overflow:auto;padding:12px;flex:1">
+      <div class="modal-body">
         <div class="messages" id="messages"></div>
       </div>
-      <div style="padding:12px;border-top:1px solid rgba(255,255,255,0.03)">
+      <div class="modal-footer">
         <div class="chat-input">
           <input id="chatText" class="input" placeholder="Ekri mesaj..." autocomplete="off" />
           <button id="sendBtn" class="send-btn">Envoyer</button>
@@ -76,34 +90,32 @@
     </div>
   </div>
 
-  <!-- Settings modal -->
-  <div id="settingsModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.96);z-index:1200">
-    <div style="height:100%;display:flex;flex-direction:column">
-      <div style="height:56px;display:flex;align-items:center;padding:8px 12px;border-bottom:1px solid rgba(255,255,255,0.03)">
-        <button id="settingsClose" style="background:transparent;border:0;color:var(--text);cursor:pointer">←</button>
+  <!-- Settings modal (original) -->
+  <div class="modal" id="settingsModal" aria-hidden="true">
+    <div class="full">
+      <div class="modal-header">
+        <button id="settingsClose" type="button" class="send-btn" aria-label="Retour">←</button>
         <div style="flex:1;text-align:center;font-weight:700">Paramètres</div>
         <div style="width:44px"></div>
       </div>
-      <div style="padding:12px;flex:1;overflow:auto">
+      <div class="modal-body">
         <div style="display:flex;gap:12px;align-items:center;padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,0.02)">
-          <div id="settingsAvatar" style="width:72px;height:72px;border-radius:50%;background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:22px;color:var(--text)"></div>
+          <div id="settingsAvatar" class="avatar" style="width:72px;height:72px;font-size:22px"></div>
           <div>
             <div id="settingsName" style="font-weight:800">Utilisateur</div>
             <div id="settingsTfid" style="color:var(--muted)">TF-0000000</div>
           </div>
         </div>
-
-        <div style="margin-top:16px">
-          <label>Modifier non</label>
-          <input id="profileNameInput" class="input" style="margin-top:6px;width:100%" />
+        <div style="height:12px"></div>
+        <div style="margin-top:8px">
+          <label style="display:block;color:var(--muted);margin-bottom:6px">Modifier non</label>
+          <input id="profileNameInput" class="input" style="width:100%">
         </div>
-
         <div style="margin-top:12px">
-          <label>TFID (7 chif) — pa egzanp: 1234567</label>
-          <input id="profileTfidInput" class="input" style="margin-top:6px;width:100%" />
+          <label style="display:block;color:var(--muted);margin-bottom:6px">TFID (7 chif)</label>
+          <input id="profileTfidInput" class="input" style="width:100%" placeholder="eg: 1234567">
           <div style="margin-top:8px;color:var(--muted);font-size:13px">Sere TFID tankou TF-XXXXXXX. Sistèm lan konvèti otomatikman pou 17-chif lè sa nesesè.</div>
         </div>
-
         <div style="margin-top:16px;display:flex;gap:8px;justify-content:flex-end">
           <button id="profileSave" class="send-btn">Sove</button>
         </div>
@@ -112,17 +124,18 @@
   </div>
 
 <script>
-/* ================== CONFIG ================== */
-/* Keep UI exactly as you provided - this script wires it to your server */
+/* ================= CONFIG =================
+   Server + token you gave
+   ================= */
 const API_BASE = 'https://tf-sove.onrender.com';
 const FRONTEND_NAME = 'site1';
-const ADMIN_API_TOKEN = 'tfstream_45dd9c02d4e34f18a42d'; // use to auto-register frontend
-/* ================== STORAGE KEYS ================== */
+const ADMIN_API_TOKEN = 'tfstream_45dd9c02d4e34f18a42d'; // provided token
+/* ================= STORAGE KEYS ================ */
 const KEY_CONTACTS = 'tfai_contacts_v4';
 const KEY_PROFILE = 'tfai_profile_v4';
 
-/* ================== UTIL ================== */
-function safeParse(json, fallback){ try{ const v = JSON.parse(json); return v===null?fallback:v; }catch(e){ return fallback; } }
+/* ================ HELPERS =================== */
+function safeParse(json, fallback){ try{ const v=JSON.parse(json); return v===null?fallback:v; }catch(e){ return fallback; } }
 function normalizeInputToDigits(inp){ if(!inp) return null; const s=String(inp).trim().toUpperCase(); const digits=s.replace(/[^0-9]/g,''); return digits||null; }
 function to17(shortOrDigits){ if(!shortOrDigits) return null; const ds=String(shortOrDigits).replace(/[^0-9]/g,''); if(ds.length>17) return ds.slice(-17); return ds.padStart(17,'0'); }
 function formatTFShort(digitsString){ if(!digitsString) return ''; const s=String(digitsString).replace(/[^0-9]/g,''); const last7 = s.slice(-7); return 'TF-'+ last7.padStart(7,'0'); }
@@ -131,18 +144,22 @@ function makeCid(){ return String(Date.now()) + '-' + Math.floor(Math.random()*1
 function escapeHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function initials(name){ if(!name) return 'U'; return name.split(' ').map(p=>p[0]).slice(0,2).join('').toUpperCase(); }
 function timeAgo(ts){ const diff=Math.floor((Date.now()-ts)/1000); if(diff<60) return diff+'s'; if(diff<3600) return Math.floor(diff/60)+'m'; if(diff<86400) return Math.floor(diff/3600)+'h'; return new Date(ts).toLocaleDateString(); }
+function nowISO(){ return (new Date()).toISOString(); }
 
-/* ================== STATE ================== */
+/* ================ STATE ===================== */
 let contacts = safeParse(localStorage.getItem(KEY_CONTACTS), []) || [];
 let profile = safeParse(localStorage.getItem(KEY_PROFILE), {}) || {};
 if(!profile.tfid) profile.tfid = generateRandomShortTF();
 if(!profile.name) profile.name = 'Utilisateur';
 localStorage.setItem(KEY_PROFILE, JSON.stringify(profile));
 
-/* conversation cache for optimistic UI */
-const conversationCache = {}; // key: me17|other17 => array of messages
+let currentChat = null;
+const conversationCache = {}; // me17|other17 => [messages]
+// WebSocket state
+let ws = null;
+let reconnectTimer = null;
 
-/* ================== DOM REFS ================== */
+/* =============== DOM REFS =================== */
 const contactsListEl = document.getElementById('contactsList');
 const searchInputEl = document.getElementById('searchInput');
 const clearSearchEl = document.getElementById('clearSearch');
@@ -150,6 +167,8 @@ const clearSearchEl = document.getElementById('clearSearch');
 const chatModalEl = document.getElementById('chatModal');
 const messagesEl = document.getElementById('messages');
 const chatTitleEl = document.getElementById('chatTitle');
+const chatSubtitleEl = document.getElementById('chatSubtitle');
+const chatAvatarSmallEl = document.getElementById('chatAvatarSmall');
 const chatTextEl = document.getElementById('chatText');
 const sendBtnEl = document.getElementById('sendBtn');
 const chatBack = document.getElementById('chatBack');
@@ -164,9 +183,7 @@ const profileNameInput = document.getElementById('profileNameInput');
 const profileTfidInput = document.getElementById('profileTfidInput');
 const profileSave = document.getElementById('profileSave');
 
-let currentChat = null;
-
-/* ================== NETWORK HELPERS ================== */
+/* =============== NETWORK HELPERS ============= */
 async function callJSON(url, opts = {}) {
   opts = Object.assign({}, opts);
   opts.headers = Object.assign({}, opts.headers || {}, { 'Accept': 'application/json' });
@@ -192,12 +209,12 @@ async function apiAdd(recipient17, contentObj) {
   const body = { tfid: recipient17, name: FRONTEND_NAME, content: JSON.stringify(contentObj), source_url: location.origin };
   const url = `${API_BASE}/api/add`;
   const r = await callJSON(url, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
-  if(!r.ok) {
+  if(!r.ok){
     const errMsg = r.json?.error || r.text || `HTTP ${r.status}`;
-    // If frontend name not registered -> try register then retry once
-    if(String(errMsg).toLowerCase().includes('frontend name not registered')) {
-      const regOk = await registerFrontendIfNeeded();
-      if(regOk) {
+    // if frontend isn't registered, attempt to register then retry once
+    if(String(errMsg).toLowerCase().includes('frontend name not registered')){
+      const reg = await registerFrontendIfNeeded();
+      if(reg){
         const r2 = await callJSON(url, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
         if(!r2.ok) throw new Error(r2.json?.error || r2.text || `HTTP ${r2.status}`);
         return r2.json;
@@ -208,30 +225,33 @@ async function apiAdd(recipient17, contentObj) {
   return r.json;
 }
 
-/* Admin register frontend (required by server to accept /api/add pushes) */
+/* register frontend (admin) using ADMIN_API_TOKEN header — server expects x-api-token */
 async function registerFrontendIfNeeded(){
   try{
     const url = `${API_BASE}/admin/register-frontend`;
     const payload = { name: FRONTEND_NAME, callback_url: location.origin };
-    const r = await callJSON(url, { method: 'POST', headers: {'Content-Type':'application/json', 'x-api-token': ADMIN_API_TOKEN }, body: JSON.stringify(payload) });
-    if(r.ok) {
-      console.log('Registered frontend:', FRONTEND_NAME);
+    const r = await callJSON(url, { method: 'POST', headers: {'Content-Type':'application/json', 'x-api-token': ADMIN_API_TOKEN}, body: JSON.stringify(payload) });
+    if(r.ok){
+      console.log('Frontend registered OK');
       return true;
     } else {
-      console.warn('Register frontend failed:', r.status, r.text);
+      console.warn('Register frontend failed:', r.status, r.text?.slice?.(0,200));
       return false;
     }
-  } catch(e){ console.warn('registerFrontendIfNeeded err', e); return false; }
+  } catch(e){
+    console.warn('registerFrontendIfNeeded error', e);
+    return false;
+  }
 }
 
-/* ================== RENDER CONTACTS ================== */
-function renderContacts(filter = '') {
+/* ================ RENDER FUNCTIONS ============== */
+function renderContacts(filter=''){
   if(!contactsListEl) return;
   contactsListEl.innerHTML = '';
-  const q = (filter || '').toLowerCase().trim();
-  const list = contacts.filter(c => {
+  const q = (filter||'').toLowerCase().trim();
+  const list = contacts.filter(c=>{
     if(!q) return true;
-    return (c.name||'').toLowerCase().includes(q) || (c.tfid||'').toLowerCase().includes(q);
+    return (c.name||'').toLowerCase().includes(q) || (c.tfid||'').toLowerCase().includes(q) || (c.tf17||'').includes(q);
   });
   if(list.length === 0){
     const div = document.createElement('div');
@@ -240,8 +260,8 @@ function renderContacts(filter = '') {
     contactsListEl.appendChild(div);
     return;
   }
-  list.forEach(c => {
-    const el = document.createElement('div'); el.className = 'contact'; el.dataset.id = c.id;
+  list.forEach(c=>{
+    const el = document.createElement('div'); el.className='contact'; el.dataset.tf17 = c.tf17;
     const avatarHtml = c.logo ? `<img src="${c.logo}" style="width:100%;height:100%;border-radius:50%">` : escapeHtml(initials(c.name||c.tfid));
     el.innerHTML = `<div class="avatar">${avatarHtml}</div>
       <div class="meta">
@@ -259,106 +279,101 @@ function renderContacts(filter = '') {
   });
 }
 
-/* ================== SEARCH HANDLING ================== */
+/* ============== SEARCH HANDLING =============== */
 searchInputEl?.addEventListener('input', (e)=>{ renderContacts(e.target.value); clearSearchEl.style.display = e.target.value ? 'inline-block' : 'none'; });
 clearSearchEl?.addEventListener('click', ()=>{ searchInputEl.value=''; renderContacts(); clearSearchEl.style.display='none'; searchInputEl.focus(); });
 
-searchInputEl?.addEventListener('keydown', async (e) => {
-  if (e.key !== 'Enter') return;
+searchInputEl?.addEventListener('keydown', async (e)=>{
+  if(e.key !== 'Enter') return;
   const raw = searchInputEl.value.trim();
-  if (!raw) return;
+  if(!raw) return;
   const digits = normalizeInputToDigits(raw);
-  if (!digits) { renderContacts(raw); return; }
-  if (digits.length < 7) { alert('TFID dwe gen omwen 7 chif.'); return; }
+  if(!digits) { renderContacts(raw); return; }
+  if(digits.length < 7){ alert('TFID dwe gen omwen 7 chif.'); return; }
   const short7 = digits.slice(-7);
   const tf17 = to17(short7);
 
-  // first check local contacts
-  let local = contacts.find(c => (c.tf17 === tf17) || (normalizeInputToDigits(c.tfid) === short7));
-  if (local) { openChat(local); return; }
+  // local check
+  let local = contacts.find(c=> (c.tf17 === tf17) || (normalizeInputToDigits(c.tfid) === short7));
+  if(local){ openChat(local); return; }
 
-  // call server
-  try {
+  // query server list
+  try{
     const rows = await apiList(tf17);
-    if (rows && rows.length > 0) {
-      const id = 'c_' + Date.now();
+    if(rows && rows.length > 0){
+      // server has messages for this tfid: create local contact using last message as snippet
       const last = rows[0] || rows[rows.length-1];
       let lastMsg = '';
-      try { const p = JSON.parse(last.content); lastMsg = p.text || p.message || last.content; } catch(e){ lastMsg = last.content || ''; }
+      try{ const p = JSON.parse(last.content); lastMsg = p.text || p.message || last.content; }catch(e){ lastMsg = last.content || ''; }
+      const id = 'c_' + Date.now();
       const c = { id, name: formatTFShort(short7), tfid: formatTFShort(short7), tf17, lastMsg, lastTs: Date.now(), unread: 0 };
       contacts.unshift(c); localStorage.setItem(KEY_CONTACTS, JSON.stringify(contacts)); renderContacts();
       openChat(c);
       return;
     } else {
-      if (confirm('Pa jwenn done sou servèr. Kreye kontak lokal pou TFID sa a?')) {
+      if(confirm('Pa jwenn done sou servèr. Kreye kontak lokal pou TFID sa a?')){
         const id = 'c_' + Date.now();
-        const c = { id, name: '', tfid: formatTFShort(short7), tf17, lastMsg:'', lastTs: Date.now(), unread: 0 };
+        const c = { id, name: '', tfid: formatTFShort(short7), tf17, lastMsg:'', lastTs: Date.now(), unread:0 };
         contacts.unshift(c); localStorage.setItem(KEY_CONTACTS, JSON.stringify(contacts)); renderContacts();
         openChat(c);
       }
+      return;
     }
-  } catch(err) {
+  } catch(err){
     alert('Erè lè w ap chèche sou servèr: ' + (err.message||err));
   }
 });
 
-/* ================== CHAT (load & render) ================== */
-function showChat(){ chatModalEl.style.display = 'block'; setTimeout(()=> chatTextEl?.focus(), 150); }
-function hideChat(){ chatModalEl.style.display = 'none'; currentChat = null; }
+/* ================ CHAT LOAD & RENDER ============= */
+function showModal(el){ el.classList.add('show'); el.setAttribute('aria-hidden','false'); }
+function hideModal(el){ el.classList.remove('show'); el.setAttribute('aria-hidden','true'); }
 
-chatBack?.addEventListener('click', ()=> hideChat());
+chatBack?.addEventListener('click', ()=> hideModal(chatModalEl));
 
-async function openChat(contact) {
+async function openChat(contact){
   currentChat = contact;
   chatTitleEl.textContent = contact.name || contact.tfid;
-  contact.unread = 0;
-  localStorage.setItem(KEY_CONTACTS, JSON.stringify(contacts));
-  renderContacts(searchInputEl?.value);
+  chatSubtitleEl.textContent = contact.isGroup ? 'Groupe' : (contact.tfid || '');
+  chatAvatarSmallEl.innerHTML = contact.logo ? `<img src="${contact.logo}" style="width:100%;height:100%;border-radius:50%">` : escapeHtml(initials(contact.name||contact.tfid));
+  contact.unread = 0; localStorage.setItem(KEY_CONTACTS, JSON.stringify(contacts)); renderContacts(searchInputEl?.value);
 
   messagesEl.innerHTML = '<div class="muted">Chaje mesaj...</div>';
-  try {
+  try{
     const me17 = to17(normalizeInputToDigits(profile.tfid) || profile.tfid);
     const other17 = to17(normalizeInputToDigits(contact.tfid) || contact.tfid);
     const conv = await loadConversation(me17, other17);
-    // cache for optimistic UI merges
     conversationCache[convKey(me17, other17)] = conv;
     renderMessageList(conv);
-  } catch(err) {
+  }catch(err){
     messagesEl.innerHTML = `<div class="muted">Pa kapab chaje mesaj: ${escapeHtml(err.message||err)}</div>`;
   }
-  showChat();
+
+  showModal(chatModalEl); setTimeout(()=> chatTextEl?.focus(),150);
 }
 
 function convKey(a,b){ return `${a}|${b}`; }
 
-async function loadConversation(me17, other17) {
-  const result = [];
-  const seen = new Set();
-
-  function pushRow(r, expectedFrom) {
+async function loadConversation(me17, other17){
+  const result = []; const seen = new Set();
+  function pushRow(r, expectedFrom){
     let parsed = null;
     try{ parsed = JSON.parse(r.content); }catch(e){ parsed = null; }
     const parsedFrom = parsed && parsed.from ? parsed.from : null;
     const parsedText = parsed && (parsed.text || parsed.message) ? (parsed.text || parsed.message) : (r.content || '');
     const parsedTime = parsed && parsed.time ? parsed.time : r.created_at;
-    // If parsedFrom exists, ensure it equals expectedFrom (server stores messages under recipient tfid)
-    if (parsedFrom && parsedFrom !== expectedFrom) return;
-    // If no parsedFrom, we still accept as generic message
-    const m = { id: r.id || null, cid: parsed && parsed.cid ? parsed.cid : null, from: parsedFrom || (expectedFrom === me17 ? me17 : other17), text: parsedText, parsed_time: parsedTime || null, created_at: parsedTime || r.created_at || new Date().toISOString() };
-    const keyu = (m.cid? 'cid:'+m.cid : (m.id? 'id:'+m.id : m.created_at+'|'+m.text));
-    if(seen.has(keyu)) return;
-    seen.add(keyu);
-    result.push(m);
+    // if parsedFrom exists and doesn't match expectedFrom, skip (server stores messages under recipient tfid)
+    if(parsedFrom && parsedFrom !== expectedFrom) return;
+    const m = { id: r.id||null, cid: parsed && parsed.cid ? parsed.cid : null, from: parsedFrom || expectedFrom, text: parsedText, parsed_time: parsedTime || null, created_at: parsedTime || r.created_at || nowISO() };
+    const keyu = (m.cid ? 'cid:'+m.cid : (m.id ? 'id:'+m.id : m.created_at+'|'+m.text));
+    if(seen.has(keyu)) return; seen.add(keyu); result.push(m);
   }
-
-  try{ const outRows = await apiList(other17); outRows.forEach(r => pushRow(r, me17)); }catch(e){ console.warn('out list fail', e); }
-  try{ const inRows = await apiList(me17); inRows.forEach(r => pushRow(r, other17)); }catch(e){ console.warn('in list fail', e); }
-
+  try{ const outRows = await apiList(other17); outRows.forEach(r=> pushRow(r, me17)); }catch(e){ console.warn('outgoing list failed', e); }
+  try{ const inRows = await apiList(me17); inRows.forEach(r=> pushRow(r, other17)); }catch(e){ console.warn('incoming list failed', e); }
   result.sort((a,b)=> new Date(a.created_at) - new Date(b.created_at));
   return result;
 }
 
-function renderMessageList(arr) {
+function renderMessageList(arr){
   if(!messagesEl) return;
   messagesEl.innerHTML = '';
   if(!arr || arr.length === 0){ messagesEl.innerHTML = `<div class="muted">Pa gen mesaj ankò.</div>`; return; }
@@ -367,31 +382,30 @@ function renderMessageList(arr) {
     const isUser = m.from && String(m.from) === String(me17);
     const d = document.createElement('div'); d.className = 'msg ' + (isUser ? 'user' : 'bot');
     const ts = m.created_at ? new Date(m.created_at).toLocaleString() : '';
-    const text = (m.text || '').toString();
-    d.innerHTML = `<div>${escapeHtml(text)}</div><div style="font-size:11px;color:var(--muted);margin-top:6px">${formatTFShort(m.from || '')} • ${ts}</div>`;
+    d.innerHTML = `<div>${escapeHtml(m.text)}</div><div style="font-size:11px;color:var(--muted);margin-top:6px">${formatTFShort(m.from || '')} • ${ts}</div>`;
     messagesEl.appendChild(d);
   });
   messagesEl.scrollTop = messagesEl.scrollHeight;
 }
 
-/* optimistic message append and reconciliation */
+/* optimistic cache helper */
 function addOrUpdateMessageToCache(me17, other17, msg){
   const key = convKey(me17, other17);
-  if(!conversationCache[key]) conversationCache[key] = [];
+  if(!conversationCache[key]) conversationCache[key]=[];
   const list = conversationCache[key];
-  const exists = msg.cid ? list.findIndex(x=>x.cid===msg.cid) : (msg.id ? list.findIndex(x=>String(x.id)===String(msg.id)) : -1);
+  const exists = msg.cid ? list.findIndex(x=>x.cid===msg.cid) : (msg.id? list.findIndex(x=>String(x.id)===String(msg.id)) : -1);
   if(exists !== -1) list[exists] = Object.assign({}, list[exists], msg); else list.push(msg);
   list.sort((a,b)=> new Date(a.created_at) - new Date(b.created_at));
 }
 
-/* attempt reload to reconcile after send */
-async function shortPollForMessage(target17, cid){
+/* short poll to reconcile optimistic send */
+function shortPollForMessage(target17, cid){
   let tries = 0; const maxTries = 6; const interval = 1200;
   const attempt = async ()=>{
     tries++;
     try{
       const rows = await apiList(target17);
-      const found = rows.find(r=>{ try{ const p = JSON.parse(r.content); return p && p.cid === cid; }catch(e){ return false; } });
+      const found = rows.find(r=>{ try{ const p = JSON.parse(r.content); return p && p.cid === cid; }catch(e){ return false; }});
       if(found){
         const me17 = to17(normalizeInputToDigits(profile.tfid) || profile.tfid);
         const conv = await loadConversation(me17, target17);
@@ -405,7 +419,7 @@ async function shortPollForMessage(target17, cid){
   attempt();
 }
 
-/* ================== SEND MESSAGE ================== */
+/* =============== SEND MESSAGE ================= */
 sendBtnEl?.addEventListener('click', sendMessage);
 chatTextEl?.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); sendMessage(); } });
 
@@ -418,7 +432,7 @@ async function sendMessage(){
   const recipientShort = normalizeInputToDigits(currentChat.tfid) || currentChat.tfid;
   const recipient17 = to17(recipientShort);
   const cid = makeCid();
-  const payload = { type:'text', from: me17, text: txt, time: (new Date()).toISOString(), cid };
+  const payload = { type:'text', from: me17, text: txt, time: nowISO(), cid };
 
   // optimistic UI
   addOrUpdateMessageToCache(me17, recipient17, { id:null, cid, from: me17, text: txt, created_at: payload.time });
@@ -429,76 +443,55 @@ async function sendMessage(){
   localStorage.setItem(KEY_CONTACTS, JSON.stringify(contacts));
   renderContacts(searchInputEl?.value);
 
-  try {
-    await registerFrontendIfNeeded(); // ensure backend knows this frontend
+  try{
+    await registerFrontendIfNeeded();
     await apiAdd(recipient17, payload);
     shortPollForMessage(recipient17, cid);
-  } catch(err) {
+  }catch(err){
     console.warn('send failed', err);
-    alert('Envoi echwe: '+ (err.message||err));
+    alert('Envoi echwe: ' + (err.message || err));
   }
 }
 
-/* ================== WEBSOCKET (real-time updates) ================== */
-let ws = null;
-let wsConnected = false;
-function wsUrlFromApiBase() {
-  try {
-    const u = new URL(API_BASE);
-    u.protocol = (u.protocol === 'https:' ? 'wss:' : 'ws:');
-    u.pathname = '/ws';
-    return u.toString();
-  } catch(e) {
-    return API_BASE.replace(/^http/,'ws') + '/ws';
-  }
+/* ============== WEBSOCKET (realtime) ================= */
+function wsUrlFromApiBase(){
+  try{ const u = new URL(API_BASE); u.protocol = (u.protocol === 'https:' ? 'wss:' : 'ws:'); u.pathname = '/ws'; return u.toString(); } catch(e){ return API_BASE.replace(/^http/,'ws') + '/ws'; }
 }
 
 function initWebSocket(){
   const url = wsUrlFromApiBase();
-  try {
-    ws = new WebSocket(url);
-  } catch(e) {
-    console.warn('WS create failed', e);
-    setTimeout(initWebSocket, 3000);
-    return;
-  }
-  ws.onopen = () => {
-    wsConnected = true;
+  try{ ws = new WebSocket(url); } catch(e){ console.warn('WS create failed', e); scheduleReconnect(); return; }
+  ws.onopen = ()=>{
+    console.log('WS open', url);
     const my17 = to17(normalizeInputToDigits(profile.tfid) || profile.tfid);
-    try { ws.send(JSON.stringify({ type: 'subscribe', tfid: my17 })); } catch(e){}
-    console.log('WS connected & subscribed to', my17);
+    try{ ws.send(JSON.stringify({ type:'subscribe', tfid: my17 })); } catch(e){}
   };
-  ws.onmessage = (evt) => {
-    try {
-      const data = JSON.parse(evt.data);
+  ws.onmessage = (ev)=>{
+    try{
+      const data = JSON.parse(ev.data);
       if(!data) return;
-      if(data.type === 'message') {
-        // server sends payload with { type:'message', id, tfid, name, content, created_at }
+      if(data.type === 'message'){
         const payload = data;
         let parsed = null;
         try{ parsed = JSON.parse(payload.content); }catch(e){ parsed = null; }
-        const recipient = payload.tfid || null; // who server stored the message under
+        const recipient = payload.tfid || null;
         const from = parsed && parsed.from ? parsed.from : null;
-        // decide counterpart
-        const my17 = to17(normalizeInputToDigits(profile.tfid) || profile.tfid);
-        // other = the TFID that's not me (could be from or recipient)
-        const other = (recipient === my17) ? from : recipient;
+        const other = (recipient === to17(normalizeInputToDigits(profile.tfid) || profile.tfid)) ? from : recipient;
         if(!other) return;
-        const created = (parsed && parsed.time) || payload.created_at || new Date().toISOString();
+        const created = (parsed && parsed.time) || payload.created_at || nowISO();
         const text = (parsed && (parsed.text || parsed.message)) || payload.content || '';
-        // add to cache
-        addOrUpdateMessageToCache(my17, other, { id: payload.id || null, cid: parsed && parsed.cid ? parsed.cid : null, from: from || (recipient===my17?other:my17), text, created_at: created, parsed_time: parsed && parsed.time ? parsed.time : null });
-        // if chat open with that other -> render
-        if(currentChat && (to17(normalizeInputToDigits(currentChat.tfid) || currentChat.tfid) === other)){
-          renderMessageList(conversationCache[convKey(my17, other)] || []);
-        } else if (recipient === my17) {
-          // increment unread and surface contact
-          let c = contacts.find(x=> x.tf17 === other);
-          if(!c) {
-            c = { id:'c_'+Date.now(), tf17: other, tfid: formatTFShort(other), name: '', lastMsg: text, lastTs: Date.now(), unread:1 };
+        addOrUpdateMessageToCache(to17(normalizeInputToDigits(profile.tfid) || profile.tfid), other, { id: payload.id || null, cid: parsed && parsed.cid ? parsed.cid : null, from: from || other, text, created_at: created });
+        // if current chat is open with this other -> render
+        if(currentChat && to17(normalizeInputToDigits(currentChat.tfid) || currentChat.tfid) === other){
+          renderMessageList(conversationCache[convKey(to17(normalizeInputToDigits(profile.tfid) || profile.tfid), other)] || []);
+        } else if(recipient === to17(normalizeInputToDigits(profile.tfid) || profile.tfid)){
+          // bump contact unread
+          let c = contacts.find(x => x.tf17 === other);
+          if(!c){
+            c = { id:'c_'+Date.now(), tf17: other, tfid: formatTFShort(other), name: '', lastMsg: text, lastTs: Date.now(), unread: 1 };
             contacts.unshift(c);
           } else {
-            c.unread = (c.unread||0) + 1;
+            c.unread = (c.unread || 0) + 1;
             c.lastMsg = text;
             c.lastTs = Date.now();
           }
@@ -506,44 +499,56 @@ function initWebSocket(){
           renderContacts(searchInputEl?.value);
         }
       }
-    } catch(e){ console.warn('WS onmessage err', e); }
+    }catch(e){ console.warn('WS onmessage parse', e); }
   };
-  ws.onclose = () => { wsConnected = false; setTimeout(initWebSocket, 3000); };
-  ws.onerror = (err) => { console.warn('WS error', err); try{ ws.close(); }catch(e){} };
+  ws.onclose = ()=>{ console.log('WS closed — reconnecting in 3s'); scheduleReconnect(); };
+  ws.onerror = (e)=>{ console.warn('WS error', e); try{ ws.close(); }catch(e){} };
 }
 
-/* ================== SETTINGS UI ================== */
+function scheduleReconnect(){ if(reconnectTimer) return; reconnectTimer = setTimeout(()=>{ reconnectTimer = null; initWebSocket(); }, 3000); }
+
+/* ============== SETTINGS UI ================== */
 function updateSettingsUI(){
   settingsAvatar.textContent = initials(profile.name || profile.tfid);
   settingsName.textContent = profile.name || 'Utilisateur';
   settingsTfid.textContent = profile.tfid || '';
   profileNameInput.value = profile.name || '';
-  profileTfidInput.value = (profile.tfid || '').replace(/^TF-?/i, '').slice(-7);
+  profileTfidInput.value = (profile.tfid || '').replace(/^TF-?/i,'').slice(-7);
 }
-settingsBtn?.addEventListener('click', ()=> { updateSettingsUI(); settingsModal.style.display = 'block'; });
-settingsClose?.addEventListener('click', ()=> settingsModal.style.display = 'none');
-
-profileSave?.addEventListener('click', ()=> {
+settingsBtn?.addEventListener('click', ()=> { updateSettingsUI(); showModal(settingsModal); });
+settingsClose?.addEventListener('click', ()=> hideModal(settingsModal));
+profileSave?.addEventListener('click', ()=>{
   const newName = profileNameInput.value.trim();
   const short = normalizeInputToDigits(profileTfidInput.value.trim());
-  if (!short || short.length < 7) { alert('TFID pa valab — antre 7 chif.'); return; }
+  if(!short || short.length < 7){ alert('TFID pa valab — antre 7 chif.'); return; }
   profile.name = newName || profile.name;
   profile.tfid = formatTFShort(short);
   localStorage.setItem(KEY_PROFILE, JSON.stringify(profile));
   updateSettingsUI();
-  settingsModal.style.display = 'none';
-  // resubscribe ws to new tfid
-  if(ws && ws.readyState === WebSocket.OPEN){
-    try { ws.send(JSON.stringify({ type:'subscribe', tfid: to17(normalizeInputToDigits(profile.tfid) || profile.tfid) })); }catch(e){}
-  }
+  hideModal(settingsModal);
+  // re-subscribe WS with new tfid
+  try{ if(ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ type:'subscribe', tfid: to17(normalizeInputToDigits(profile.tfid) || profile.tfid) })); }catch(e){}
 });
 
-/* ================== BOOT ================== */
+/* ================ CONTACT HELPERS ================== */
+function ensureContactInList(tf17, name){
+  let c = contacts.find(x=> x.tf17 === tf17);
+  if(!c){ c = { id: 'c_'+Date.now(), tf17, tfid: formatTFShort(tf17), name: name||'', lastMsg:'', lastTs: Date.now(), unread:0 }; contacts.unshift(c); localStorage.setItem(KEY_CONTACTS, JSON.stringify(contacts)); renderContacts(); }
+  return c;
+}
+
+/* ================ BOOT ================ */
 renderContacts();
 updateSettingsUI();
-registerFrontendIfNeeded().then(()=>initWebSocket()).catch(()=>initWebSocket());
+registerFrontendIfNeeded().then(()=> initWebSocket()).catch(()=> initWebSocket());
 window._tf_contacts = contacts;
 window._tf_profile = profile;
+
+/* allow search button click too (same as enter) */
+document.getElementById('searchInput')?.addEventListener('input', ()=>{/* noop: handled above */});
+(function attachSearchBtn(){
+  const btn = document.getElementById('searchInput') ? document.querySelector('#searchInput') : null;
+})();
 </script>
 </body>
-            </html>
+              </html>
