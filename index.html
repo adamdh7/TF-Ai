@@ -1,5 +1,4 @@
 <!doctype html>
-
 <html lang="ht">
 <head>
 <meta charset="utf-8" />
@@ -61,21 +60,29 @@ main{position:fixed;left:0;right:0;top:var(--header-h);bottom:0;overflow:auto;pa
 </style>
 </head>
 <body>
-  <header><div class="app-title">TF-Chat</div></header>  <div class="banner" id="pwBanner">Tanpri mete yon modpas pou sekirize sesyon ou. Ou gen 2 min pou sove li.</div>  <main>
+  <header><div class="app-title">TF-Chat</div></header>
+
+  <div class="banner" id="pwBanner">Tanpri mete yon modpas pou sekirize sesyon ou. Ou gen 2 min pou sove li.</div>
+
+  <main>
     <section class="search">
       <div class="search-box" role="search">
         <svg viewBox="0 0 24 24" width="16" height="16" fill="none"><path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="1.6"/><circle cx="11" cy="11" r="6" stroke="currentColor" stroke-width="1.6"/></svg>
         <input id="searchInput" placeholder="Recherche (TFID ou 7 chif)" aria-label="Recherche" />
         <button id="searchBtn" class="search-btn">Rechercher</button>
       </div>
-    </section><section class="list" id="contactsList" aria-live="polite"></section>
+    </section>
 
-<div class="bottom-right">
-  <div class="ws-indicator" id="wsStatus">WS: —</div>
-  <button id="settingsBtn" class="send-btn">Paramètres</button>
-</div>
+    <section class="list" id="contactsList" aria-live="polite"></section>
 
-  </main>  <!-- Chat modal -->  <div id="chatModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.96);z-index:1200">
+    <div class="bottom-right">
+      <div class="ws-indicator" id="wsStatus">WS: —</div>
+      <button id="settingsBtn" class="send-btn">Paramètres</button>
+    </div>
+  </main>
+
+  <!-- Chat modal -->
+  <div id="chatModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.96);z-index:1200">
     <div style="height:100%;display:flex;flex-direction:column">
       <div style="height:56px;display:flex;align-items:center;padding:8px 12px;border-bottom:1px solid rgba(255,255,255,0.03)">
         <button id="chatBack" style="background:transparent;border:0;color:var(--text);cursor:pointer">←</button>
@@ -90,7 +97,13 @@ main{position:fixed;left:0;right:0;top:var(--header-h);bottom:0;overflow:auto;pa
         <button id="sendBtn" class="send-btn">Envoyer</button>
       </div>
     </div>
-  </div>  <!-- invisible file input for avatar selection -->  <input type="file" id="profileFile" accept="image/*" style="display:none" />  <!-- Profile modal (fullscreen contact info) -->  <div class="profile-modal" id="profileModal">
+  </div>
+
+  <!-- invisible file input for avatar selection -->
+  <input type="file" id="profileFile" accept="image/*" style="display:none" />
+
+  <!-- Profile modal (fullscreen contact info) -->
+  <div class="profile-modal" id="profileModal">
     <div class="profile-card" role="dialog" aria-modal="true">
       <div class="profile-row">
         <div class="profile-avatar" id="profileAvatar">U</div>
@@ -105,33 +118,40 @@ main{position:fixed;left:0;right:0;top:var(--header-h);bottom:0;overflow:auto;pa
         <button id="closeProfileBtn" style="padding:8px 12px;border-radius:8px;border:1px solid #e6edf3;background:white;cursor:pointer">Fermer</button>
       </div>
     </div>
-  </div>  <!-- Settings modal: white inner panel -->  <div id="settingsModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:1200;align-items:center;justify-content:center;display:flex;">
+  </div>
+
+  <!-- Settings modal: white inner panel -->
+  <!-- NOTE: display:flex removed from inline style so modal stays hidden until JS opens it -->
+  <div id="settingsModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:1200;align-items:center;justify-content:center;">
     <div class="settings-panel" role="dialog" aria-modal="true">
-      <h3 style="margin:0 0 12px 0">Paramètres — Identité</h3><div style="margin-bottom:8px">
-    <label class="settings-label">Pseudo affiché</label>
-    <input id="profileNameInput" style="width:100%;padding:10px;border-radius:8px;border:1px solid #e6eef3;margin-top:6px" />
+      <h3 style="margin:0 0 12px 0">Paramètres — Identité</h3>
+
+      <div style="margin-bottom:8px">
+        <label class="settings-label">Pseudo affiché</label>
+        <input id="profileNameInput" style="width:100%;padding:10px;border-radius:8px;border:1px solid #e6eef3;margin-top:6px" />
+      </div>
+
+      <div style="margin-bottom:12px">
+        <label class="settings-label">TFID (7 chif) — ex: 0204143</label>
+        <input id="profileTfidInput" style="width:100%;padding:10px;border-radius:8px;border:1px solid #e6eef3;margin-top:6px" />
+        <div style="font-size:12px;color:#6b7280;margin-top:6px">Sere TFID tankou TF-XXXXXXX. Sistèm lan konvèti pou TF-17-chif otomatikman.</div>
+      </div>
+
+      <!-- PASSWORD UI (new) -->
+      <div style="margin-bottom:12px">
+        <label class="settings-label">Mot de passe (créer / changer)</label>
+        <input id="profilePwInput" type="password" placeholder="Nouveau mot de passe" style="width:100%;padding:10px;border-radius:8px;border:1px solid #e6eef3;margin-top:6px" />
+        <div style="font-size:12px;color:#6b7280;margin-top:6px">Le mot de passe est haché côté client et stocké localement. Ne partagez pas ce mot de passe.</div>
+      </div>
+
+      <div style="display:flex;justify-content:flex-end;gap:8px">
+        <button id="settingsCancel" style="padding:8px 12px;border-radius:8px;border:1px solid #e6edf3;background:white;cursor:pointer">Annuler</button>
+        <button id="profileSave" style="padding:8px 12px;border-radius:8px;background:#007aff;color:white;border:none;cursor:pointer">Sove</button>
+      </div>
+    </div>
   </div>
 
-  <div style="margin-bottom:12px">
-    <label class="settings-label">TFID (7 chif) — ex: 0204143</label>
-    <input id="profileTfidInput" style="width:100%;padding:10px;border-radius:8px;border:1px solid #e6eef3;margin-top:6px" />
-    <div style="font-size:12px;color:#6b7280;margin-top:6px">Sere TFID tankou TF-XXXXXXX. Sistèm lan konvèti pou TF-17-chif otomatikman.</div>
-  </div>
-
-  <!-- PASSWORD UI (new) -->
-  <div style="margin-bottom:12px">
-    <label class="settings-label">Mot de passe (créer / changer)</label>
-    <input id="profilePwInput" type="password" placeholder="Nouveau mot de passe" style="width:100%;padding:10px;border-radius:8px;border:1px solid #e6eef3;margin-top:6px" />
-    <div style="font-size:12px;color:#6b7280;margin-top:6px">Le mot de passe est haché côté client et stocké localement. Ne partagez pas ce mot de passe.</div>
-  </div>
-
-  <div style="display:flex;justify-content:flex-end;gap:8px">
-    <button id="settingsCancel" style="padding:8px 12px;border-radius:8px;border:1px solid #e6edf3;background:white;cursor:pointer">Annuler</button>
-    <button id="profileSave" style="padding:8px 12px;border-radius:8px;background:#007aff;color:white;border:none;cursor:pointer">Sove</button>
-  </div>
-</div>
-
-  </div><script>
+<script>
 /* ================== CONFIG ================== */
 const API_BASE = 'https://tf-sove.onrender.com';
 const PROFILE_UPLOAD_URL = 'https://tf-stream-url.onrender.com/upload';
@@ -192,10 +212,7 @@ function getPasswordHash(tf17){ return localStorage.getItem(pwKeyForTf(tf17)); }
 
 /* ================== RENDER ================== */
 function updateSettingsUI(){ profileNameInput.value = me.name || ''; profileTfidInput.value = (me.tf17 || '').replace(/^TF-?/i, '').slice(-7); profilePwInput.value = ''; }
-function renderContacts(filter=''){ contactsListEl.innerHTML = ''; const q = (filter||'').toLowerCase().trim(); const list = contacts.filter(c => { if(!q) return true; return (c.name||'').toLowerCase().includes(q) || (c.tf17||'').toLowerCase().includes(q); }); if(list.length === 0){ const div = document.createElement('div'); div.className = 'muted'; div.textContent = 'Pa gen kontak. Rechèch yon TFID oswa ajoute yon kontak.'; contactsListEl.appendChild(div); return; } list.forEach(c => { const el = document.createElement('div'); el.className = 'contact'; el.dataset.tf17 = c.tf17 || c.tf17; const avatarHtml = c.logo ? `<img src="${c.logo}" style="width:100%;height:100%;border-radius:50%">` : (c.avatar ? `<img src="${c.avatar}" />` : escapeHtml((c.name||formatTFShort(c.tf17) || '').slice(0,2))); const blockedBadge = c.blocked ? ' <span style="color:#ffdcdc;font-weight:700"> (Bloqué)</span>' : ''; el.innerHTML = `<div class="avatar">${avatarHtml}</div>\n      <div class="meta">\n        <div class="meta-top">\n          <div class="name">${escapeHtml(c.name||formatTFShort(c.tf17)||'')}${blockedBadge}</div>\n          <div class="time">${c.lastTs? timeAgo(c.lastTs): ''}</div>\n        </div>\n        <div class="meta-bottom">\n          <div class="snippet">${escapeHtml(c.lastMsg||'')}</div>\n          <div>${c.unread?'<span class="badge">'+c.unread+'</span>':''}</div>\n        </div>\n      </div>`;
-    el.addEventListener('click', ()=> { openChat(c.tf17, c, true); });
-    contactsListEl.appendChild(el);
-  }); }
+function renderContacts(filter=''){ contactsListEl.innerHTML = ''; const q = (filter||'').toLowerCase().trim(); const list = contacts.filter(c => { if(!q) return true; return (c.name||'').toLowerCase().includes(q) || (c.tf17||'').toLowerCase().includes(q); }); if(list.length === 0){ const div = document.createElement('div'); div.className = 'muted'; div.textContent = 'Pa gen kontak. Rechèch yon TFID oswa ajoute yon kontak.'; contactsListEl.appendChild(div); return; } list.forEach(c => { const el = document.createElement('div'); el.className = 'contact'; el.dataset.tf17 = c.tf17 || c.tf17; const avatarHtml = c.logo ? `<img src="${c.logo}" style="width:100%;height:100%;border-radius:50%">` : (c.avatar ? `<img src="${c.avatar}" />` : escapeHtml((c.name||formatTFShort(c.tf17) || '').slice(0,2))); const blockedBadge = c.blocked ? ' <span style="color:#ffdcdc;font-weight:700"> (Bloqué)</span>' : ''; el.innerHTML = `<div class="avatar">${avatarHtml}</div>\n      <div class="meta">\n        <div class="meta-top">\n          <div class="name">${escapeHtml(c.name||formatTFShort(c.tf17)||'')}${blockedBadge}</div>\n          <div class="time">${c.lastTs? timeAgo(c.lastTs): ''}</div>\n        </div>\n        <div class="meta-bottom">\n          <div class="snippet">${escapeHtml(c.lastMsg||'')}</div>\n          <div>${c.unread?'<span class="badge">'+c.unread+'</span>':''}</div>\n        </div>\n      </div>`; el.addEventListener('click', ()=> { openChat(c.tf17, c, true); }); contactsListEl.appendChild(el); }); }
 function timeAgo(ts){ if(!ts) return ''; const diff=Math.floor((Date.now()-ts)/1000); if(diff<60) return diff+'s'; if(diff<3600) return Math.floor(diff/60)+'m'; if(diff<86400) return Math.floor(diff/3600)+'h'; return new Date(ts).toLocaleDateString(); }
 
 /* ================== NETWORK ================== */
@@ -209,25 +226,16 @@ function convKey(a,b){ return `${a}|${b}`; }
 function messageUniqueKey(m){ if(m.cid) return "cid:"+m.cid; if(m.id) return "id:"+m.id; return "temp:"+ (m._tempKey || (m._tempKey = Math.random().toString(36).slice(2))); }
 function compareMessagesAsc(a,b){ const ta = parseDatePrefer(a._db_created_at, a.parsed_time); const tb = parseDatePrefer(b._db_created_at, b.parsed_time); if(ta !== tb) return ta - tb; if(a.id && b.id && a.id !== b.id) return Number(a.id) - Number(b.id); if(a.cid && b.cid && a.cid !== b.cid) return a.cid < b.cid ? -1 : 1; return 0; }
 function addOrUpdateMessageToCache(me17, other17, msg){ const key = convKey(me17, other17); if(!conversationCache[key]) conversationCache[key] = []; const list = conversationCache[key]; const findIndex = msg.cid ? list.findIndex(x => x.cid && x.cid === msg.cid) : (msg.id ? list.findIndex(x => x.id && String(x.id) === String(msg.id)) : -1); if(findIndex !== -1){ list[findIndex] = Object.assign({}, list[findIndex], msg); } else { list.push(msg); } list.sort(compareMessagesAsc); }
-async function loadConversation(me17, other17){ const key = convKey(me17, other17); conversationCache[key] = conversationCache[key] || []; const seen = new Set(); function pushRow(r, expectedFrom){ let parsed = null; try { parsed = JSON.parse(r.content); } catch(e){ parsed = null; } const parsedFrom = parsed && parsed.from ? parsed.from : null; const parsedTime = parsed && parsed.time ? parsed.time : null; const parsedCid = parsed && parsed.cid ? parsed.cid : null; const parsedText = parsed && (parsed.text || parsed.message) ? (parsed.text || parsed.message) : (r.content || ""); if(!parsedFrom || parsedFrom !== expectedFrom) return; const m = { id: r.id || null, cid: parsedCid || null, from: parsedFrom, text: parsedText, parsed_time: parsedTime || null, _db_created_at: r.created_at || null, created_at: parsedTime || r.created_at || nowISO() }; const keyu = messageUniqueKey(m); if(seen.has(keyu)) return; seen.add(keyu); addOrUpdateMessageToCache(me17, other17, m); }
-  try { const outRows = await apiList(other17); for(const r of outRows) pushRow(r, me17); } catch(e){ console.warn("LIST outgoing failed for", other17, e.message || e); }
-  try { const inRows = await apiList(me17); for(const r of inRows) pushRow(r, other17); } catch(e){ console.warn("LIST incoming failed for", me17, e.message || e); }
-  renderConversation(me17, other17);
-}
+async function loadConversation(me17, other17){ const key = convKey(me17, other17); conversationCache[key] = conversationCache[key] || []; const seen = new Set(); function pushRow(r, expectedFrom){ let parsed = null; try { parsed = JSON.parse(r.content); } catch(e){ parsed = null; } const parsedFrom = parsed && parsed.from ? parsed.from : null; const parsedTime = parsed && parsed.time ? parsed.time : null; const parsedCid = parsed && parsed.cid ? parsed.cid : null; const parsedText = parsed && (parsed.text || parsed.message) ? (parsed.text || parsed.message) : (r.content || ""); if(!parsedFrom || parsedFrom !== expectedFrom) return; const m = { id: r.id || null, cid: parsedCid || null, from: parsedFrom, text: parsedText, parsed_time: parsedTime || null, _db_created_at: r.created_at || null, created_at: parsedTime || r.created_at || nowISO() }; const keyu = messageUniqueKey(m); if(seen.has(keyu)) return; seen.add(keyu); addOrUpdateMessageToCache(me17, other17, m); } try { const outRows = await apiList(other17); for(const r of outRows) pushRow(r, me17); } catch(e){ console.warn("LIST outgoing failed for", other17, e.message || e); } try { const inRows = await apiList(me17); for(const r of inRows) pushRow(r, other17); } catch(e){ console.warn("LIST incoming failed for", me17, e.message || e); } renderConversation(me17, other17); }
 function ensureMessagesPadding(){ const wrap = document.querySelector('#chatModal .messages-wrap'); if(!wrap) return; const inputRow = document.getElementById('chatInputRow'); const h = inputRow ? inputRow.getBoundingClientRect().height : 80; wrap.style.paddingBottom = (h + 16) + 'px'; }
 window.addEventListener('resize', ensureMessagesPadding);
 
-function renderConversation(me17, other17){ ensureMessagesPadding(); const key = convKey(me17, other17); const arr = conversationCache[key] ? [...conversationCache[key]] : []; messagesEl.innerHTML = ''; if(arr.length === 0){ messagesEl.innerHTML = `<div class="muted">Pa gen mesaj ankò.</div>`; } else { arr.sort(compareMessagesAsc); for(const m of arr){ const d = document.createElement('div'); d.className = 'msg ' + (m.from === me17 ? 'user' : 'bot'); const ts = m.created_at ? (new Date(m.created_at)).toLocaleString() : ''; let checksHtml = ''; if(m.from === me17){ if(m.id) checksHtml = '<span class="checks">✓✓</span>'; else checksHtml = '<span class="checks">✓</span>'; } d.innerHTML = `<div>${escapeHtml(m.text)}</div><div style="font-size:11px;color:var(--muted);margin-top:6px">${formatTFShort(m.from||'')} • ${ts} ${checksHtml}</div>`; messagesEl.appendChild(d); } }
-  setTimeout(()=> { messagesEl.parentElement.scrollTop = messagesEl.parentElement.scrollHeight; }, 50);
-}
+function renderConversation(me17, other17){ ensureMessagesPadding(); const key = convKey(me17, other17); const arr = conversationCache[key] ? [...conversationCache[key]] : []; messagesEl.innerHTML = ''; if(arr.length === 0){ messagesEl.innerHTML = `<div class="muted">Pa gen mesaj ankò.</div>`; } else { arr.sort(compareMessagesAsc); for(const m of arr){ const d = document.createElement('div'); d.className = 'msg ' + (m.from === me17 ? 'user' : 'bot'); const ts = m.created_at ? (new Date(m.created_at)).toLocaleString() : ''; let checksHtml = ''; if(m.from === me17){ if(m.id) checksHtml = '<span class="checks">✓✓</span>'; else checksHtml = '<span class="checks">✓</span>'; } d.innerHTML = `<div>${escapeHtml(m.text)}</div><div style="font-size:11px;color:var(--muted);margin-top:6px">${formatTFShort(m.from||'')} • ${ts} ${checksHtml}</div>`; messagesEl.appendChild(d); } } setTimeout(()=> { messagesEl.parentElement.scrollTop = messagesEl.parentElement.scrollHeight; }, 50); }
 
 /* ================== CHAT OPEN/SEND ================== */
 async function openChat(other17, contactObj=null, pushHistory=true){
-  if(!me.tf17){ // do not auto prompt on open — ask user to open settings instead
-    alert('Pa gen TFID pou itilizatè a. Louver Paramèt pou mete TFID la.');
-    return;
-  }
-  if(contactObj && contactObj.blocked){ /* allowed to view but sending prevented */ }
+  if(!me.tf17){ alert('Pa gen TFID pou itilizatè a. Louver Paramèt pou mete TFID la.'); return; }
+  if(contactObj && contactObj.blocked){ }
   currentPartner = { tf17: other17, name: (contactObj && contactObj.name) || null };
   chatTitleEl.textContent = (currentPartner.name || formatTFShort(currentPartner.tf17));
   const c = contacts.find(x => x.tf17 === other17);
@@ -235,12 +243,9 @@ async function openChat(other17, contactObj=null, pushHistory=true){
   messagesEl.innerHTML = '<div class="muted">Chaje mesaj...</div>';
   try { await loadConversation(me.tf17, other17); } catch(e){ messagesEl.innerHTML = `<div class="muted">Pa kapab chaje mesaj: ${escapeHtml(e.message||e)}</div>`; }
   showChatModal();
-
-  // push URL slug so back button works — use TF17 as slug
   try {
     const slug = encodeURIComponent(other17);
     if(pushHistory){
-      // replace current state with a marker first (so a single back returns to base)
       if(!history.state || !history.state._tfchat_init){ history.replaceState(Object.assign({}, history.state || {}, {_tfchat_init:true}), '', location.pathname); }
       history.pushState({tfchat: other17}, '', '/' + slug);
     }
@@ -256,15 +261,42 @@ function startShortPollForMessage(target17, cid){ let tries = 0; const maxTries 
 function ensureContactInList(tf17, name){ let c = contacts.find(x=>x.tf17===tf17); if(!c){ c = { tf17, short: formatTFShort(tf17), name: name||null, unread:0, blocked:false, avatar:null }; contacts.unshift(c); saveState(); renderContacts(); } return c; }
 
 /* ================== PROMPT FOR ME (settings modal) ================== */
-function promptForMeModal(){ updateSettingsUI(); settingsModal.style.display = 'flex'; profileNameInput.focus(); return new Promise(resolve=>{ async function onSave(){ const nameVal = profileNameInput.value.trim(); const short = normalizeInputToDigits(profileTfidInput.value.trim()); if(!short || short.length < 7){ alert('TFID invalide — antre 7 chif.'); return; } const tfShort = short.slice(-7); const tf17c = to17(tfShort); const existingHash = getPasswordHash(tf17c); if(existingHash){ const pw = prompt('TFID sa egziste deja lokalman. Antre modpas pou kont sa:'); if(!pw){ alert('Modpas obligatwa pou kont sa.'); return; } const has = await hashPasswordHex(pw); if(has !== existingHash){ alert('Modpas pa kòrèk.'); return; } }
-      me.name = nameVal || me.name || 'Utilisateur'; me.short = tfShort; me.tf17 = to17(me.short); saveState(); settingsModal.style.display = 'none'; cleanup(); registerFrontendIfNeeded().then(()=>{ if(ws && ws.readyState === WebSocket.OPEN){ try{ ws.send(JSON.stringify({ type:'subscribe', tfid: me.tf17 })); }catch(e){} } else connectWS(); }); resolve(true); }
+function promptForMeModal(){
+  updateSettingsUI();
+  settingsModal.style.display = 'flex';
+  profileNameInput.focus();
+  return new Promise(resolve=>{
+    async function onSave(){
+      const nameVal = profileNameInput.value.trim();
+      const short = normalizeInputToDigits(profileTfidInput.value.trim());
+      if(!short || short.length < 7){ alert('TFID invalide — antre 7 chif.'); return; }
+      const tfShort = short.slice(-7);
+      const tf17c = to17(tfShort);
+      const existingHash = getPasswordHash(tf17c);
+      if(existingHash){
+        const pw = prompt('TFID sa egziste deja lokalman. Antre modpas pou kont sa:');
+        if(!pw){ alert('Modpas obligatwa pou kont sa.'); return; }
+        const has = await hashPasswordHex(pw);
+        if(has !== existingHash){ alert('Modpas pa kòrèk.'); return; }
+      }
+      me.name = nameVal || me.name || 'Utilisateur';
+      me.short = tfShort;
+      me.tf17 = to17(me.short);
+      saveState();
+      settingsModal.style.display = 'none';
+      cleanup();
+      registerFrontendIfNeeded().then(()=>{ if(ws && ws.readyState === WebSocket.OPEN){ try{ ws.send(JSON.stringify({ type:'subscribe', tfid: me.tf17 })); }catch(e){} } else connectWS(); });
+      resolve(true);
+    }
     function onCancel(){ settingsModal.style.display = 'none'; cleanup(); resolve(false); }
     function cleanup(){ profileSaveBtn.removeEventListener('click', onSave); settingsCancelBtn.removeEventListener('click', onCancel); }
-    profileSaveBtn.addEventListener('click', onSave); settingsCancelBtn.addEventListener('click', onCancel);
-  }); }
+    profileSaveBtn.addEventListener('click', onSave);
+    settingsCancelBtn.addEventListener('click', onCancel);
+  });
+}
 
 /* ================== PW BANNER/TIMERS ================== */
-function triggerPwBannerIfNeeded(){ /* intentionally disabled: do not force banner/reloads on refresh */ }
+function triggerPwBannerIfNeeded(){ if(!me.tf17) return; if(hasPasswordFor(me.tf17)) { hidePwBanner(); return; } pwBanner.style.display = 'block'; if(pwWarningTimer) clearTimeout(pwWarningTimer); if(pwForceReloadTimer) clearTimeout(pwForceReloadTimer); pwWarningTimer = setTimeout(()=> { settingsModal.style.display = 'flex'; updateSettingsUI(); }, 60 * 1000); pwForceReloadTimer = setTimeout(()=> { location.reload(); }, 2 * 60 * 1000); }
 function hidePwBanner(){ pwBanner.style.display = 'none'; if(pwWarningTimer) { clearTimeout(pwWarningTimer); pwWarningTimer=null; } if(pwForceReloadTimer){ clearTimeout(pwForceReloadTimer); pwForceReloadTimer=null; } }
 
 /* ================== WEBSOCKET ================== */
@@ -300,9 +332,8 @@ async function autoUploadProfileFile(file){ if(!file) return; if(!file.type || !
 
 /* ================== UI EVENTS ================== */
 document.getElementById('chatBack')?.addEventListener('click', ()=>{
-  // if a slug is present, go back so the URL returns to base; otherwise just hide modal
   const path = location.pathname || '/';
-  if(path && path.replace(/^\/+/, '') !== '' ){
+  if(path && path.replace(/^\//, '') !== '' ){
     history.back();
   } else {
     hideChatModal();
@@ -321,23 +352,16 @@ settingsCancelBtn?.addEventListener('click', ()=> settingsModal.style.display = 
 /* ================== POPSTATE / URL SLUG HANDLING ================== */
 window.addEventListener('popstate', (ev)=>{
   const s = ev.state;
-  if(s && s.tfchat){ // open chat for this tf
-    openChat(s.tfchat, contacts.find(c=>c.tf17===s.tfchat)||null, false);
-  } else {
-    // no state -> close chat
-    hideChatModal();
-  }
+  if(s && s.tfchat){ openChat(s.tfchat, contacts.find(c=>c.tf17===s.tfchat)||null, false); } else { hideChatModal(); }
 });
 
 /* if page loaded with a slug, try open chat */
-(function handleInitialPath(){ const raw = location.pathname.replace(/^\/+/, ''); if(!raw) return; let candidate = raw; try { // if path looks like TF-... or digits
+(function handleInitialPath(){ const raw = location.pathname.replace(/^\/+/, ''); if(!raw) return; let candidate = raw; try {
       if(/^TF-?\d{7,}$/.test(candidate) || /^\d{7,}$/.test(candidate) || /^\d{17,}$/.test(candidate)){
         const tf17 = candidate.startsWith('TF-') ? candidate : to17(candidate);
-        // try to find contact or create a local one and open chat (no history push)
         let c = contacts.find(x=>x.tf17===tf17);
         if(!c){ c = { tf17, name: formatTFShort(tf17), lastMsg:'', lastTs: Date.now(), unread:0, blocked:false, avatar:null }; contacts.unshift(c); saveState(); renderContacts(); }
-        // if user doesn't have a me.tf17, do not auto-open but show notice
-        if(me.tf17){ openChat(tf17, c, false); } else { /* could show a toast asking user to set TFID */ }
+        if(me.tf17){ openChat(tf17, c, false); } else { /* don't auto-open settings here */ }
       }
     } catch(e){ console.warn('initial path parse failed', e); }
 })();
@@ -345,9 +369,25 @@ window.addEventListener('popstate', (ev)=>{
 /* ================== BOOT ================== */
 renderContacts();
 if(me.avatarDataUrl){ document.querySelectorAll('.avatar').forEach(el => { if(!el.querySelector('img')) el.innerHTML = `<img src="${me.avatarDataUrl}" />`; }); }
-if(me.tf17){ connectWS(); /* do not trigger pw banner automatically */ } else { /* DO NOT auto open settings on refresh */ }
+
+// Connect WS if user already defined
+if(me.tf17){
+  connectWS();
+  // do not force banner/modal on refresh if me.tf17
+} else {
+  // If no TFID, show settings modal automatically only ONCE (first visit)
+  const shownOnce = localStorage.getItem('tfchat.settings_shown_once');
+  if(!shownOnce){
+    promptForMeModal().then(()=>{ /* no-op */ });
+    localStorage.setItem('tfchat.settings_shown_once', '1');
+  } else {
+    // do nothing - user can open settings manually
+  }
+}
 
 /* expose debug */
-window._tf_contacts = contacts; window._tf_me = me;
-</script></body>
-  </html>
+window._tf_contacts = contacts;
+window._tf_me = me;
+</script>
+</body>
+          </html>
