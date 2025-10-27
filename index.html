@@ -1,52 +1,60 @@
 <!doctype html>
 <html lang="ht">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no" />
-  <title>TF-Chat</title>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;600;700&display=swap" rel="stylesheet">
-  <style>
-    :root{--bg:#000000;--panel:#000000;--text:#e6eefb;--muted:#9aa6bf;--card:#0b0b0b;--accent:#0b81ff;--header-h:56px}
-    *{box-sizing:border-box}
-    html,body{height:100%;margin:0;padding:0;background:var(--bg);color:var(--text);font-family:Roboto,system-ui,Arial,sans-serif;-webkit-font-smoothing:antialiased}
-    header{position:fixed;left:0;right:0;top:0;height:var(--header-h);display:flex;align-items:center;justify-content:center;background:var(--panel);z-index:1000;border-bottom:1px solid rgba(255,255,255,0.03)}
-    .app-title{font-weight:700;font-size:18px}
-    main{position:fixed;left:0;right:0;top:var(--header-h);bottom:0;overflow:auto;padding:12px}
-    .search{padding:6px 0}
-    .search-box{display:flex;align-items:center;gap:8px;background:var(--card);padding:10px;border-radius:999px;border:1px solid rgba(255,255,255,0.03)}
-    .search-box input{flex:1;background:transparent;border:0;outline:none;color:var(--text);font-size:15px}
-    .list{margin-top:12px}
-    .contact{display:flex;gap:12px;align-items:center;padding:12px;border-radius:12px;cursor:pointer}
-    .avatar{width:56px;height:56px;border-radius:50%;background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;color:var(--text);flex-shrink:0}
-    .meta{flex:1;min-width:0}
-    .meta-top{display:flex;justify-content:space-between;align-items:flex-start}
-    .name{font-weight:600;font-size:16px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
-    .time{font-size:12px;color:var(--muted)}
-    .meta-bottom{display:flex;justify-content:space-between;margin-top:6px;align-items:center}
-    .snippet{font-size:13px;color:var(--muted);overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
-    .badge{background:var(--accent);color:white;padding:4px 8px;border-radius:999px;font-weight:600;font-size:13px}
-    .messages{padding:12px;height:calc(100% - 56px - 84px);overflow:auto;display:flex;flex-direction:column;gap:8px}
-    .msg{max-width:74%;padding:10px;border-radius:12px;margin-bottom:4px}
-    .msg.bot{background:#121212;color:var(--text);align-self:flex-start}
-    .msg.user{background:linear-gradient(180deg,var(--accent),#0563c9);color:white;align-self:flex-end}
-    .chat-input{display:flex;gap:8px;align-items:center}
-    .input{flex:1;padding:12px;border-radius:999px;border:1px solid rgba(255,255,255,0.03);background:var(--card);color:var(--text);outline:none}
-    .send-btn{background:transparent;border:0;padding:8px;border-radius:10px;cursor:pointer;color:var(--accent)}
-    .muted{text-align:center;color:var(--muted);padding:20px}
-    .bottom-right { position: fixed; right: 16px; bottom: 16px; z-index: 1100; display:flex; gap:8px; align-items:center; }
-    .ws-indicator{font-size:12px;color:var(--muted);margin-right:8px}
-    @media (min-width:900px){main{max-width:700px;margin:0 auto}}
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1.0" />
+<title>TF-Chat (dark • site1)</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#000000; --panel:#000000; --text:#e6eefb; --muted:#9aa6bf;
+  --card:#0b0b0b; --accent:#0b81ff; --header-h:56px;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;padding:0;background:var(--bg);color:var(--text);font-family:Roboto,system-ui,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+header{position:fixed;left:0;right:0;top:0;height:var(--header-h);display:flex;align-items:center;justify-content:center;background:var(--panel);z-index:1000;border-bottom:1px solid rgba(255,255,255,0.03)}
+.app-title{font-weight:700;font-size:18px}
+main{position:fixed;left:0;right:0;top:var(--header-h);bottom:0;overflow:auto;padding:12px}
+.search{padding:6px 0}
+.search-box{display:flex;align-items:center;gap:8px;background:var(--card);padding:10px;border-radius:999px;border:1px solid rgba(255,255,255,0.03)}
+.search-box input{flex:1;background:transparent;border:0;outline:none;color:var(--text);font-size:15px}
+.search-btn{background:var(--accent);border:none;color:white;padding:8px 12px;border-radius:10px;cursor:pointer;font-weight:600}
+.list{margin-top:12px}
+.contact{display:flex;gap:12px;align-items:center;padding:12px;border-radius:12px;cursor:pointer}
+.contact:hover{background:rgba(255,255,255,0.02)}
+.avatar{width:56px;height:56px;border-radius:50%;background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;color:var(--text);flex-shrink:0}
+.meta{flex:1;min-width:0}
+.meta-top{display:flex;justify-content:space-between;align-items:flex-start}
+.name{font-weight:600;font-size:16px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.time{font-size:12px;color:var(--muted)}
+.meta-bottom{display:flex;justify-content:space-between;margin-top:6px;align-items:center}
+.snippet{font-size:13px;color:var(--muted);overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.badge{background:var(--accent);color:white;padding:4px 8px;border-radius:999px;font-weight:600;font-size:13px}
+.messages{padding:12px;height:calc(100% - 56px - 84px);overflow:auto;display:flex;flex-direction:column;gap:8px}
+.msg{max-width:74%;padding:10px;border-radius:12px;margin-bottom:4px}
+.msg.bot{background:#121212;color:var(--text);align-self:flex-start}
+.msg.user{background:linear-gradient(180deg,var(--accent),#0563c9);color:white;align-self:flex-end}
+.chat-input{display:flex;gap:8px;align-items:center}
+.input{flex:1;padding:12px;border-radius:999px;border:1px solid rgba(255,255,255,0.03);background:var(--card);color:var(--text);outline:none}
+.send-btn{background:transparent;border:0;padding:8px;border-radius:10px;cursor:pointer;color:var(--accent)}
+.muted{text-align:center;color:var(--muted);padding:20px}
+.bottom-right { position: fixed; right: 16px; bottom: 16px; z-index: 1100; display:flex; gap:8px; align-items:center; }
+.ws-indicator{font-size:12px;color:var(--muted);margin-right:8px}
+@media (min-width:900px){main{max-width:700px;margin:0 auto}}
+/* white settings panel on dark backdrop */
+.settings-panel{width:420px;background:#fff;border-radius:12px;padding:18px;box-shadow:0 10px 30px rgba(11,18,32,0.2);color:#0b1220}
+.settings-label{font-size:13px;color:#374151}
+</style>
 </head>
 <body>
   <header><div class="app-title">TF-Chat</div></header>
 
   <main>
     <section class="search">
-      <div class="search-box">
+      <div class="search-box" role="search">
         <svg viewBox="0 0 24 24" width="16" height="16" fill="none"><path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="1.6"/><circle cx="11" cy="11" r="6" stroke="currentColor" stroke-width="1.6"/></svg>
         <input id="searchInput" placeholder="Recherche (TFID ou 7 chif)" aria-label="Recherche" />
-        <button id="clearSearch" type="button" style="display:none;background:transparent;border:0;color:var(--muted);cursor:pointer">✖</button>
+        <button id="searchBtn" class="search-btn">Rechercher</button>
       </div>
     </section>
 
@@ -78,66 +86,44 @@
     </div>
   </div>
 
-  <!-- Settings modal (uses fields from the FR UI logic) -->
-  <div id="settingsModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.96);z-index:1200">
-    <div style="height:100%;display:flex;flex-direction:column">
-      <div style="height:56px;display:flex;align-items:center;padding:8px 12px;border-bottom:1px solid rgba(255,255,255,0.03)">
-        <button id="settingsClose" style="background:transparent;border:0;color:var(--text);cursor:pointer">←</button>
-        <div style="flex:1;text-align:center;font-weight:700">Paramètres</div>
-        <div style="width:44px"></div>
+  <!-- Settings modal: white inner panel -->
+  <div id="settingsModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:1200;align-items:center;justify-content:center;display:flex;">
+    <div class="settings-panel" role="dialog" aria-modal="true">
+      <h3 style="margin:0 0 12px 0">Paramètres — Identité</h3>
+      <div style="margin-bottom:8px">
+        <label class="settings-label">Pseudo affiché</label>
+        <input id="profileNameInput" style="width:100%;padding:10px;border-radius:8px;border:1px solid #e6eef3;margin-top:6px" />
       </div>
-      <div style="padding:12px;flex:1;overflow:auto">
-        <div style="display:flex;gap:12px;align-items:center;padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,0.02)">
-          <div id="settingsAvatar" style="width:72px;height:72px;border-radius:50%;background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:22px;color:var(--text)"></div>
-          <div>
-            <div id="settingsName" style="font-weight:800">Utilisateur</div>
-            <div id="settingsTfid" style="color:var(--muted)">TF-0000000</div>
-          </div>
-        </div>
-
-        <div style="margin-top:16px">
-          <label style="color:var(--muted)">Modifier non</label>
-          <input id="profileNameInput" class="input" style="margin-top:6px;width:100%;background:var(--card)" />
-        </div>
-
-        <div style="margin-top:12px">
-          <label style="color:var(--muted)">TFID (7 chif) — pa egzanp: 1234567</label>
-          <input id="profileTfidInput" class="input" style="margin-top:6px;width:100%;background:var(--card)" />
-          <div style="margin-top:8px;color:var(--muted);font-size:13px">Sere TFID tankou TF-XXXXXXX. Sistèm lan konvèti otomatikman pou 17-chif lè sa nesesè.</div>
-        </div>
-
-        <div style="margin-top:16px;display:flex;gap:8px;justify-content:flex-end">
-          <button id="profileSave" class="send-btn">Sove</button>
-        </div>
+      <div style="margin-bottom:12px">
+        <label class="settings-label">TFID (7 chif) — ex: 0204143</label>
+        <input id="profileTfidInput" style="width:100%;padding:10px;border-radius:8px;border:1px solid #e6eef3;margin-top:6px" />
+        <div style="font-size:12px;color:#6b7280;margin-top:6px">Sere TFID tankou TF-XXXXXXX. Sistèm lan konvèti pou TF-17-chif otomatikman.</div>
+      </div>
+      <div style="display:flex;justify-content:flex-end;gap:8px">
+        <button id="settingsCancel" style="padding:8px 12px;border-radius:8px;border:1px solid #e6edf3;background:white;cursor:pointer">Annuler</button>
+        <button id="profileSave" style="padding:8px 12px;border-radius:8px;background:#007aff;color:white;border:none;cursor:pointer">Sove</button>
       </div>
     </div>
   </div>
 
 <script>
-/* =========================
-   MERGED SCRIPT
-   - UI = dark HTML/CSS (HT)
-   - Logic/settings = FR script (me, WS_URL, ADMIN_API_TOKEN, register/frontend ...)
-   Notes: adapted to use existing dark element IDs (searchInput, contactsList, messages, chatText, sendBtn, settings modal fields)
-   ========================= */
-
-/* ====== CONFIG ====== */
+/* CONFIG */
 const API_BASE = 'https://tf-sove.onrender.com';
 const FRONTEND_NAME = 'site1';
 const ADMIN_API_TOKEN = 'tfstream_45dd9c02d4e34f18a42d';
 const WS_URL = (location.protocol === "https:" ? "wss://" : "ws://") + "tf-sove.onrender.com/ws";
 
-/* ====== HELPERS ====== */
+/* HELPERS */
 function normalizeInputToDigits(inp){ if(!inp) return null; const s=String(inp).trim().toUpperCase(); const digits=s.replace(/[^0-9]/g,''); return digits||null; }
-function to17(shortOrDigits){ if(!shortOrDigits) return null; const ds=String(shortOrDigits); if(ds.length>17) return ds.slice(-17); return ds.padStart(17,'0'); }
-function formatTFShort(digitsString){ if(!digitsString) return ''; const s=String(digitsString); const last7 = s.slice(-7); return 'TF-'+ last7.padStart(7,'0'); }
+function to17(shortOrDigits){ if(!shortOrDigits) return null; const ds=String(shortOrDigits).replace(/[^0-9]/g,''); if(ds.length>17) return ds.slice(-17); return ds.padStart(17,'0'); }
+function formatTFShort(digitsString){ if(!digitsString) return ''; const s=String(digitsString).replace(/[^0-9]/g,''); const last7 = s.slice(-7); return 'TF-'+ last7.padStart(7,'0'); }
 function nowISO(){ return (new Date()).toISOString(); }
 function fmtTime(iso){ try{ const d=new Date(iso); return d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});}catch(e){return '';} }
 function escapeHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function makeCid(){ return String(Date.now()) + '-' + Math.floor(Math.random()*100000).toString(16); }
+function parseDatePrefer(isoOrDb, parsedTime){ const t1 = parsedTime ? Date.parse(parsedTime) : NaN; if(!isNaN(t1)) return t1; const t2 = Date.parse(isoOrDb || ""); return isNaN(t2) ? 0 : t2; }
 
-/* ====== STORAGE & STATE ====== */
-/* We'll store user (me) under tfchat.* keys (from FR UI) so the "parameters" behaviour is preserved */
+/* STATE */
 let me = {
   short: localStorage.getItem('tfchat.me.short') || null,
   tf17: localStorage.getItem('tfchat.me.17') || null,
@@ -148,33 +134,26 @@ let contacts = JSON.parse(localStorage.getItem('tfchat.contacts') || '[]');
 let ws = null;
 let reconnectTimer = null;
 let currentPartner = null;
-const conversationCache = {}; // 'me|other' -> messages array
+const conversationCache = {};
 
-/* ====== DOM refs (dark UI IDs are used) ====== */
-const searchInputEl = document.getElementById('searchInput');
-const clearSearchEl = document.getElementById('clearSearch');
+/* DOM refs */
+const searchInput = document.getElementById('searchInput');
+const searchBtn = document.getElementById('searchBtn');
 const contactsListEl = document.getElementById('contactsList');
-
 const chatModalEl = document.getElementById('chatModal');
 const messagesEl = document.getElementById('messages');
 const chatTitleEl = document.getElementById('chatTitle');
 const chatTextEl = document.getElementById('chatText');
 const sendBtnEl = document.getElementById('sendBtn');
-const chatBack = document.getElementById('chatBack');
-
+const wsStatusEl = document.getElementById('wsStatus');
 const settingsBtn = document.getElementById('settingsBtn');
 const settingsModal = document.getElementById('settingsModal');
-const settingsClose = document.getElementById('settingsClose');
-const settingsAvatar = document.getElementById('settingsAvatar');
-const settingsName = document.getElementById('settingsName');
-const settingsTfid = document.getElementById('settingsTfid');
 const profileNameInput = document.getElementById('profileNameInput');
 const profileTfidInput = document.getElementById('profileTfidInput');
-const profileSave = document.getElementById('profileSave');
+const profileSaveBtn = document.getElementById('profileSave');
+const settingsCancelBtn = document.getElementById('settingsCancel');
 
-const wsStatusEl = document.getElementById('wsStatus');
-
-/* ====== save/load helpers ====== */
+/* STORAGE helpers */
 function saveState(){
   localStorage.setItem('tfchat.me.short', me.short || '');
   localStorage.setItem('tfchat.me.17', me.tf17 || '');
@@ -182,14 +161,10 @@ function saveState(){
   if(me.avatarDataUrl) localStorage.setItem('tfchat.me.avatar', me.avatarDataUrl);
   localStorage.setItem('tfchat.contacts', JSON.stringify(contacts || []));
 }
-
 function initials(name){ if(!name) return 'U'; return name.split(' ').map(p=>p[0]).slice(0,2).join('').toUpperCase(); }
 
-/* ====== render helpers ====== */
+/* RENDER helpers */
 function updateSettingsUI(){
-  settingsAvatar.textContent = initials(me.name || me.tf17);
-  settingsName.textContent = me.name || 'Utilisateur';
-  settingsTfid.textContent = me.tf17 || '';
   profileNameInput.value = me.name || '';
   profileTfidInput.value = (me.tf17 || '').replace(/^TF-?/i, '').slice(-7);
 }
@@ -225,11 +200,9 @@ function renderContacts(filter=''){
     contactsListEl.appendChild(el);
   });
 }
-
-/* timeAgo (small util) */
 function timeAgo(ts){ if(!ts) return ''; const diff=Math.floor((Date.now()-ts)/1000); if(diff<60) return diff+'s'; if(diff<3600) return Math.floor(diff/60)+'m'; if(diff<86400) return Math.floor(diff/3600)+'h'; return new Date(ts).toLocaleDateString(); }
 
-/* ====== HTTP helpers ====== */
+/* NETWORK helpers (identical behavior as white UI) */
 async function callJSON(url, opts = {}) {
   opts = Object.assign({}, opts);
   opts.headers = Object.assign({}, opts.headers || {}, { 'Accept': 'application/json' });
@@ -255,7 +228,18 @@ async function apiAdd(recipient17, contentObj){
   const body = { tfid: recipient17, name: FRONTEND_NAME, content: JSON.stringify(contentObj), source_url: location.origin };
   const url = `${API_BASE}/api/add`;
   const r = await callJSON(url, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
-  if(!r.ok) throw new Error(r.json?.error || r.text || `HTTP ${r.status}`);
+  if(!r.ok) {
+    const errMsg = r.json?.error || r.text || `HTTP ${r.status}`;
+    if(String(errMsg).toLowerCase().includes("frontend name not registered")) {
+      const regOk = await registerFrontendIfNeeded();
+      if(regOk) {
+        const r2 = await callJSON(url, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
+        if(!r2.ok) throw new Error(r2.json?.error || r2.text || `HTTP ${r2.status}`);
+        return r2.json;
+      }
+    }
+    throw new Error(errMsg);
+  }
   return r.json;
 }
 
@@ -268,20 +252,32 @@ async function registerFrontendIfNeeded(){
   } catch(e){ return false; }
 }
 
-/* ====== conversation caching & rendering (light logic) ====== */
+/* CONVERSATION cache & sort (same logic as white) */
 function convKey(a,b){ return `${a}|${b}`; }
+function messageUniqueKey(m){
+  if(m.cid) return "cid:"+m.cid;
+  if(m.id) return "id:"+m.id;
+  return "temp:"+ (m._tempKey || (m._tempKey = Math.random().toString(36).slice(2)));
+}
+function compareMessagesAsc(a,b){
+  const ta = parseDatePrefer(a._db_created_at, a.parsed_time);
+  const tb = parseDatePrefer(b._db_created_at, b.parsed_time);
+  if(ta !== tb) return ta - tb;
+  if(a.id && b.id && a.id !== b.id) return Number(a.id) - Number(b.id);
+  if(a.cid && b.cid && a.cid !== b.cid) return a.cid < b.cid ? -1 : 1;
+  return 0;
+}
 function addOrUpdateMessageToCache(me17, other17, msg){
   const key = convKey(me17, other17);
   if(!conversationCache[key]) conversationCache[key] = [];
   const list = conversationCache[key];
-  // dedupe by cid or id
   const findIndex = msg.cid ? list.findIndex(x => x.cid && x.cid === msg.cid) : (msg.id ? list.findIndex(x => x.id && String(x.id) === String(msg.id)) : -1);
   if(findIndex !== -1){
     list[findIndex] = Object.assign({}, list[findIndex], msg);
   } else {
     list.push(msg);
   }
-  list.sort((a,b)=> new Date(a.created_at) - new Date(b.created_at));
+  list.sort(compareMessagesAsc);
 }
 
 async function loadConversation(me17, other17){
@@ -302,25 +298,25 @@ async function loadConversation(me17, other17){
       cid: parsedCid || null,
       from: parsedFrom,
       text: parsedText,
+      parsed_time: parsedTime || null,
+      _db_created_at: r.created_at || null,
       created_at: parsedTime || r.created_at || nowISO()
     };
-    const keyu = (m.cid ? 'cid:'+m.cid : (m.id ? 'id:'+m.id : Math.random().toString(36)));
+    const keyu = messageUniqueKey(m);
     if(seen.has(keyu)) return;
     seen.add(keyu);
     addOrUpdateMessageToCache(me17, other17, m);
   }
 
-  // outgoing (messages I sent stored under other17)
   try {
     const outRows = await apiList(other17);
     for(const r of outRows) pushRow(r, me17);
-  } catch(e){ console.warn('LIST outgoing failed', e); }
+  } catch(e){ console.warn("LIST outgoing failed for", other17, e.message || e); }
 
-  // incoming (messages stored under me17)
   try {
     const inRows = await apiList(me17);
     for(const r of inRows) pushRow(r, other17);
-  } catch(e){ console.warn('LIST incoming failed', e); }
+  } catch(e){ console.warn("LIST incoming failed for", me17, e.message || e); }
 
   renderConversation(me17, other17);
 }
@@ -332,7 +328,7 @@ function renderConversation(me17, other17){
   if(arr.length === 0){
     messagesEl.innerHTML = `<div class="muted">Pa gen mesaj ankò.</div>`;
   } else {
-    arr.sort((a,b)=> new Date(a.created_at) - new Date(b.created_at));
+    arr.sort(compareMessagesAsc);
     for(const m of arr){
       const d = document.createElement('div');
       d.className = 'msg ' + (m.from === me17 ? 'user' : 'bot');
@@ -344,14 +340,13 @@ function renderConversation(me17, other17){
   messagesEl.scrollTop = messagesEl.scrollHeight;
 }
 
-/* ====== Open chat (adapted for modal) ====== */
+/* CHAT open/send */
 async function openChat(other17, contactObj=null){
   if(!me.tf17){
-    if(!await promptForMe()) return;
+    if(!await promptForMeModal()) return;
   }
   currentPartner = { tf17: other17, name: (contactObj && contactObj.name) || null };
   chatTitleEl.textContent = (currentPartner.name || formatTFShort(currentPartner.tf17));
-  // mark read
   const c = contacts.find(x => x.tf17 === other17);
   if(c){ c.unread = 0; saveState(); renderContacts(); }
   messagesEl.innerHTML = '<div class="muted">Chaje mesaj...</div>';
@@ -362,12 +357,9 @@ async function openChat(other17, contactObj=null){
   }
   showChatModal();
 }
-
-/* Chat modal show/hide */
 function showChatModal(){ chatModalEl.style.display = 'block'; setTimeout(()=> chatTextEl?.focus(), 150); }
 function hideChatModal(){ chatModalEl.style.display = 'none'; currentPartner = null; }
 
-/* ====== send message from modal ====== */
 async function sendMessageFromModal(){
   const txt = (chatTextEl?.value || '').trim();
   if(!txt || !currentPartner) return;
@@ -375,22 +367,18 @@ async function sendMessageFromModal(){
   const recipient17 = currentPartner.tf17;
   const cid = makeCid();
   const payload = { type:'text', from: me.tf17, text: txt, time: (new Date()).toISOString(), cid };
-  // optimistic
-  addOrUpdateMessageToCache(me.tf17, recipient17, { id:null, cid, from: me.tf17, text: txt, created_at: payload.time });
+  addOrUpdateMessageToCache(me.tf17, recipient17, { id:null, cid, from: me.tf17, text: txt, parsed_time: payload.time, _db_created_at:null, created_at: payload.time });
   renderConversation(me.tf17, recipient17);
   chatTextEl.value = '';
-  // update contact preview
   const c = contacts.find(x=>x.tf17===recipient17);
   if(c){ c.lastMsg = txt; c.lastTs = Date.now(); saveState(); renderContacts(); }
   try {
     await apiAdd(recipient17, payload);
-    // short poll to reconcile
     startShortPollForMessage(recipient17, cid);
   } catch(e){
     alert('Envoi echwe: ' + (e.message||e));
   }
 }
-
 function startShortPollForMessage(target17, cid){
   let tries = 0;
   const maxTries = 6;
@@ -409,29 +397,40 @@ function startShortPollForMessage(target17, cid){
   attempt();
 }
 
-/* ====== ensure contact list helpers ====== */
+/* CONTACTS helpers */
 function ensureContactInList(tf17, name){
-  let c = contacts.find(x => x.tf17 === tf17);
-  if(!c){ c = { tf17, name: name||null, lastMsg:'', lastTs: Date.now(), unread:0 }; contacts.unshift(c); saveState(); renderContacts(); }
+  let c = contacts.find(x=>x.tf17===tf17);
+  if(!c){ c = { tf17, short: formatTFShort(tf17), name: name||null, unread:0 }; contacts.unshift(c); saveState(); renderContacts(); }
   return c;
 }
 
-/* ====== prompt for me (TFID) ====== */
-async function promptForMe(){
-  const v = prompt('Entrer votre TFID (ex: TF-0204143 ou 0204143).');
-  if(!v) return false;
-  const digits = normalizeInputToDigits(v);
-  if(!digits){ alert('TFID invalide'); return false; }
-  me.short = digits.slice(-7);
-  me.tf17 = to17(me.short);
-  saveState();
+/* PROMPT FOR ME (modal) */
+function promptForMeModal(){
   updateSettingsUI();
-  if(ws){ try{ ws.close(); }catch(e){} }
-  connectWS();
-  return true;
+  settingsModal.style.display = 'flex';
+  profileNameInput.focus();
+  return new Promise(resolve=>{
+    function onSave(){
+      const nameVal = profileNameInput.value.trim();
+      const short = normalizeInputToDigits(profileTfidInput.value.trim());
+      if(!short || short.length < 7){ alert('TFID invalide — antre 7 chif.'); return; }
+      me.name = nameVal || me.name || 'Utilisateur';
+      me.short = short.slice(-7);
+      me.tf17 = to17(me.short);
+      saveState();
+      settingsModal.style.display = 'none';
+      cleanup();
+      registerFrontendIfNeeded().then(()=>{ if(ws && ws.readyState === WebSocket.OPEN){ try{ ws.send(JSON.stringify({ type:'subscribe', tfid: me.tf17 })); }catch(e){} } else connectWS(); });
+      resolve(true);
+    }
+    function onCancel(){ settingsModal.style.display = 'none'; cleanup(); resolve(false); }
+    function cleanup(){ profileSaveBtn.removeEventListener('click', onSave); settingsCancelBtn.removeEventListener('click', onCancel); }
+    profileSaveBtn.addEventListener('click', onSave);
+    settingsCancelBtn.addEventListener('click', onCancel);
+  });
 }
 
-/* ====== WebSocket logic (from FR UI, adapted) ====== */
+/* WEBSOCKET (same as white) */
 function connectWS(){
   if(!me.tf17){ wsStatusEl.textContent = 'WS: non connecté (pas de TFID)'; return; }
   try {
@@ -455,12 +454,9 @@ function connectWS(){
         const other = (recipient === me.tf17) ? from : recipient;
         if(!other) return;
         const created = parsed.time || payload.created_at || nowISO();
-        const msgObj = { id: payload.id || null, cid: parsed.cid || null, from, text: parsed.text || parsed.message || '', created_at: created };
+        const msgObj = { id: payload.id || null, cid: parsed.cid || null, from, text: parsed.text || parsed.message || '', parsed_time: parsed.time || null, _db_created_at: payload.created_at || null, created_at: created };
         addOrUpdateMessageToCache(me.tf17, other, msgObj);
-        // update UI
-        if(currentPartner && currentPartner.tf17 === other){
-          renderConversation(me.tf17, other);
-        } else if(recipient === me.tf17){
+        if(currentPartner && currentPartner.tf17 === other){ renderConversation(me.tf17, other); } else if(recipient === me.tf17){
           const c = ensureContactInList(other, null);
           c.unread = (c.unread||0) + 1;
           c.lastMsg = msgObj.text;
@@ -474,34 +470,21 @@ function connectWS(){
   ws.onclose = ()=>{ wsStatusEl.textContent = 'WS: déconnecté'; scheduleReconnect(); };
   ws.onerror = (e)=>{ console.warn('WS error', e); wsStatusEl.textContent = 'WS: erreur'; try{ ws.close(); }catch(e){} };
 }
-
 function scheduleReconnect(){ if(reconnectTimer) return; reconnectTimer = setTimeout(()=>{ reconnectTimer=null; connectWS(); }, 3000); }
 
-/* ====== UI event bindings ====== */
-chatBack?.addEventListener('click', ()=> hideChatModal());
-sendBtnEl?.addEventListener('click', sendMessageFromModal);
-chatTextEl?.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); sendMessageFromModal(); } });
-
-searchInputEl?.addEventListener('input', (e)=>{ renderContacts(e.target.value); clearSearchEl.style.display = e.target.value ? 'inline-block' : 'none'; });
-clearSearchEl?.addEventListener('click', ()=>{ searchInputEl.value=''; renderContacts(); clearSearchEl.style.display='none'; searchInputEl.focus(); });
-
-searchInputEl?.addEventListener('keydown', async (e)=>{
-  if(e.key !== 'Enter') return;
-  const raw = searchInputEl.value.trim();
+/* SEARCH handling (Enter + button) */
+async function performSearchQuery(raw){
   if(!raw) return;
   const digits = normalizeInputToDigits(raw);
   if(!digits){ renderContacts(raw); return; }
   if(digits.length < 7){ alert('TFID dwe gen omwen 7 chif.'); return; }
   const short7 = digits.slice(-7);
   const tf17 = to17(short7);
-  // check local
   let local = contacts.find(c => c.tf17 === tf17);
   if(local){ openChat(local.tf17, local); return; }
-  // call server
   try {
     const rows = await apiList(tf17);
     if(rows && rows.length > 0){
-      const id = 'c_' + Date.now();
       const last = rows[rows.length-1] || rows[0];
       let lastMsg = '';
       try{ const p = JSON.parse(last.content); lastMsg = p.text || p.message || last.content; } catch(e){ lastMsg = last.content || ''; }
@@ -514,12 +497,16 @@ searchInputEl?.addEventListener('keydown', async (e)=>{
       }
     }
   } catch(err){ alert('Erè lè w ap chèche sou servèr: ' + (err.message||err)); }
-});
+}
 
-/* Settings modal open/close and save */
-settingsBtn?.addEventListener('click', ()=> { updateSettingsUI(); settingsModal.style.display = 'block'; });
-settingsClose?.addEventListener('click', ()=> settingsModal.style.display = 'none');
-profileSave?.addEventListener('click', async ()=>{
+/* UI events */
+document.getElementById('chatBack')?.addEventListener('click', ()=> hideChatModal());
+sendBtnEl?.addEventListener('click', sendMessageFromModal);
+chatTextEl?.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); sendMessageFromModal(); } });
+searchInput?.addEventListener('keydown', async (e)=>{ if(e.key==='Enter'){ e.preventDefault(); await performSearchQuery(searchInput.value.trim()); } });
+searchBtn?.addEventListener('click', async ()=>{ await performSearchQuery(searchInput.value.trim()); });
+document.getElementById('settingsBtn')?.addEventListener('click', ()=> { updateSettingsUI(); settingsModal.style.display = 'flex'; });
+profileSaveBtn?.addEventListener('click', async ()=>{
   const newName = profileNameInput.value.trim();
   const short = normalizeInputToDigits(profileTfidInput.value.trim());
   if(!short || short.length < 7){ alert('TFID pa valab — antre 7 chif.'); return; }
@@ -527,33 +514,21 @@ profileSave?.addEventListener('click', async ()=>{
   me.short = short.slice(-7);
   me.tf17 = to17(me.short);
   saveState();
-  updateSettingsUI();
   settingsModal.style.display = 'none';
-  // register frontend if needed and (re)connect WS
   await registerFrontendIfNeeded();
   if(ws && ws.readyState === WebSocket.OPEN){
     try{ ws.send(JSON.stringify({ type:'subscribe', tfid: me.tf17 })); }catch(e){}
   } else connectWS();
 });
+settingsCancelBtn?.addEventListener('click', ()=> settingsModal.style.display = 'none');
 
-/* small helper used above */
-function formatTFShort(digitsStringLocal){ if(!digitsStringLocal) return ''; const s=String(digitsStringLocal); const last7=s.slice(-7); return 'TF-'+ last7.padStart(7,'0'); }
-
-/* ====== BOOT ====== */
+/* BOOT */
 renderContacts();
-updateSettingsUI();
-if(me.tf17){
-  connectWS();
-} else {
-  // ask user to set TFID (non-blocking)
-  setTimeout(()=> {
-    if(confirm("Ou pa idantifye. Antre TFID kounye a?")) promptForMe();
-  }, 600);
-}
+if(me.tf17){ connectWS(); } else { setTimeout(()=> { promptForMeModal(); }, 250); }
 
-/* expose for debugging */
+/* expose debug */
 window._tf_contacts = contacts;
 window._tf_me = me;
 </script>
 </body>
-  </html>
+      </html>
