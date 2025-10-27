@@ -1,120 +1,106 @@
-<!DOCTYPE html><html lang="ht">
+<!doctype html>
+<html lang="ht">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no" />
-  <title>TF-Chat — corrected</title>
+  <title>TF-Chat</title>
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
+    /* (same CSS as you provided) */
     :root{--bg:#000000;--panel:#000000;--text:#e6eefb;--muted:#9aa6bf;--card:#0b0b0b;--accent:#0b81ff;--header-h:56px;--radius:12px}
     *{box-sizing:border-box}
-    html,body{height:100%;margin:0;padding:0;background:var(--bg);color:var(--text);font-family:Roboto,system-ui,Arial,sans-serif;-webkit-font-smoothing:antialiased}header{position:fixed;left:0;right:0;top:0;height:var(--header-h);display:flex;align-items:center;justify-content:center;background:var(--panel);z-index:1000;border-bottom:1px solid rgba(255,255,255,0.03)}
-.header-left{position:absolute;left:12px;display:flex;gap:8px}
-.header-right{position:absolute;right:12px;display:flex;gap:8px}
-.app-title{font-weight:700;font-size:18px}
-.icon-btn{background:transparent;border:0;color:var(--text);padding:8px;border-radius:10px;cursor:pointer}
-
-main{position:fixed;left:0;right:0;top:var(--header-h);bottom:0;overflow:auto;padding:12px}
-
-/* Home list */
-.search{padding:6px 0}
-.search-box{display:flex;align-items:center;gap:8px;background:var(--card);padding:10px;border-radius:999px;border:1px solid rgba(255,255,255,0.03)}
-.search-box input{flex:1;background:transparent;border:0;outline:none;color:var(--text);font-size:15px}
-
-.list{margin-top:12px}
-.contact{display:flex;gap:12px;align-items:center;padding:12px;border-radius:12px;cursor:pointer}
-.contact:active{transform:translateY(1px)}
-.avatar{width:56px;height:56px;border-radius:50%;background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;color:var(--text);flex-shrink:0}
-.meta{flex:1;min-width:0}
-.meta-top{display:flex;justify-content:space-between;align-items:flex-start}
-.name{font-weight:600;font-size:16px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
-.time{font-size:12px;color:var(--muted)}
-.meta-bottom{display:flex;justify-content:space-between;margin-top:6px;align-items:center}
-.snippet{font-size:13px;color:var(--muted);overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
-.badge{background:var(--accent);color:white;padding:4px 8px;border-radius:999px;font-weight:600;font-size:13px}
-
-/* FAB menu */
-.fab{position:fixed;right:18px;bottom:22px;width:62px;height:62px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;border:0;color:white;box-shadow:0 10px 30px rgba(11,129,255,0.22);z-index:1100}
-.menu-popup{position:fixed;right:18px;bottom:90px;display:none;flex-direction:column;gap:8px;z-index:1100}
-.menu-popup.show{display:flex}
-.menu-item{background:var(--panel);border:1px solid rgba(255,255,255,0.03);padding:10px 12px;border-radius:10px;cursor:pointer}
-
-/* Modal full screen */
-.modal{position:fixed;inset:0;background:rgba(0,0,0,0.96);display:none;z-index:1200}
-.modal.show{display:block}
-.modal .full{height:100%;display:flex;flex-direction:column}
-.modal-header{height:56px;display:flex;align-items:center;padding:8px 12px;border-bottom:1px solid rgba(255,255,255,0.03)}
-.modal-body{overflow:auto;padding:12px;flex:1}
-.modal-footer{padding:12px;border-top:1px solid rgba(255,255,255,0.03)}
-
-/* Small centered modal (for profile/lang/tfid) */
-.small-modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.6);z-index:1400}
-.small-modal.show{display:flex}
-.dialog{width:92%;max-width:420px;background:var(--panel);border-radius:12px;padding:16px;border:1px solid rgba(255,255,255,0.03)}
-.dialog .row{margin-bottom:12px}
-.round-avatar{width:88px;height:88px;border-radius:50%;background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:24px;margin:0 auto;cursor:pointer}
-.dialog input[type='file']{display:none}
-.dialog .actions{display:flex;gap:8px;justify-content:flex-end}
-
-/* Chat */
-.messages{padding:12px;height:calc(100% - 56px - 84px);overflow:auto;display:flex;flex-direction:column;gap:8px}
-.msg{max-width:74%;padding:10px;border-radius:12px;margin-bottom:4px}
-.msg.bot{background:#121212;color:var(--text);align-self:flex-start}
-.msg.user{background:linear-gradient(180deg,var(--accent),#0563c9);color:white;align-self:flex-end}
-.chat-input{display:flex;gap:8px;align-items:center}
-.input{flex:1;padding:12px;border-radius:999px;border:1px solid rgba(255,255,255,0.03);background:var(--card);color:var(--text);outline:none}
-.send-btn{background:transparent;border:0;padding:8px;border-radius:10px;cursor:pointer;color:var(--accent)}
-
-/* settings and group list */
-.settings{display:flex;flex-direction:column;gap:12px}
-.item{padding:12px;border-radius:12px;background:transparent;border:1px solid rgba(255,255,255,0.02);display:flex;justify-content:space-between;align-items:center;cursor:pointer}
-.group-contacts{display:flex;flex-direction:column;gap:8px}
-.file-input{padding:8px;border-radius:8px;background:var(--card);border:1px solid rgba(255,255,255,0.03);width:100%}
-
-@media (min-width:900px){main{max-width:700px;margin:0 auto}}
-
+    html,body{height:100%;margin:0;padding:0;background:var(--bg);color:var(--text);font-family:Roboto,system-ui,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+    header{position:fixed;left:0;right:0;top:0;height:var(--header-h);display:flex;align-items:center;justify-content:center;background:var(--panel);z-index:1000;border-bottom:1px solid rgba(255,255,255,0.03)}
+    .header-left{position:absolute;left:12px;display:flex;gap:8px}
+    .header-right{position:absolute;right:12px;display:flex;gap:8px}
+    .app-title{font-weight:700;font-size:18px}
+    .icon-btn{background:transparent;border:0;color:var(--text);padding:8px;border-radius:10px;cursor:pointer}
+    main{position:fixed;left:0;right:0;top:var(--header-h);bottom:0;overflow:auto;padding:12px}
+    .search{padding:6px 0}
+    .search-box{display:flex;align-items:center;gap:8px;background:var(--card);padding:10px;border-radius:999px;border:1px solid rgba(255,255,255,0.03)}
+    .search-box input{flex:1;background:transparent;border:0;outline:none;color:var(--text);font-size:15px}
+    .list{margin-top:12px}
+    .contact{display:flex;gap:12px;align-items:center;padding:12px;border-radius:12px;cursor:pointer}
+    .contact:active{transform:translateY(1px)}
+    .avatar{width:56px;height:56px;border-radius:50%;background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;color:var(--text);flex-shrink:0}
+    .meta{flex:1;min-width:0}
+    .meta-top{display:flex;justify-content:space-between;align-items:flex-start}
+    .name{font-weight:600;font-size:16px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+    .time{font-size:12px;color:var(--muted)}
+    .meta-bottom{display:flex;justify-content:space-between;margin-top:6px;align-items:center}
+    .snippet{font-size:13px;color:var(--muted);overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+    .badge{background:var(--accent);color:white;padding:4px 8px;border-radius:999px;font-weight:600;font-size:13px}
+    .fab{position:fixed;right:18px;bottom:22px;width:62px;height:62px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;border:0;color:white;box-shadow:0 10px 30px rgba(11,129,255,0.22);z-index:1100}
+    .menu-popup{position:fixed;right:18px;bottom:90px;display:none;flex-direction:column;gap:8px;z-index:1100}
+    .menu-popup.show{display:flex}
+    .menu-item{background:var(--panel);border:1px solid rgba(255,255,255,0.03);padding:10px 12px;border-radius:10px;cursor:pointer}
+    .modal{position:fixed;inset:0;background:rgba(0,0,0,0.96);display:none;z-index:1200}
+    .modal.show{display:block}
+    .modal .full{height:100%;display:flex;flex-direction:column}
+    .modal-header{height:56px;display:flex;align-items:center;padding:8px 12px;border-bottom:1px solid rgba(255,255,255,0.03)}
+    .modal-body{overflow:auto;padding:12px;flex:1}
+    .modal-footer{padding:12px;border-top:1px solid rgba(255,255,255,0.03)}
+    .small-modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.6);z-index:1400}
+    .small-modal.show{display:flex}
+    .dialog{width:92%;max-width:420px;background:var(--panel);border-radius:12px;padding:16px;border:1px solid rgba(255,255,255,0.03)}
+    .dialog .row{margin-bottom:12px}
+    .round-avatar{width:88px;height:88px;border-radius:50%;background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:24px;margin:0 auto;cursor:pointer}
+    .dialog input[type='file']{display:none}
+    .dialog .actions{display:flex;gap:8px;justify-content:flex-end}
+    .messages{padding:12px;height:calc(100% - 56px - 84px);overflow:auto;display:flex;flex-direction:column;gap:8px}
+    .msg{max-width:74%;padding:10px;border-radius:12px;margin-bottom:4px}
+    .msg.bot{background:#121212;color:var(--text);align-self:flex-start}
+    .msg.user{background:linear-gradient(180deg,var(--accent),#0563c9);color:white;align-self:flex-end}
+    .chat-input{display:flex;gap:8px;align-items:center}
+    .input{flex:1;padding:12px;border-radius:999px;border:1px solid rgba(255,255,255,0.03);background:var(--card);color:var(--text);outline:none}
+    .send-btn{background:transparent;border:0;padding:8px;border-radius:10px;cursor:pointer;color:var(--accent)}
+    .settings{display:flex;flex-direction:column;gap:12px}
+    .item{padding:12px;border-radius:12px;background:transparent;border:1px solid rgba(255,255,255,0.02);display:flex;justify-content:space-between;align-items:center;cursor:pointer}
+    .group-contacts{display:flex;flex-direction:column;gap:8px}
+    .file-input{padding:8px;border-radius:8px;background:var(--card);border:1px solid rgba(255,255,255,0.03);width:100%}
+    @media (min-width:900px){main{max-width:700px;margin:0 auto}}
   </style>
 </head>
 <body>
   <header>
     <div class="header-left">
       <button id="homeBtn" type="button" class="icon-btn" aria-label="Home">
-        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 11.5L12 4l9 7.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none"><path d="M3 11.5L12 4l9 7.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </button>
     </div>
     <div class="app-title" id="appTitle">TF-Chat</div>
     <div class="header-right">
       <button id="settingsBtn" type="button" class="icon-btn" aria-label="Paramètres">
-        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none"><path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </button>
     </div>
-  </header>  <main>
+  </header>
+
+  <main>
     <section class="search">
       <div class="search-box">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="11" cy="11" r="6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        <input id="searchInput" placeholder="Recherche" aria-label="Recherche" />
-        <button id="clearSearch" type="button" class="icon-btn" style="display:none" aria-label="Clear search">
-          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </button>
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none"><path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="1.6"/><circle cx="11" cy="11" r="6" stroke="currentColor" stroke-width="1.6"/></svg>
+        <input id="searchInput" placeholder="Recherche (TFID)" aria-label="Recherche" />
+        <button id="clearSearch" type="button" class="icon-btn" style="display:none" aria-label="Clear search">✖</button>
       </div>
-    </section><section class="list" id="contactsList" aria-live="polite"></section>
+    </section>
 
-<button id="fab" type="button" class="fab" aria-label="Ajouter">
-  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 5v14M5 12h14" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-</button>
+    <section class="list" id="contactsList" aria-live="polite"></section>
 
-<div class="menu-popup" id="fabMenu" role="menu" aria-hidden="true">
-  <button id="fabAdd" type="button" class="menu-item">Ajouter contact</button>
-  <button id="fabGroup" type="button" class="menu-item">Créer groupe</button>
-</div>
+    <button id="fab" type="button" class="fab" aria-label="Ajouter">＋</button>
+    <div class="menu-popup" id="fabMenu" role="menu" aria-hidden="true">
+      <button id="fabAdd" type="button" class="menu-item">Ajouter contact</button>
+      <button id="fabGroup" type="button" class="menu-item">Créer groupe</button>
+    </div>
+  </main>
 
-  </main>  <!-- Chat modal -->  <div class="modal" id="chatModal" aria-hidden="true">
+  <!-- Chat modal -->
+  <div class="modal" id="chatModal" aria-hidden="true">
     <div class="full">
       <div class="modal-header">
-        <button id="chatBack" type="button" class="icon-btn" aria-label="Retour">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </button>
+        <button id="chatBack" type="button" class="icon-btn" aria-label="Retour">←</button>
         <div style="flex:1;display:flex;align-items:center;gap:12px">
           <div id="chatAvatarSmall" class="avatar" style="width:44px;height:44px;font-size:16px"></div>
           <div style="min-width:0">
@@ -130,18 +116,17 @@ main{position:fixed;left:0;right:0;top:var(--header-h);bottom:0;overflow:auto;pa
       <div class="modal-footer">
         <div class="chat-input">
           <input id="chatText" class="input" placeholder="Ekri mesaj..." autocomplete="off" aria-label="Message" />
-          <button id="sendBtn" type="button" class="send-btn" aria-label="Send">
-            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M2 21L23 12L2 3L8 12L2 21Z" fill="currentColor"/></svg>
-          </button>
+          <button id="sendBtn" type="button" class="send-btn" aria-label="Send">Envoyer</button>
         </div>
       </div>
     </div>
-  </div>  <!-- Settings modal (opens small dialogs for profile/lang/tfid) -->  <div class="modal" id="settingsModal" aria-hidden="true">
+  </div>
+
+  <!-- Settings modal -->
+  <div class="modal" id="settingsModal" aria-hidden="true">
     <div class="full">
       <div class="modal-header">
-        <button id="settingsBack" type="button" class="icon-btn" aria-label="Retour">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </button>
+        <button id="settingsBack" type="button" class="icon-btn" aria-label="Retour">←</button>
         <div style="flex:1;text-align:center;font-weight:700">Paramètres</div>
         <div style="width:44px"></div>
       </div>
@@ -150,7 +135,7 @@ main{position:fixed;left:0;right:0;top:var(--header-h);bottom:0;overflow:auto;pa
           <div id="settingsAvatar" class="avatar" style="width:72px;height:72px;font-size:22px"></div>
           <div>
             <div id="settingsName" style="font-weight:800">Utilisateur</div>
-            <div id="settingsTfid" style="color:var(--muted)">TF-000000</div>
+            <div id="settingsTfid" style="color:var(--muted)">TF-0000000</div>
           </div>
         </div>
         <div style="height:12px"></div>
@@ -161,9 +146,12 @@ main{position:fixed;left:0;right:0;top:var(--header-h);bottom:0;overflow:auto;pa
         </div>
       </div>
     </div>
-  </div>  <!-- Small centered Profile modal -->  <div class="small-modal" id="profileModal" aria-hidden="true">
+  </div>
+
+  <!-- Profile modal -->
+  <div class="small-modal" id="profileModal" aria-hidden="true">
     <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="profileTitle">
-      <div class="row" style="text-align:center;font-weight:700;padding-bottom:6px" id="profileTitle">Profil</div>
+      <div class="row" id="profileTitle" style="text-align:center;font-weight:700;padding-bottom:6px">Profil</div>
       <div class="row">
         <div id="profileAvatarRound" class="round-avatar" title="Cliquer pour changer la photo"></div>
         <input type="file" id="profilePhotoInput" accept="image/*">
@@ -171,30 +159,31 @@ main{position:fixed;left:0;right:0;top:var(--header-h);bottom:0;overflow:auto;pa
       <div class="row"><label>Nom</label><input id="profileNameInput" type="text" class="input"></div>
       <div class="actions"><button class="icon-btn" type="button" id="profileCancel">Retour</button><button class="icon-btn" type="button" id="profileSave">Valider</button></div>
     </div>
-  </div>  <!-- Small centered Lang modal -->  <div class="small-modal" id="langModal" aria-hidden="true">
+  </div>
+
+  <!-- Lang modal -->
+  <div class="small-modal" id="langModal" aria-hidden="true">
     <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="langTitle">
       <div id="langTitle" style="text-align:center;font-weight:700;padding-bottom:6px">Langue</div>
-      <div class="row">
-        <label><input type="radio" name="lang" value="ht"> Kreyòl</label>
-      </div>
-      <div class="row">
-        <label><input type="radio" name="lang" value="fr"> Français</label>
-      </div>
-      <div class="row">
-        <label><input type="radio" name="lang" value="es"> Español</label>
-      </div>
-      <div class="row">
-        <label><input type="radio" name="lang" value="en"> English</label>
-      </div>
+      <div class="row"><label><input type="radio" name="lang" value="ht"> Kreyòl</label></div>
+      <div class="row"><label><input type="radio" name="lang" value="fr"> Français</label></div>
+      <div class="row"><label><input type="radio" name="lang" value="es"> Español</label></div>
+      <div class="row"><label><input type="radio" name="lang" value="en"> English</label></div>
       <div class="actions"><button class="icon-btn" type="button" id="langCancel">Retour</button><button class="icon-btn" type="button" id="langSave">Valider</button></div>
     </div>
-  </div>  <!-- Small centered tfid modal -->  <div class="small-modal" id="tfidModal" aria-hidden="true">
+  </div>
+
+  <!-- tfid modal -->
+  <div class="small-modal" id="tfidModal" aria-hidden="true">
     <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="tfidTitle">
       <div id="tfidTitle" style="text-align:center;font-weight:700;padding-bottom:6px">Modifier tfid</div>
       <div class="row"><label>tfid</label><input id="tfidInput" type="text" class="input"></div>
       <div class="actions"><button class="icon-btn" type="button" id="tfidCancel">Retour</button><button class="icon-btn" type="button" id="tfidSave">Valider</button></div>
     </div>
-  </div>  <!-- Add contact modal (full screen existing) -->  <div class="modal" id="addModal" aria-hidden="true">
+  </div>
+
+  <!-- Add contact modal -->
+  <div class="modal" id="addModal" aria-hidden="true">
     <div class="full">
       <div class="modal-header">
         <button class="icon-btn" type="button" onclick="closeModal('addModal')">Retour</button>
@@ -204,14 +193,17 @@ main{position:fixed;left:0;right:0;top:var(--header-h);bottom:0;overflow:auto;pa
       <div class="modal-body">
         <div style="margin-bottom:12px"><label>Nom (optionnel)</label><input id="newName" type="text" class="input" style="border-radius:8px;padding:10px"></div>
         <div style="margin-bottom:12px"><label>tfid</label><input id="newTfid" type="text" class="input" placeholder="TF-0204143"></div>
-        <div style="color:var(--muted);font-size:13px;margin-top:8px">Sèvi ak fòm sa pou kreye kontak. TFID dwe gen 7 chif (eg: TF-0204143 oswa 0204143).</div>
+        <div style="color:var(--muted);font-size:13px;margin-top:8px">TFID dwe gen 7 chif (eg: TF-0204143 oswa 0204143).</div>
       </div>
       <div class="modal-footer" style="display:flex;gap:8px;justify-content:flex-end">
         <button class="icon-btn" type="button" onclick="closeModal('addModal')">Annuler</button>
         <button class="icon-btn" id="addConfirm" type="button">Ajouter et écrire</button>
       </div>
     </div>
-  </div>  <!-- Create group modal -->  <div class="modal" id="groupModal" aria-hidden="true">
+  </div>
+
+  <!-- Create group modal -->
+  <div class="modal" id="groupModal" aria-hidden="true">
     <div class="full">
       <div class="modal-header">
         <button class="icon-btn" type="button" onclick="closeModal('groupModal')">Retour</button>
@@ -228,338 +220,422 @@ main{position:fixed;left:0;right:0;top:var(--header-h);bottom:0;overflow:auto;pa
         <button class="icon-btn" id="createGroupConfirm" type="button">Créer</button>
       </div>
     </div>
-  </div>  <script>
-    // ======= CONFIG & STATE =======
-    const API_BASE = 'https://tf-sove.onrender.com'; // remote API
-    const FRONTEND_NAME = 'site1'; // used when posting messages
+  </div>
 
-    const KEY_CONTACTS = 'tfai_contacts_v4';
-    const KEY_SESSIONS = 'tfai_sessions_v4';
-    const KEY_PROFILE = 'tfai_profile_v4';
-    const KEY_LANG = 'tfai_lang_v4';
+<script>
+/* ========= SAFETY HELPERS ========= */
+function safeParse(jsonStr, fallback){
+  try{
+    const v = JSON.parse(jsonStr);
+    return (v === null ? fallback : v);
+  }catch(e){
+    console.warn('safeParse fallback used', e);
+    return fallback;
+  }
+}
 
-    let contacts = JSON.parse(localStorage.getItem(KEY_CONTACTS) || '[]');
-    let sessions = JSON.parse(localStorage.getItem(KEY_SESSIONS) || '[]');
-    let profile = JSON.parse(localStorage.getItem(KEY_PROFILE) || '{}');
-    let lang = localStorage.getItem(KEY_LANG) || 'ht';
+/* ========= CONFIG & STATE ========= */
+const API_BASE = 'https://tf-sove.onrender.com';
+const FRONTEND_NAME = 'site1';
 
-    // init profile if empty
-    if (!profile.tfid) profile.tfid = generateRandomShortTF();
-    if (!profile.name) profile.name = 'Utilisateur';
-    localStorage.setItem(KEY_PROFILE, JSON.stringify(profile));
+const KEY_CONTACTS = 'tfai_contacts_v4';
+const KEY_SESSIONS = 'tfai_sessions_v4';
+const KEY_PROFILE = 'tfai_profile_v4';
+const KEY_LANG = 'tfai_lang_v4';
 
-    function saveContacts(){ localStorage.setItem(KEY_CONTACTS, JSON.stringify(contacts)); }
-    function saveSessions(){ localStorage.setItem(KEY_SESSIONS, JSON.stringify(sessions)); }
-    function saveProfile(){ localStorage.setItem(KEY_PROFILE, JSON.stringify(profile)); }
-    function saveLang(){ localStorage.setItem(KEY_LANG, lang); }
+let contacts = safeParse(localStorage.getItem(KEY_CONTACTS), []);
+let sessions = safeParse(localStorage.getItem(KEY_SESSIONS), []);
+let profile = safeParse(localStorage.getItem(KEY_PROFILE), {}) || {};
+let lang = localStorage.getItem(KEY_LANG) || 'ht';
 
-    function initials(name){ if(!name) return 'U'; return name.split(' ').map(p=>p[0]).slice(0,2).join('').toUpperCase(); }
-    function timeAgo(ts){ const diff=Math.floor((Date.now()-ts)/1000); if(diff<60) return diff+'s'; if(diff<3600) return Math.floor(diff/60)+'m'; if(diff<86400) return Math.floor(diff/3600)+'h'; return new Date(ts).toLocaleDateString(); }
+if (!profile.tfid) profile.tfid = generateRandomShortTF();
+if (!profile.name) profile.name = 'Utilisateur';
+localStorage.setItem(KEY_PROFILE, JSON.stringify(profile));
 
-    // ======= FORMAT HELPERS (7 digits enforced) =======
-    function normalizeInputToDigits(inp){ if(!inp) return null; const s=String(inp).trim().toUpperCase(); const digits=s.replace(/[^0-9]/g,''); return digits||null; }
-    function to17(shortOrDigits){ if(!shortOrDigits) return null; const ds=String(shortOrDigits).replace(/[^0-9]/g,''); if(ds.length>17) return ds.slice(-17); return ds.padStart(17,'0'); }
-    function formatTFShort(digitsString){ if(!digitsString) return ''; const s=String(digitsString).replace(/[^0-9]/g,''); const last7=s.slice(-7); return 'TF-'+last7.padStart(7,'0'); }
-    function generateRandomShortTF(){ return 'TF-'+ Math.floor(100000 + Math.random()*900000); }
-    function makeCid(){ return String(Date.now()) + '-' + Math.floor(Math.random()*100000).toString(16); }
+function saveContacts(){ try{ localStorage.setItem(KEY_CONTACTS, JSON.stringify(contacts)); }catch(e){ console.warn('saveContacts failed', e); } }
+function saveSessions(){ try{ localStorage.setItem(KEY_SESSIONS, JSON.stringify(sessions)); }catch(e){ console.warn('saveSessions failed', e); } }
+function saveProfile(){ try{ localStorage.setItem(KEY_PROFILE, JSON.stringify(profile)); }catch(e){ console.warn('saveProfile failed', e); } }
+function saveLang(){ try{ localStorage.setItem(KEY_LANG, lang); }catch(e){ console.warn('saveLang failed', e); } }
 
-    // ======= API HELPERS (safe: no admin token client-side) =======
-    async function callJSON(url, opts={}){
-      try{
-        const r = await fetch(url, opts);
-        const text = await r.text();
-        let json = null;
-        try{ json = JSON.parse(text); } catch(e){}
-        return { ok: r.ok, status: r.status, json, text };
-      } catch(e){ return { ok:false, error: e.message } }
-    }
+/* ========= UTIL ======== */
+function normalizeInputToDigits(inp){ if(!inp) return null; const s=String(inp).trim().toUpperCase(); const digits=s.replace(/[^0-9]/g,''); return digits||null; }
+function to17(shortOrDigits){ if(!shortOrDigits) return null; const ds=String(shortOrDigits).replace(/[^0-9]/g,''); if(ds.length>17) return ds.slice(-17); return ds.padStart(17,'0'); }
+function formatTFShort(digitsString){ if(!digitsString) return ''; const s=String(digitsString).replace(/[^0-9]/g,''); const last7 = s.slice(-7); return 'TF-'+ last7.padStart(7,'0'); }
+function generateRandomShortTF(){ return 'TF-'+ Math.floor(100000 + Math.random()*900000); }
+function makeCid(){ return String(Date.now()) + '-' + Math.floor(Math.random()*100000).toString(16); }
+function escapeHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function initials(name){ if(!name) return 'U'; return name.split(' ').map(p=>p[0]).slice(0,2).join('').toUpperCase(); }
+function timeAgo(ts){ const diff=Math.floor((Date.now()-ts)/1000); if(diff<60) return diff+'s'; if(diff<3600) return Math.floor(diff/60)+'m'; if(diff<86400) return Math.floor(diff/3600)+'h'; return new Date(ts).toLocaleDateString(); }
 
-    // List messages stored under tfid (server side storage)
-    async function apiList(tf17){
-      const url = `${API_BASE}/api/list?tfid=${encodeURIComponent(tf17)}&name=${encodeURIComponent(FRONTEND_NAME)}`;
-      const r = await callJSON(url);
-      if(!r.ok) throw new Error(r.json?.error || r.text || `HTTP ${r.status}`);
-      return r.json.rows || [];
-    }
+/* ========= NETWORK HELPERS ========= */
+async function callJSON(url, opts={}){
+  try{
+    const r = await fetch(url, opts);
+    const text = await r.text();
+    let json = null;
+    try{ json = JSON.parse(text); } catch(e){}
+    return { ok: r.ok, status: r.status, json, text };
+  }catch(e){ return { ok:false, error: e.message }; }
+}
+async function apiList(tf17){
+  const url = `${API_BASE}/api/list?tfid=${encodeURIComponent(tf17)}&name=${encodeURIComponent(FRONTEND_NAME)}`;
+  const r = await callJSON(url);
+  if(!r.ok) throw new Error(r.json?.error || r.text || `HTTP ${r.status}`);
+  return r.json.rows || [];
+}
+async function apiAdd(recipient17, contentObj){
+  const body = { tfid: recipient17, name: FRONTEND_NAME, content: JSON.stringify(contentObj), source_url: location.origin };
+  const url = `${API_BASE}/api/add`;
+  const r = await callJSON(url, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+  if(!r.ok) throw new Error(r.json?.error || r.text || `HTTP ${r.status}`);
+  return r.json;
+}
+// best-effort register (no crash on error)
+async function registerFrontendIfNeeded(){
+  try{
+    await callJSON('/internal/register-frontend', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ name: FRONTEND_NAME, callback_url: location.origin }) });
+  }catch(e){}
+}
 
-    // Add (send) a message. contentObj is object that will be JSON.stringified into `content` on server
-    async function apiAdd(recipient17, contentObj){
-      const body = { tfid: recipient17, name: FRONTEND_NAME, content: JSON.stringify(contentObj), source_url: location.origin };
-      const url = `${API_BASE}/api/add`;
-      const r = await callJSON(url, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
-      if(!r.ok) throw new Error(r.json?.error || r.text || `HTTP ${r.status}`);
-      return r.json;
-    }
+/* ========= UI refs ========= */
+const contactsListEl = document.getElementById('contactsList');
+const searchInputEl = document.getElementById('searchInput');
+const clearSearchEl = document.getElementById('clearSearch');
+const fabEl = document.getElementById('fab');
+const fabMenuEl = document.getElementById('fabMenu');
 
-    // ======= CONVERSATION CACHE minimal for modal render =======
-    const conversationCache = {};
-    function convKey(a,b){ return `${a}|${b}`; }
-    function addOrUpdateMessageToCache(me17, other17, msg){
-      const key = convKey(me17, other17);
-      if(!conversationCache[key]) conversationCache[key]=[];
-      const list = conversationCache[key];
-      const exists = msg.cid ? list.findIndex(x=>x.cid===msg.cid) : (msg.id ? list.findIndex(x=>String(x.id)===String(msg.id)) : -1);
-      if(exists!==-1) list[exists]=Object.assign({}, list[exists], msg); else list.push(msg);
-      list.sort((a,b)=> new Date(a.created_at) - new Date(b.created_at));
-    }
+const addModalEl = document.getElementById('addModal');
+const newNameEl = document.getElementById('newName');
+const newTfidEl = document.getElementById('newTfid');
+const addConfirmBtn = document.getElementById('addConfirm');
 
-    // ======= UI RENDER =======
-    const contactsList = document.getElementById('contactsList');
-    function renderContacts(filter=''){
-      contactsList.innerHTML=''; const q=(filter||'').toLowerCase();
-      const list = contacts.filter(c=>{ if(!q) return true; return (c.name||'').toLowerCase().includes(q) || (c.tfid||'').toLowerCase().includes(q); });
-      if (list.length === 0){ const empty = document.createElement('div'); empty.style.padding='20px'; empty.style.textAlign='center'; empty.style.color='var(--muted)'; empty.textContent = 'Pa gen kontak. Klike + pou ajoute.'; contactsList.appendChild(empty); return; }
-      list.forEach(c=>{
-        const el=document.createElement('div'); el.className='contact'; el.setAttribute('data-id',c.id);
-        el.innerHTML = `
-          <div class="avatar">${escapeHtml(initials(c.name||c.tfid))}</div>
-          <div class="meta">
-            <div class="meta-top">
-              <div class="name">${escapeHtml(c.name||c.tfid)}</div>
-              <div class="time">${timeAgo(c.lastTs||Date.now())}</div>
-            </div>
-            <div class="meta-bottom">
-              <div class="snippet">${escapeHtml(c.lastMsg||'')}</div>
-              <div>${c.unread?'<span class="badge">'+c.unread+'</span>':''}</div>
-            </div>
-          </div>
-        `;
-        el.addEventListener('click', ()=> openChat(c));
-        contactsList.appendChild(el);
-      });
-    }
+const groupModalEl = document.getElementById('groupModal');
+const groupContactListEl = document.getElementById('groupContactList');
+const createGroupConfirmBtn = document.getElementById('createGroupConfirm');
 
-    // ======= SEARCH BEHAVIOR (prioritize contacts, else server TFID lookup) =======
-    const searchInputEl = document.getElementById('searchInput'); const clearSearchEl = document.getElementById('clearSearch');
-    searchInputEl.addEventListener('input', (e)=>{ renderContacts(e.target.value); clearSearchEl.style.display = e.target.value? 'inline-block':'none'; });
-    clearSearchEl.addEventListener('click', ()=>{ searchInputEl.value=''; renderContacts(); clearSearchEl.style.display='none'; searchInputEl.focus(); });
+const chatModalEl = document.getElementById('chatModal');
+const messagesEl = document.getElementById('messages');
+const chatTitleEl = document.getElementById('chatTitle');
+const chatSubtitleEl = document.getElementById('chatSubtitle');
+const chatAvatarSmallEl = document.getElementById('chatAvatarSmall');
+const chatTextEl = document.getElementById('chatText');
+const sendBtnEl = document.getElementById('sendBtn');
 
-    // on Enter: if digits => treat as TFID search; else filter local
-    searchInputEl.addEventListener('keydown', async (e)=>{
-      if(e.key !== 'Enter') return;
-      const raw = searchInputEl.value.trim();
-      if(!raw) return;
-      const digits = normalizeInputToDigits(raw);
-      if(digits){
-        // enforce at least 7 digits
-        if(digits.length < 7){ alert('TFID dwe gen omwen 7 chif.'); return; }
-        const short7 = digits.slice(-7);
-        const target17 = to17(short7);
-        // try local first
-        const local = contacts.find(c=> c.tf17 === target17 || c.tfid === formatTFShort(short7));
-        if(local){ openChat(local); return; }
-        // else query server for messages under that tfid
-        try{
-          const rows = await apiList(target17);
-          if(rows && rows.length>0){
-            // create minimal contact and open chat
-            const id = 'c_'+Date.now();
-            const c = { id, name: formatTFShort(short7), tfid: formatTFShort(short7), tf17: target17, lastMsg: rows[rows.length-1]?.content || '', lastTs: Date.now(), unread:0 };
-            contacts.unshift(c); saveContacts(); renderContacts();
-            openChat(c);
-            return;
-          } else {
-            // nothing on server, still create contact optionally? here we ask user
-            if(confirm('Pa jwenn nan servèr. Kreye kontak lokal pou TFID sa a?')) {
-              const id = 'c_'+Date.now();
-              const c = { id, name:'', tfid: formatTFShort(short7), tf17: target17, lastMsg:'', lastTs:Date.now(), unread:0 };
-              contacts.unshift(c); saveContacts(); renderContacts(); openChat(c);
-            }
-            return;
-          }
-        }catch(err){
-          alert('Erè lè w ap chèche sou servèr: '+ (err.message||err)); return;
-        }
+let currentChat = null;
+
+/* ========= RENDER CONTACTS ========= */
+function renderContacts(filter = ''){
+  if(!contactsListEl) return;
+  contactsListEl.innerHTML = '';
+  const q = (filter || '').toLowerCase().trim();
+  const list = contacts.filter(c=>{
+    if(!q) return true;
+    return (c.name||'').toLowerCase().includes(q) || (c.tfid||'').toLowerCase().includes(q);
+  });
+  if(list.length === 0){
+    const div = document.createElement('div');
+    div.style.padding='20px'; div.style.textAlign='center'; div.style.color='var(--muted)';
+    div.textContent = 'Pa gen kontak. Klike + pou ajoute.';
+    contactsListEl.appendChild(div);
+    return;
+  }
+  list.forEach(c=>{
+    const el = document.createElement('div'); el.className='contact'; el.dataset.id = c.id;
+    const avatarHtml = c.logo ? `<img src="${c.logo}">` : escapeHtml(initials(c.name||c.tfid));
+    el.innerHTML = `<div class="avatar">${avatarHtml}</div>
+      <div class="meta">
+        <div class="meta-top">
+          <div class="name">${escapeHtml(c.name||c.tfid)}</div>
+          <div class="time">${timeAgo(c.lastTs||Date.now())}</div>
+        </div>
+        <div class="meta-bottom">
+          <div class="snippet">${escapeHtml(c.lastMsg||'')}</div>
+          <div>${c.unread?'<span class="badge">'+c.unread+'</span>':''}</div>
+        </div>
+      </div>`;
+    el.addEventListener('click', ()=> {
+      if(c.isGroup) {
+        // if openGroupInfo exists
+        if(typeof openGroupInfo === 'function') openGroupInfo(c);
       } else {
-        // not digits -> already filtered by input, just ensure UI shows local results
-        renderContacts(raw);
+        if(typeof openChat === 'function') openChat(c);
       }
     });
+    contactsListEl.appendChild(el);
+  });
+}
 
-    // ======= FAB behavior =======
-    const fab = document.getElementById('fab'); const fabMenu = document.getElementById('fabMenu');
-    fab.addEventListener('click', (e)=>{ e.stopPropagation(); fabMenu.classList.toggle('show'); fabMenu.setAttribute('aria-hidden', fabMenu.classList.contains('show')? 'false':'true'); });
-    document.addEventListener('click', (e)=>{ if (!fab.contains(e.target) && !fabMenu.contains(e.target)) { fabMenu.classList.remove('show'); fabMenu.setAttribute('aria-hidden','true'); } });
-    document.getElementById('fabAdd').addEventListener('click', ()=>{ showModal('addModal'); fabMenu.classList.remove('show'); });
+/* ========= SEARCH ========= */
+/* - local filtering while typing
+   - on Enter: if digits -> try local -> call backend apiList -> create/open contact
+*/
+if(searchInputEl){
+  searchInputEl.addEventListener('input', (e)=>{ renderContacts(e.target.value); if(clearSearchEl) clearSearchEl.style.display = e.target.value ? 'inline-block' : 'none'; });
+  if(clearSearchEl) clearSearchEl.addEventListener('click', ()=>{ searchInputEl.value=''; renderContacts(); clearSearchEl.style.display='none'; searchInputEl.focus(); });
 
-    // ======= MODALS =======
-    function showModal(id){ const el=document.getElementById(id); if(!el) return; el.classList.add('show'); el.setAttribute('aria-hidden','false'); }
-    function closeModal(id){ const el=document.getElementById(id); if(!el) return; el.classList.remove('show'); el.setAttribute('aria-hidden','true'); }
-
-    // ======= CHAT =======
-    const chatModal = document.getElementById('chatModal'); const messagesEl = document.getElementById('messages'); let activeContact = null;
-    const chatText = document.getElementById('chatText');
-
-    async function openChat(contact){
-      activeContact = contact;
-      document.getElementById('chatTitle').textContent = contact.name || contact.tfid;
-      document.getElementById('chatSubtitle').textContent = contact.isGroup? 'Groupe' : contact.tfid || '';
-      document.getElementById('chatAvatarSmall').textContent = initials(contact.name||contact.tfid);
-      contact.unread=0; saveContacts(); renderContacts(searchInputEl.value);
-
-      messagesEl.innerHTML = '<div style="padding:10px;color:var(--muted)">Chaje mesaj...</div>';
-      try{
-        const meShortLocal = profile.tfid;
-        const me17 = to17(normalizeInputToDigits(meShortLocal) || meShortLocal);
-        const other17 = to17(normalizeInputToDigits(contact.tfid) || contact.tfid);
-        // load conversation (server)
-        const conv = await loadConversation(me17, other17);
-        renderMessageList(conv);
-      } catch(e){
-        messagesEl.innerHTML = `<div style="padding:10px;color:var(--muted)">Pa kapab chaje mesaj: ${escapeHtml(e.message||e)}</div>`;
-      }
-
-      showModal('chatModal'); setTimeout(()=> chatText.focus(),150);
-    }
-    document.getElementById('chatBack').addEventListener('click', ()=>{ closeModal('chatModal'); activeContact=null; });
-
-    function renderMessageList(arr){ messagesEl.innerHTML=''; if(!arr || arr.length===0){ messagesEl.innerHTML = `<div style="padding:20px;color:var(--muted);text-align:center">Pa gen mesaj ankò.</div>`; return; } arr.sort((a,b)=> new Date(a.created_at) - new Date(b.created_at)); arr.forEach(m=>{ const d=document.createElement('div'); d.className='msg '+(m.from === (profile.tfid) ? 'user':'bot'); const ts = m.created_at ? new Date(m.created_at).toLocaleString() : ''; d.innerHTML = `<div>${escapeHtml(m.text)}</div><div style="font-size:11px;color:var(--muted);margin-top:6px">${formatTFShort(m.from)} • ${ts}</div>`; messagesEl.appendChild(d); }); messagesEl.scrollTop = messagesEl.scrollHeight; }
-
-    // Load conversation from server (merge outgoing/incoming)
-    async function loadConversation(me17, other17){
-      const result = [];
-      const seen = new Set();
-
-      function pushRow(r, expectedFrom){
-        let parsed = null;
-        try{ parsed = JSON.parse(r.content); } catch(e){ parsed = null; }
-        const parsedFrom = parsed && parsed.from ? parsed.from : null;
-        const parsedTime = parsed && parsed.time ? parsed.time : null;
-        const parsedCid = parsed && parsed.cid ? parsed.cid : null;
-        const parsedText = parsed && (parsed.text || parsed.message) ? (parsed.text || parsed.message) : (r.content || '');
-        if(!parsedFrom || parsedFrom !== expectedFrom) return;
-        const m = { id: r.id||null, cid: parsedCid||null, from: parsedFrom, text: parsedText, created_at: parsedTime || r.created_at || new Date().toISOString() };
-        const keyu = (m.cid? 'cid:'+m.cid : (m.id? 'id:'+m.id : m.created_at+'|'+m.text));
-        if(seen.has(keyu)) return; seen.add(keyu); result.push(m);
-      }
-
-      try{ const outRows = await apiList(other17); outRows.forEach(r=> pushRow(r, me17)); } catch(e){ console.warn('apiList outgoing failed', e); }
-      try{ const inRows = await apiList(me17); inRows.forEach(r=> pushRow(r, other17)); } catch(e){ console.warn('apiList incoming failed', e); }
-
-      result.sort((a,b)=> new Date(a.created_at) - new Date(b.created_at));
-      // cache minimal
-      conversationCache[convKey(me17, other17)] = result;
-      return result;
-    }
-
-    // ======= SEND MESSAGE (integrated with backend) =======
-    document.getElementById('sendBtn').addEventListener('click', sendMessage);
-    chatText.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); sendMessage(); } });
-
-    async function sendMessage(){
-      const txt = (chatText.value || '').trim();
-      if(!txt || !activeContact) return;
-
-      // build cf 7-digit me
-      if(!profile.tfid){ alert('Pa gen TFID pou itilizatè a. Ale nan Paramètres pou mete TFID.'); return; }
-      const meShortLocal = profile.tfid;
-      const me17 = to17(normalizeInputToDigits(meShortLocal) || meShortLocal);
-
-      // prepare payload
-      const cid = makeCid();
-      const payload = { type:'text', from: me17, text: txt, time: (new Date()).toISOString(), cid };
-
-      // optimistic UI: append locally
-      const sess = sessions.find(s=> s.meta&&s.meta.contactId===activeContact.id) || (function(){ const s={title:activeContact.name||activeContact.tfid, meta:{contactId:activeContact.id}, messages:[]}; sessions.unshift(s); return s; })();
-      sess.messages.push({sender:'user',text:txt,ts:Date.now(),cid});
-      saveSessions();
-      // also push to conversation cache to show immediately
-      addOrUpdateMessageToCache(me17, to17(normalizeInputToDigits(activeContact.tfid)||activeContact.tfid), { id:null, cid, from: me17, text: txt, created_at: new Date().toISOString() });
-      renderMessageList(conversationCache[convKey(me17, to17(normalizeInputToDigits(activeContact.tfid)||activeContact.tfid))]);
-
-      chatText.value=''; activeContact.lastMsg = txt; activeContact.lastTs = Date.now(); saveContacts(); renderContacts(searchInputEl.value);
-
-      // call backend
-      try{
-        const recipientShort = normalizeInputToDigits(activeContact.tfid) || activeContact.tfid;
-        const recipient17 = to17(recipientShort);
-        await registerFrontendIfNeeded();
-        await apiAdd(recipient17, payload);
-        shortPollForMessage(recipient17, cid);
-      } catch(err){ console.warn('send failed', err); alert('Envoi echwe: '+ (err.message||err)); }
-    }
-
-    // Try a few times to fetch server-side message matching cid
-    function shortPollForMessage(target17, cid){
-      let tries=0; const maxTries=6; const interval=1200;
-      const attempt = async ()=>{
-        tries++;
-        try{
-          const rows = await apiList(target17);
-          const found = rows.find(r=>{ try{ const p = JSON.parse(r.content); return p && p.cid===cid; } catch(e){ return false; } });
-          if(found){
-            const meShortLocal = profile.tfid;
-            const me17 = to17(normalizeInputToDigits(meShortLocal) || meShortLocal);
-            await loadConversation(me17, target17);
-            renderMessageList(conversationCache[convKey(me17,target17)]);
-            return true;
-          }
-        } catch(e){}
-        if(tries < maxTries) setTimeout(attempt, interval);
-      };
-      attempt();
-    }
-
-    // ======= ADD CONTACT BUG FIX + VALIDATION (7 digits) =======
-    document.getElementById('addConfirm').addEventListener('click', async ()=>{
-      const name = document.getElementById('newName').value.trim();
-      const raw = document.getElementById('newTfid').value.trim();
-      const digits = normalizeInputToDigits(raw);
-      if(!digits || digits.length < 7){ alert('TFID pa valab. TFID dwe gen omwen 7 chif (eg: TF-0204143 oubyen 0204143).'); return; }
+  searchInputEl.addEventListener('keydown', async (e)=>{
+    if(e.key !== 'Enter') return;
+    const raw = searchInputEl.value.trim();
+    if(!raw) return;
+    const digits = normalizeInputToDigits(raw);
+    if(digits){
+      if(digits.length < 7){ alert('TFID dwe gen omwen 7 chif.'); return; }
       const short7 = digits.slice(-7);
       const tf17 = to17(short7);
-      const id = 'c_'+Date.now();
-      const c = { id, name: name||'', tfid: formatTFShort(short7), tf17: tf17, lastMsg:'', lastTs:Date.now(), unread:0 };
-      // push to contacts and save
-      contacts.unshift(c); saveContacts(); closeModal('addModal'); renderContacts();
-      // open chat immediately
-      setTimeout(()=> openChat(c), 160);
-    });
-
-    // ======= CREATE GROUP (unchanged) =======
-    function openCreateGroup(){ const list=document.getElementById('groupContactList'); list.innerHTML=''; if(contacts.length===0){ const p=document.createElement('div'); p.style.color='var(--muted)'; p.textContent='Ou pa gen kontak pou chwazi.'; list.appendChild(p); } else { contacts.forEach(c=>{ const row=document.createElement('label'); row.className='checkbox-row'; row.style.display='flex'; row.style.gap='8px'; row.style.padding='8px 0'; row.innerHTML = `<input type="checkbox" value="${c.id}"> <div style="flex:1">${escapeHtml(c.name||c.tfid)}</div>`; list.appendChild(row); }); } showModal('groupModal'); }
-    document.getElementById('createGroupConfirm').addEventListener('click', ()=>{ const name = document.getElementById('groupName').value.trim() || ('Groupe '+(contacts.length+1)); const file = document.getElementById('groupLogo').files[0]; const chosen = Array.from(document.querySelectorAll('#groupContactList input[type=checkbox]:checked')).map(i=>i.value); if(chosen.length===0){ alert('Chwazi omwen yon kontak pou gwoup la'); return; } const id = 'g_'+Date.now(); const group = {id,name,tfid:id,lastMsg:'Groupe kreye',lastTs:Date.now(),unread:0,isGroup:true,members:chosen}; function finish(logo){ if(logo) group.logo = logo; contacts.unshift(group); saveContacts(); closeModal('groupModal'); renderContacts(); } if(file){ const r=new FileReader(); r.onload=(e)=> finish(e.target.result); r.readAsDataURL(file); } else finish(null); });
-
-    // ======= PROFILE, LANG, TFID UI =======
-    document.getElementById('settingsBtn').addEventListener('click', ()=>{ updateSettingsUI(); showModal('settingsModal'); });
-    document.getElementById('settingsBack').addEventListener('click', ()=> closeModal('settingsModal'));
-    function updateSettingsUI(){ document.getElementById('settingsAvatar').innerHTML = profile.photo ? `<img src="${profile.photo}" style="width:100%;height:100%;border-radius:50%">` : initials(profile.name||profile.tfid); document.getElementById('settingsName').textContent = profile.name || 'Utilisateur'; document.getElementById('settingsTfid').textContent = profile.tfid || ''; }
-
-    document.getElementById('openProfile').addEventListener('click', ()=>{ document.getElementById('profileNameInput').value = profile.name || ''; const pa = document.getElementById('profileAvatarRound'); pa.innerHTML = profile.photo ? `<img src="${profile.photo}" style="width:100%;height:100%;border-radius:50%">` : initials(profile.name||profile.tfid); showModal('profileModal'); });
-    const profileAvatarRound = document.getElementById('profileAvatarRound'); const profilePhotoInput = document.getElementById('profilePhotoInput');
-    profileAvatarRound.addEventListener('click', ()=> profilePhotoInput.click());
-    profilePhotoInput.addEventListener('change', (e)=>{ const f = e.target.files[0]; if(!f) return; if (!f.type.startsWith('image/')){ alert('Tanpri chwazi yon foto sèlman'); return; } const r=new FileReader(); r.onload = (ev)=>{ profile.photo = ev.target.result; profileAvatarRound.innerHTML = `<img src="${profile.photo}" style="width:100%;height:100%;border-radius:50%">`; saveProfile(); }; r.readAsDataURL(f); });
-    document.getElementById('profileCancel').addEventListener('click', ()=> closeModal('profileModal'));
-    document.getElementById('profileSave').addEventListener('click', ()=>{ const newName = document.getElementById('profileNameInput').value.trim(); if(newName) profile.name = newName; saveProfile(); updateSettingsUI(); closeModal('profileModal'); alert('Profil sove'); });
-
-    document.getElementById('openLang').addEventListener('click', ()=>{ document.querySelectorAll('#langModal input[name="lang"]').forEach(r=> r.checked = (r.value === lang)); showModal('langModal'); });
-    document.getElementById('langCancel').addEventListener('click', ()=> closeModal('langModal'));
-    document.getElementById('langSave').addEventListener('click', ()=>{ const sel = document.querySelector('#langModal input[name="lang"]:checked'); if(sel){ lang = sel.value; saveLang(); applyLang(); closeModal('langModal'); alert('Lang chanje: '+lang); } });
-
-    document.getElementById('openTfid').addEventListener('click', ()=>{ document.getElementById('tfidInput').value = profile.tfid || ''; showModal('tfidModal'); });
-    document.getElementById('tfidCancel').addEventListener('click', ()=> closeModal('tfidModal'));
-    document.getElementById('tfidSave').addEventListener('click', ()=>{ const v=document.getElementById('tfidInput').value.trim(); if(!v){ alert('tfid pa ka vid'); return; } const digits = normalizeInputToDigits(v); if(!digits || digits.length < 7){ alert('TFID pa valab (dwe gen 7 chif).'); return; } profile.tfid = formatTFShort(digits.slice(-7)); saveProfile(); updateSettingsUI(); closeModal('tfidModal'); alert('tfid mete ajou'); });
-
-    // ======= INTERNATIONALIZATION small function =======
-    const translations = { ht:{search:'Recherche', chatPlaceholder:'Ekri mesaj...', addedContactMsg:'Kontak ajoute.'}, fr:{search:'Recherche', chatPlaceholder:'Écrire un message...', addedContactMsg:'Contact ajouté.'}, en:{search:'Search', chatPlaceholder:'Type a message...', addedContactMsg:'Contact added.'}, es:{search:'Buscar', chatPlaceholder:'Escribe un mensaje...', addedContactMsg:'Contacto agregado.'} };
-    function applyLang(){ const t = translations[lang] || translations.ht; document.getElementById('searchInput').placeholder = t.search; document.getElementById('chatText').placeholder = t.chatPlaceholder; }
-    applyLang();
-
-    // ======= BOOT =======
-    updateSettingsUI(); renderContacts();
-
-    // ======= SECURITY NOTE & registration helper =======
-    async function registerFrontendIfNeeded(){
+      // first try local
+      let local = contacts.find(c => (c.tf17 === tf17) || (normalizeInputToDigits(c.tfid) === short7));
+      if(local){ if(local.isGroup) { if(typeof openGroupInfo === 'function') openGroupInfo(local); } else { if(typeof openChat === 'function') openChat(local); } return; }
+      // else query server
       try{
-        const r = await callJSON('/internal/register-frontend', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ name: FRONTEND_NAME, callback_url: location.origin }) });
-        return r.ok;
-      } catch(e){ return false; }
+        const rows = await apiList(tf17);
+        if(rows && rows.length > 0){
+          const id = 'c_'+Date.now();
+          const last = rows[rows.length-1];
+          let lastMsg = '';
+          try{ const p = JSON.parse(last.content); lastMsg = p.text || p.message || last.content; }catch(e){ lastMsg = last.content || ''; }
+          const c = { id, name: formatTFShort(short7), tfid: formatTFShort(short7), tf17: tf17, lastMsg, lastTs: Date.now(), unread:0 };
+          contacts.unshift(c); saveContacts(); renderContacts();
+          if(typeof openChat === 'function') openChat(c);
+          return;
+        } else {
+          if(confirm('Pa jwenn done sou servèr. Kreye kontak lokal pou TFID sa a?')){
+            const id = 'c_'+Date.now();
+            const c = { id, name:'', tfid: formatTFShort(short7), tf17: tf17, lastMsg:'', lastTs:Date.now(), unread:0 };
+            contacts.unshift(c); saveContacts(); renderContacts();
+            if(typeof openChat === 'function') openChat(c);
+          }
+          return;
+        }
+      }catch(err){
+        alert('Erè lè w ap chèche sou servèr: ' + (err.message||err)); return;
+      }
+    } else {
+      // non-digit: local filter already applied
+      renderContacts(raw);
     }
+  });
+}
 
-    // ======= Utilities =======
-    function escapeHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+/* ========= FAB MENU ========= */
+if(fabEl && fabMenuEl){
+  fabEl.addEventListener('click', (e)=>{ e.stopPropagation(); fabMenuEl.classList.toggle('show'); fabMenuEl.setAttribute('aria-hidden', fabMenuEl.classList.contains('show')? 'false':'true'); });
+  document.addEventListener('click', (e)=>{ if(!fabEl.contains(e.target) && !fabMenuEl.contains(e.target)){ fabMenuEl.classList.remove('show'); fabMenuEl.setAttribute('aria-hidden','true'); }});
+  document.getElementById('fabAdd')?.addEventListener('click', ()=>{ showModal('addModal'); fabMenuEl.classList.remove('show'); });
+  document.getElementById('fabGroup')?.addEventListener('click', ()=>{ openCreateGroup?.(); fabMenuEl.classList.remove('show'); });
+}
 
-    // expose renderContacts for quick debugging
-    window._tf_debug_renderContacts = renderContacts;
-  </script></body>
-          </html>
+/* ========= MODAL HELPERS ========= */
+function showModal(id){ const el = document.getElementById(id); if(!el) return; el.classList.add('show'); el.setAttribute('aria-hidden','false'); }
+function closeModal(id){ const el = document.getElementById(id); if(!el) return; el.classList.remove('show'); el.setAttribute('aria-hidden','true'); }
+
+/* ========= ADD CONTACT ========= */
+if(addConfirmBtn){
+  addConfirmBtn.addEventListener('click', ()=>{
+    const name = newNameEl ? newNameEl.value.trim() : '';
+    const raw = newTfidEl ? newTfidEl.value.trim() : '';
+    const digits = normalizeInputToDigits(raw);
+    if(!digits || digits.length < 7){ alert('TFID pa valab. TFID dwe gen 7 chif.'); return; }
+    const short7 = digits.slice(-7);
+    const tf17 = to17(short7);
+    const id = 'c_'+Date.now();
+    const c = { id, name: name||'', tfid: formatTFShort(short7), tf17: tf17, lastMsg:'', lastTs:Date.now(), unread:0 };
+    contacts.unshift(c); saveContacts(); closeModal('addModal'); renderContacts();
+    setTimeout(()=> { if(typeof openChat === 'function') openChat(c); }, 150);
+  });
+}
+
+/* ========= CREATE GROUP ========= */
+/* (kept same guard-checked) */
+function openCreateGroup(){
+  createGroupSelected = new Set(); createGroupLogoData = null;
+  const nameEl = document.getElementById('groupName'); if(nameEl) nameEl.value = '';
+  const list = groupContactListEl;
+  if(!list) return;
+  list.innerHTML = '';
+  if(contacts.length === 0){
+    const p = document.createElement('div'); p.style.color='var(--muted)'; p.textContent = 'Ou pa gen kontak pou chwazi.'; list.appendChild(p); showModal('groupModal'); return;
+  }
+  contacts.forEach(c=>{
+    const row = document.createElement('label'); row.style.display='flex'; row.style.gap='8px'; row.style.padding='8px 0';
+    row.innerHTML = `<input type="checkbox" value="${c.id}"> <div style="flex:1">${escapeHtml(c.name||c.tfid)}</div>`;
+    list.appendChild(row);
+  });
+  showModal('groupModal');
+}
+document.getElementById('createGroupConfirm')?.addEventListener('click', ()=>{
+  const name = document.getElementById('groupName')?.value.trim() || ('Groupe '+(contacts.length+1));
+  const chosen = Array.from(document.querySelectorAll('#groupContactList input[type=checkbox]:checked')).map(i=>i.value);
+  if(chosen.length===0){ alert('Chwazi omwen yon kontak pou gwoup la'); return; }
+  const id = 'g_'+Date.now();
+  const group = {id,name,tfid:id,lastMsg:'Groupe kreye',lastTs:Date.now(),unread:0,isGroup:true,members:chosen};
+  contacts.unshift(group); saveContacts(); closeModal('groupModal'); renderContacts();
+});
+
+/* ========= CHAT ========= */
+async function openChat(contact){
+  currentChat = contact;
+  if(chatTitleEl) chatTitleEl.textContent = contact.name || contact.tfid;
+  if(chatSubtitleEl) chatSubtitleEl.textContent = contact.isGroup ? 'Groupe' : contact.tfid || '';
+  if(chatAvatarSmallEl) chatAvatarSmallEl.innerHTML = contact.logo ? `<img src="${contact.logo}">` : escapeHtml(initials(contact.name||contact.tfid));
+  contact.unread = 0; saveContacts(); renderContacts(searchInputEl?.value);
+
+  if(messagesEl) messagesEl.innerHTML = '<div style="padding:10px;color:var(--muted)">Chaje mesaj...</div>';
+  try{
+    const meShortLocal = profile.tfid;
+    const me17 = to17(normalizeInputToDigits(meShortLocal) || meShortLocal);
+    const other17 = to17(normalizeInputToDigits(contact.tfid) || contact.tfid);
+    const conv = await loadConversation(me17, other17);
+    renderMessageList(conv);
+  }catch(err){
+    if(messagesEl) messagesEl.innerHTML = `<div style="padding:10px;color:var(--muted)">Pa kapab chaje mesaj: ${escapeHtml(err.message||err)}</div>`;
+  }
+
+  showModal('chatModal'); setTimeout(()=> chatTextEl?.focus(),150);
+}
+
+/* conversation merge loader (kept simple & robust) */
+const conversationCache = {};
+function convKey(a,b){ return `${a}|${b}`; }
+async function loadConversation(me17, other17){
+  const result = []; const seen = new Set();
+  function pushRow(r, expectedFrom){
+    let parsed = null;
+    try{ parsed = JSON.parse(r.content); }catch(e){ parsed = null; }
+    const parsedFrom = parsed && parsed.from ? parsed.from : null;
+    const parsedText = parsed && (parsed.text || parsed.message) ? (parsed.text || parsed.message) : (r.content || '');
+    const parsedTime = parsed && parsed.time ? parsed.time : r.created_at;
+    if(!parsedFrom || parsedFrom !== expectedFrom) return;
+    const m = { id: r.id||null, cid: parsed && parsed.cid ? parsed.cid : null, from: parsedFrom, text: parsedText, created_at: parsedTime || new Date().toISOString() };
+    const keyu = (m.cid? 'cid:'+m.cid : (m.id? 'id:'+m.id : m.created_at+'|'+m.text));
+    if(seen.has(keyu)) return; seen.add(keyu); result.push(m);
+  }
+  try{ const outRows = await apiList(other17); outRows.forEach(r=> pushRow(r, me17)); }catch(e){ console.warn('outgoing list fail', e); }
+  try{ const inRows = await apiList(me17); inRows.forEach(r=> pushRow(r, other17)); }catch(e){ console.warn('incoming list fail', e); }
+  result.sort((a,b)=> new Date(a.created_at) - new Date(b.created_at));
+  conversationCache[convKey(me17, other17)] = result;
+  return result;
+}
+
+function renderMessageList(arr){
+  if(!messagesEl) return;
+  messagesEl.innerHTML = '';
+  if(!arr || arr.length === 0){ messagesEl.innerHTML = `<div style="padding:20px;color:var(--muted);text-align:center">Pa gen mesaj ankò.</div>`; return; }
+  const me17 = to17(normalizeInputToDigits(profile.tfid) || profile.tfid);
+  arr.forEach(m=>{
+    const isUser = m.from === me17;
+    const d = document.createElement('div'); d.className = 'msg ' + (isUser ? 'user' : 'bot');
+    const ts = m.created_at ? new Date(m.created_at).toLocaleString() : '';
+    d.innerHTML = `<div>${escapeHtml(m.text)}</div><div style="font-size:11px;color:var(--muted);margin-top:6px">${formatTFShort(m.from)} • ${ts}</div>`;
+    messagesEl.appendChild(d);
+  });
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+}
+
+/* reconcile optimistic send */
+function shortPollForMessage(target17, cid){
+  let tries = 0; const maxTries = 6; const interval = 1200;
+  const attempt = async ()=>{
+    tries++;
+    try{
+      const rows = await apiList(target17);
+      const found = rows.find(r=>{ try{ const p = JSON.parse(r.content); return p && p.cid === cid; }catch(e){ return false; } });
+      if(found){
+        const meShort = normalizeInputToDigits(profile.tfid) || profile.tfid;
+        const me17 = to17(meShort);
+        const conv = await loadConversation(me17, target17);
+        renderMessageList(conv);
+        return true;
+      }
+    }catch(e){}
+    if(tries < maxTries) setTimeout(attempt, interval);
+  };
+  attempt();
+}
+
+/* SEND MESSAGE */
+document.getElementById('sendBtn')?.addEventListener('click', sendMessage);
+chatTextEl?.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); sendMessage(); } });
+async function sendMessage(){
+  const txt = (chatTextEl?.value || '').trim();
+  if(!txt || !currentChat) return;
+  if(!profile.tfid){ alert('Pa gen TFID pou itilizatè a. Ale nan Paramètres pou mete TFID.'); return; }
+  const meShortLocal = profile.tfid;
+  const me17 = to17(normalizeInputToDigits(meShortLocal) || meShortLocal);
+  const cid = makeCid();
+  const payload = { type:'text', from: me17, text: txt, time: (new Date()).toISOString(), cid };
+
+  // optimistic UI
+  const sess = sessions.find(s=> s.meta&&s.meta.contactId===currentChat.id) || (function(){ const s={title:currentChat.name||currentChat.tfid, meta:{contactId:currentChat.id}, messages:[]}; sessions.unshift(s); return s; })();
+  sess.messages.push({sender:'user',text:txt,ts:Date.now(),cid});
+  saveSessions();
+  addOrUpdateMessageToCache?.(me17, to17(normalizeInputToDigits(currentChat.tfid)||currentChat.tfid), { id:null, cid, from: me17, text: txt, created_at: new Date().toISOString() });
+  renderMessageList(conversationCache[convKey(me17, to17(normalizeInputToDigits(currentChat.tfid)||currentChat.tfid))] || []);
+
+  if(chatTextEl) chatTextEl.value=''; currentChat.lastMsg = txt; currentChat.lastTs = Date.now(); saveContacts(); renderContacts(searchInputEl?.value);
+
+  try{
+    const recipientShort = normalizeInputToDigits(currentChat.tfid) || currentChat.tfid;
+    const recipient17 = to17(recipientShort);
+    await registerFrontendIfNeeded();
+    await apiAdd(recipient17, payload);
+    shortPollForMessage(recipient17, cid);
+  } catch(err){ console.warn('send failed', err); alert('Envoi echwe: '+ (err.message||err)); }
+}
+
+/* ========= SETTINGS / PROFILE / TFID ========= */
+document.getElementById('settingsBtn')?.addEventListener('click', ()=> { updateSettingsUI(); showModal('settingsModal'); });
+document.getElementById('settingsBack')?.addEventListener('click', ()=> closeModal('settingsModal'));
+function updateSettingsUI(){
+  const pa = document.getElementById('settingsAvatar');
+  if(pa) pa.innerHTML = profile.photo ? `<img src="${profile.photo}" style="width:100%;height:100%;border-radius:50%">` : initials(profile.name||profile.tfid);
+  const nameEl = document.getElementById('settingsName'); if(nameEl) nameEl.textContent = profile.name || 'Utilisateur';
+  const tfEl = document.getElementById('settingsTfid'); if(tfEl) tfEl.textContent = profile.tfid || '';
+}
+document.getElementById('openProfile')?.addEventListener('click', ()=> {
+  document.getElementById('profileNameInput').value = profile.name || '';
+  const pa = document.getElementById('profileAvatarRound');
+  if(pa) pa.innerHTML = profile.photo ? `<img src="${profile.photo}" style="width:100%;height:100%;border-radius:50%">` : initials(profile.name||profile.tfid);
+  showModal('profileModal');
+});
+const profileAvatarRound = document.getElementById('profileAvatarRound');
+const profilePhotoInput = document.getElementById('profilePhotoInput');
+if(profileAvatarRound && profilePhotoInput){
+  profileAvatarRound.addEventListener('click', ()=> profilePhotoInput.click());
+  profilePhotoInput.addEventListener('change', (e)=>{
+    const f = e.target.files[0]; if(!f) return;
+    if (!f.type.startsWith('image/')){ alert('Tanpri chwazi yon foto sèlman'); return; }
+    const r=new FileReader(); r.onload = (ev)=>{ profile.photo = ev.target.result; profileAvatarRound.innerHTML = `<img src="${profile.photo}" style="width:100%;height:100%;border-radius:50%">`; saveProfile(); updateSettingsUI(); }; r.readAsDataURL(f);
+  });
+}
+document.getElementById('profileCancel')?.addEventListener('click', ()=> closeModal('profileModal'));
+document.getElementById('profileSave')?.addEventListener('click', ()=>{ const newName = document.getElementById('profileNameInput').value.trim(); if(newName) profile.name = newName; saveProfile(); updateSettingsUI(); closeModal('profileModal'); alert('Profil sove'); });
+
+document.getElementById('openLang')?.addEventListener('click', ()=>{ document.querySelectorAll('#langModal input[name="lang"]').forEach(r=> r.checked = (r.value === lang)); showModal('langModal'); });
+document.getElementById('langCancel')?.addEventListener('click', ()=> closeModal('langModal'));
+document.getElementById('langSave')?.addEventListener('click', ()=>{ const sel = document.querySelector('#langModal input[name="lang"]:checked'); if(sel){ lang = sel.value; saveLang(); applyLang(); closeModal('langModal'); alert('Lang chanje: '+lang); } });
+
+document.getElementById('openTfid')?.addEventListener('click', ()=>{ document.getElementById('tfidInput').value = profile.tfid || ''; showModal('tfidModal'); });
+document.getElementById('tfidCancel')?.addEventListener('click', ()=> closeModal('tfidModal'));
+document.getElementById('tfidSave')?.addEventListener('click', ()=>{ const v=document.getElementById('tfidInput').value.trim(); if(!v){ alert('tfid pa ka vid'); return; } const digits = normalizeInputToDigits(v); if(!digits || digits.length < 7){ alert('TFID pa valab (dwe gen 7 chif).'); return; } profile.tfid = formatTFShort(digits.slice(-7)); saveProfile(); updateSettingsUI(); closeModal('tfidModal'); alert('tfid mete ajou'); });
+
+/* ========= INTERNATIONALIZATION ======== */
+const translations = { ht:{search:'Recherche', chatPlaceholder:'Ekri mesaj...', addedContactMsg:'Kontak ajoute.'}, fr:{search:'Recherche', chatPlaceholder:'Écrire un message...', addedContactMsg:'Contact ajouté.'}, en:{search:'Search', chatPlaceholder:'Type a message...', addedContactMsg:'Contact added.'}, es:{search:'Buscar', chatPlaceholder:'Escribe un mensaje...', addedContactMsg:'Contacto agregado.'} };
+function applyLang(){ const t = translations[lang] || translations.ht; if(document.getElementById('searchInput')) document.getElementById('searchInput').placeholder = t.search; if(document.getElementById('chatText')) document.getElementById('chatText').placeholder = t.chatPlaceholder; }
+applyLang();
+
+/* ========= BOOT ========= */
+updateSettingsUI(); renderContacts();
+window._tf_contacts = contacts; // debug
+
+/* small helper exposed for optimistic UI */
+function addOrUpdateMessageToCache(me17, other17, msg){
+  const key = convKey(me17, other17);
+  if(!conversationCache[key]) conversationCache[key]=[];
+  const list = conversationCache[key];
+  const exists = msg.cid ? list.findIndex(x=>x.cid===msg.cid) : (msg.id ? list.findIndex(x=>String(x.id)===String(msg.id)) : -1);
+  if(exists!==-1) list[exists]=Object.assign({}, list[exists], msg); else list.push(msg);
+  list.sort((a,b)=> new Date(a.created_at) - new Date(b.created_at));
+}
+</script>
+</body>
+  </html>
