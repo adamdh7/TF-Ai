@@ -22,7 +22,8 @@ main{position:fixed;left:0;right:0;top:var(--header-h);bottom:0;overflow:auto;pa
 .list{margin-top:12px}
 .contact{display:flex;gap:12px;align-items:center;padding:12px;border-radius:12px;cursor:pointer}
 .contact:hover{background:rgba(255,255,255,0.02)}
-.avatar{width:56px;height:56px;border-radius:50%;background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;color:var(--text);flex-shrink:0}
+.avatar{width:56px;height:56px;border-radius:50%;background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;color:var(--text);flex-shrink:0;overflow:hidden}
+.avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%}
 .meta{flex:1;min-width:0}
 .meta-top{display:flex;justify-content:space-between;align-items:flex-start}
 .name{font-weight:600;font-size:16px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
@@ -30,12 +31,13 @@ main{position:fixed;left:0;right:0;top:var(--header-h);bottom:0;overflow:auto;pa
 .meta-bottom{display:flex;justify-content:space-between;margin-top:6px;align-items:center}
 .snippet{font-size:13px;color:var(--muted);overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
 .badge{background:var(--accent);color:white;padding:4px 8px;border-radius:999px;font-weight:600;font-size:13px}
-.messages{padding:12px;height:calc(100% - 56px - 84px);overflow:auto;display:flex;flex-direction:column;gap:8px}
+.messages-wrap{padding:12px;height:calc(100% - 56px - 84px);overflow:auto;display:flex;flex-direction:column;gap:8px}
+.messages{display:flex;flex-direction:column;gap:8px}
 .msg{max-width:74%;padding:10px;border-radius:12px;margin-bottom:4px}
 .msg.bot{background:#121212;color:var(--text);align-self:flex-start}
 .msg.user{background:linear-gradient(180deg,var(--accent),#0563c9);color:white;align-self:flex-end}
 .msg .checks{font-size:11px;margin-left:8px;opacity:0.9}
-.chat-input{display:flex;gap:8px;align-items:center}
+.chat-input{display:flex;gap:8px;align-items:center;padding:12px;border-top:1px solid rgba(255,255,255,0.03);background:transparent}
 .input{flex:1;padding:12px;border-radius:999px;border:1px solid rgba(255,255,255,0.03);background:var(--card);color:var(--text);outline:none}
 .send-btn{background:transparent;border:0;padding:8px;border-radius:10px;cursor:pointer;color:var(--accent)}
 .muted{text-align:center;color:var(--muted);padding:20px}
@@ -64,8 +66,11 @@ main{position:fixed;left:0;right:0;top:var(--header-h);bottom:0;overflow:auto;pa
 .profile-modal { position:fixed; inset:0; display:none; align-items:center; justify-content:center; z-index:1400; background:rgba(0,0,0,0.6); }
 .profile-card { width:320px; background:#fff; color:#0b1220; padding:18px; border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,0.3); }
 .profile-row{display:flex;align-items:center;gap:12px;margin-bottom:10px}
-.profile-avatar{width:64px;height:64px;border-radius:12px;background:#cbd5e1;display:flex;align-items:center;justify-content:center;font-weight:700}
+.profile-avatar{width:64px;height:64px;border-radius:12px;background:#cbd5e1;display:flex;align-items:center;justify-content:center;font-weight:700;overflow:hidden}
+.profile-avatar img{width:100%;height:100%;object-fit:cover;border-radius:12px}
 .small{font-size:12px;color:var(--muted)}
+/* ensure chat modal covers full height and messages area reserves space for input */
+#chatModal .messages-wrap { height: calc(100% - 56px - 64px - 24px); } /* header + input area safe */
 </style>
 </head>
 <body>
@@ -100,17 +105,18 @@ main{position:fixed;left:0;right:0;top:var(--header-h);bottom:0;overflow:auto;pa
         <div style="flex:1;text-align:center;font-weight:700;cursor:pointer" id="chatTitle">Chat</div>
         <div style="width:44px"></div>
       </div>
-      <div style="overflow:auto;padding:12px;flex:1">
+      <div class="messages-wrap">
         <div class="messages" id="messages"></div>
       </div>
-      <div style="padding:12px;border-top:1px solid rgba(255,255,255,0.03)">
-        <div class="chat-input">
-          <input id="chatText" class="input" placeholder="Ekri mesaj..." autocomplete="off" />
-          <button id="sendBtn" class="send-btn">Envoyer</button>
-        </div>
+      <div class="chat-input" id="chatInputRow">
+        <input id="chatText" class="input" placeholder="Ekri mesaj..." autocomplete="off" />
+        <button id="sendBtn" class="send-btn">Envoyer</button>
       </div>
     </div>
   </div>
+
+  <!-- invisible file input for avatar selection -->
+  <input type="file" id="profileFile" accept="image/*" style="display:none" />
 
   <!-- Profile modal (fullscreen contact info) -->
   <div class="profile-modal" id="profileModal">
@@ -161,33 +167,21 @@ main{position:fixed;left:0;right:0;top:var(--header-h);bottom:0;overflow:auto;pa
   </div>
 
 <script>
-/*
-  Patch notes in code:
-  - SESSION persistence already used: extended to password hashing storage
-  - Added client-side password management (hashed via SHA-256)
-  - Banner warns users to set password, triggers forced modal/refresh after 2 minutes if not set
-  - Block/unblock stored in contacts list
-  - Read/delivered checks implemented by optimistic marker + server confirmation (id present)
-  - Profile modal on chat header click: shows name/TFID and block/add actions
-*/
-
-/* CONFIG */
+/* ================== CONFIG ================== */
 const API_BASE = 'https://tf-sove.onrender.com';
+const PROFILE_UPLOAD_URL = 'https://tf-stream-url.onrender.com/upload';
 const FRONTEND_NAME = 'site1';
 const ADMIN_API_TOKEN = 'tfstream_45dd9c02d4e34f18a42d';
 const WS_URL = (location.protocol === "https:" ? "wss://" : "ws://") + "tf-sove.onrender.com/ws";
 
-/* HELPERS */
+/* ================== HELPERS ================== */
 function normalizeInputToDigits(inp){ if(!inp) return null; const s=String(inp).trim().toUpperCase(); const digits=s.replace(/[^0-9]/g,''); return digits||null; }
 function to17(shortOrDigits){ if(!shortOrDigits) return null; const ds=String(shortOrDigits).replace(/[^0-9]/g,''); if(ds.length>17) return ds.slice(-17); return ds.padStart(17,'0'); }
 function formatTFShort(digitsString){ if(!digitsString) return ''; const s=String(digitsString).replace(/[^0-9]/g,''); const last7 = s.slice(-7); return 'TF-'+ last7.padStart(7,'0'); }
 function nowISO(){ return (new Date()).toISOString(); }
-function fmtTime(iso){ try{ const d=new Date(iso); return d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});}catch(e){return '';} }
 function escapeHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function makeCid(){ return String(Date.now()) + '-' + Math.floor(Math.random()*100000).toString(16); }
 function parseDatePrefer(isoOrDb, parsedTime){ const t1 = parsedTime ? Date.parse(parsedTime) : NaN; if(!isNaN(t1)) return t1; const t2 = Date.parse(isoOrDb || ""); return isNaN(t2) ? 0 : t2; }
-
-/* password hashing helper (Web Crypto) - returns hex */
 async function hashPasswordHex(pw){
   const enc = new TextEncoder();
   const data = enc.encode(String(pw));
@@ -196,7 +190,7 @@ async function hashPasswordHex(pw){
   return hashArray.map(b => b.toString(16).padStart(2,'0')).join('');
 }
 
-/* STATE */
+/* ================== STATE ================== */
 let me = {
   short: localStorage.getItem('tfchat.me.short') || null,
   tf17: localStorage.getItem('tfchat.me.17') || null,
@@ -211,13 +205,13 @@ const conversationCache = {};
 let pwWarningTimer = null;
 let pwForceReloadTimer = null;
 
-/* DOM refs */
+/* ================== DOM REFS ================== */
 const searchInput = document.getElementById('searchInput');
 const searchBtn = document.getElementById('searchBtn');
 const contactsListEl = document.getElementById('contactsList');
 const chatModalEl = document.getElementById('chatModal');
 const messagesEl = document.getElementById('messages');
-const chatTitleEl = document.getElementById('chatTitle');
+const chatInputRow = document.getElementById('chatInputRow');
 const chatTextEl = document.getElementById('chatText');
 const sendBtnEl = document.getElementById('sendBtn');
 const wsStatusEl = document.getElementById('wsStatus');
@@ -237,8 +231,9 @@ const profileTfid = document.getElementById('profileTfid');
 const addContactBtn = document.getElementById('addContactBtn');
 const blockBtn = document.getElementById('blockBtn');
 const closeProfileBtn = document.getElementById('closeProfileBtn');
+const fileInput = document.getElementById('profileFile');
 
-/* STORAGE helpers */
+/* ================== STORAGE HELPERS ================== */
 function saveState(){
   localStorage.setItem('tfchat.me.short', me.short || '');
   localStorage.setItem('tfchat.me.17', me.tf17 || '');
@@ -248,13 +243,13 @@ function saveState(){
 }
 function initials(name){ if(!name) return 'U'; return name.split(' ').map(p=>p[0]).slice(0,2).join('').toUpperCase(); }
 
-/* password storage helpers (client-side hashed) */
+/* password helpers */
 function pwKeyForTf(tf17){ return `tfchat.pw.${tf17}`; }
 function hasPasswordFor(tf17){ return !!localStorage.getItem(pwKeyForTf(tf17)); }
 function storePasswordHash(tf17, hexHash){ localStorage.setItem(pwKeyForTf(tf17), hexHash); }
 function getPasswordHash(tf17){ return localStorage.getItem(pwKeyForTf(tf17)); }
 
-/* RENDER helpers */
+/* ================== RENDER ================== */
 function updateSettingsUI(){
   profileNameInput.value = me.name || '';
   profileTfidInput.value = (me.tf17 || '').replace(/^TF-?/i, '').slice(-7);
@@ -276,7 +271,7 @@ function renderContacts(filter=''){
   }
   list.forEach(c => {
     const el = document.createElement('div'); el.className = 'contact'; el.dataset.tf17 = c.tf17 || c.tf17;
-    const avatarHtml = c.logo ? `<img src="${c.logo}" style="width:100%;height:100%;border-radius:50%">` : escapeHtml((c.name||formatTFShort(c.tf17) || '').slice(0,2));
+    const avatarHtml = c.logo ? `<img src="${c.logo}" style="width:100%;height:100%;border-radius:50%">` : (c.avatar ? `<img src="${c.avatar}" />` : escapeHtml((c.name||formatTFShort(c.tf17) || '').slice(0,2)));
     const blockedBadge = c.blocked ? ' <span style="color:#ffdcdc;font-weight:700"> (Bloqué)</span>' : '';
     el.innerHTML = `<div class="avatar">${avatarHtml}</div>
       <div class="meta">
@@ -295,7 +290,7 @@ function renderContacts(filter=''){
 }
 function timeAgo(ts){ if(!ts) return ''; const diff=Math.floor((Date.now()-ts)/1000); if(diff<60) return diff+'s'; if(diff<3600) return Math.floor(diff/60)+'m'; if(diff<86400) return Math.floor(diff/3600)+'h'; return new Date(ts).toLocaleDateString(); }
 
-/* NETWORK helpers */
+/* ================== NETWORK ================== */
 async function callJSON(url, opts = {}) {
   opts = Object.assign({}, opts);
   opts.headers = Object.assign({}, opts.headers || {}, { 'Accept': 'application/json' });
@@ -309,14 +304,12 @@ async function callJSON(url, opts = {}) {
     return { ok: false, error: err.message };
   }
 }
-
 async function apiList(tf17){
   const url = `${API_BASE}/api/list?tfid=${encodeURIComponent(tf17)}&name=${encodeURIComponent(FRONTEND_NAME)}`;
   const r = await callJSON(url);
   if(!r.ok) throw new Error(r.json?.error || r.text || `HTTP ${r.status}`);
   return r.json.rows || [];
 }
-
 async function apiAdd(recipient17, contentObj){
   const body = { tfid: recipient17, name: FRONTEND_NAME, content: JSON.stringify(contentObj), source_url: location.origin };
   const url = `${API_BASE}/api/add`;
@@ -335,7 +328,6 @@ async function apiAdd(recipient17, contentObj){
   }
   return r.json;
 }
-
 async function registerFrontendIfNeeded(){
   try {
     const url = `${API_BASE}/admin/register-frontend`;
@@ -345,7 +337,7 @@ async function registerFrontendIfNeeded(){
   } catch(e){ return false; }
 }
 
-/* CONVERSATION cache & sort */
+/* ================== CONVERSATION CACHE ================== */
 function convKey(a,b){ return `${a}|${b}`; }
 function messageUniqueKey(m){
   if(m.cid) return "cid:"+m.cid;
@@ -372,7 +364,6 @@ function addOrUpdateMessageToCache(me17, other17, msg){
   }
   list.sort(compareMessagesAsc);
 }
-
 async function loadConversation(me17, other17){
   const key = convKey(me17, other17);
   conversationCache[key] = conversationCache[key] || [];
@@ -414,7 +405,19 @@ async function loadConversation(me17, other17){
   renderConversation(me17, other17);
 }
 
+/* ensure last message visible (account for input height) */
+function ensureMessagesPadding(){
+  const wrap = document.querySelector('#chatModal .messages-wrap');
+  if(!wrap) return;
+  const inputRow = document.getElementById('chatInputRow');
+  const h = inputRow ? inputRow.getBoundingClientRect().height : 80;
+  wrap.style.paddingBottom = (h + 16) + 'px';
+}
+window.addEventListener('resize', ensureMessagesPadding);
+
+/* render conversation */
 function renderConversation(me17, other17){
+  ensureMessagesPadding();
   const key = convKey(me17, other17);
   const arr = conversationCache[key] ? [...conversationCache[key]] : [];
   messagesEl.innerHTML = '';
@@ -426,7 +429,6 @@ function renderConversation(me17, other17){
       const d = document.createElement('div');
       d.className = 'msg ' + (m.from === me17 ? 'user' : 'bot');
       const ts = m.created_at ? (new Date(m.created_at)).toLocaleString() : '';
-      // checks: optimistic (no id) => single check; with id => double check (delivered/confirmed)
       let checksHtml = '';
       if(m.from === me17){
         if(m.id) checksHtml = '<span class="checks">✓✓</span>';
@@ -436,13 +438,17 @@ function renderConversation(me17, other17){
       messagesEl.appendChild(d);
     }
   }
-  messagesEl.scrollTop = messagesEl.scrollHeight;
+  // scroll to bottom AFTER render and a short delay so layout stabilizes
+  setTimeout(()=> { messagesEl.parentElement.scrollTop = messagesEl.parentElement.scrollHeight; }, 50);
 }
 
-/* CHAT open/send */
+/* ================== CHAT OPEN/SEND ================== */
 async function openChat(other17, contactObj=null){
   if(!me.tf17){
     if(!await promptForMeModal()) return;
+  }
+  if(contactObj && contactObj.blocked){
+    // still allow viewing, but sending will be prevented
   }
   currentPartner = { tf17: other17, name: (contactObj && contactObj.name) || null };
   chatTitleEl.textContent = (currentPartner.name || formatTFShort(currentPartner.tf17));
@@ -456,10 +462,10 @@ async function openChat(other17, contactObj=null){
   }
   showChatModal();
 }
-function showChatModal(){ chatModalEl.style.display = 'block'; setTimeout(()=> chatTextEl?.focus(), 150); }
+function showChatModal(){ chatModalEl.style.display = 'block'; ensureMessagesPadding(); setTimeout(()=> chatTextEl?.focus(), 150); }
 function hideChatModal(){ chatModalEl.style.display = 'none'; currentPartner = null; }
 
-/* send message with optimistic + checks */
+/* send message */
 async function sendMessageFromModal(){
   const txt = (chatTextEl?.value || '').trim();
   if(!txt || !currentPartner) return;
@@ -468,15 +474,14 @@ async function sendMessageFromModal(){
   if(c && c.blocked){ alert('Ou bloke kontak sa — ou pa ka voye mesaj.'); return; }
   const recipient17 = currentPartner.tf17;
   const cid = makeCid();
-  const payload = { type:'text', from: me.tf17, text: txt, time: (new Date()).toISOString(), cid };
+  const payload = { type:'text', from: me.tf17, text: txt, time: (new Date()).toISOString(), cid, name: me.name || null };
   addOrUpdateMessageToCache(me.tf17, recipient17, { id:null, cid, from: me.tf17, text: txt, parsed_time: payload.time, _db_created_at:null, created_at: payload.time, _optimistic:true });
   renderConversation(me.tf17, recipient17);
   chatTextEl.value = '';
   const cobj = contacts.find(x=>x.tf17===recipient17);
   if(cobj){ cobj.lastMsg = txt; cobj.lastTs = Date.now(); saveState(); renderContacts(); }
   try {
-    const r = await apiAdd(recipient17, payload);
-    // after server stored it, short-poll to reconcile presence (will show double-check)
+    await apiAdd(recipient17, payload);
     startShortPollForMessage(recipient17, cid);
   } catch(e){
     alert('Envoi echwe: ' + (e.message||e));
@@ -500,14 +505,14 @@ function startShortPollForMessage(target17, cid){
   attempt();
 }
 
-/* CONTACTS helpers */
+/* ================== CONTACTS HELPERS ================== */
 function ensureContactInList(tf17, name){
   let c = contacts.find(x=>x.tf17===tf17);
-  if(!c){ c = { tf17, short: formatTFShort(tf17), name: name||null, unread:0, blocked:false }; contacts.unshift(c); saveState(); renderContacts(); }
+  if(!c){ c = { tf17, short: formatTFShort(tf17), name: name||null, unread:0, blocked:false, avatar:null }; contacts.unshift(c); saveState(); renderContacts(); }
   return c;
 }
 
-/* PROMPT FOR ME (modal) - now supports password checking on existing TFID */
+/* ================== PROMPT FOR ME (settings modal) ================== */
 function promptForMeModal(){
   updateSettingsUI();
   settingsModal.style.display = 'flex';
@@ -516,21 +521,17 @@ function promptForMeModal(){
     async function onSave(){
       const nameVal = profileNameInput.value.trim();
       const short = normalizeInputToDigits(profileTfidInput.value.trim());
-      // if trying to take an existing local TFID, require password
       if(!short || short.length < 7){ alert('TFID invalide — antre 7 chif.'); return; }
       const tfShort = short.slice(-7);
       const tf17c = to17(tfShort);
       const existingHash = getPasswordHash(tf17c);
 
       if(existingHash){
-        // ask user for password to unlock
         const pw = prompt('TFID sa egziste deja lokalman. Antre modpas pou kont sa:');
         if(!pw){ alert('Modpas obligatwa pou kont sa.'); return; }
         const has = await hashPasswordHex(pw);
         if(has !== existingHash){ alert('Modpas pa kòrèk.'); return; }
-        // ok, user unlocked
-      } else {
-        // If account exists but has no pw, we will show banner urging to set pw
+        // ok
       }
 
       me.name = nameVal || me.name || 'Utilisateur';
@@ -539,9 +540,7 @@ function promptForMeModal(){
       saveState();
       settingsModal.style.display = 'none';
       cleanup();
-      // ensure frontend registered and connect ws
       registerFrontendIfNeeded().then(()=>{ if(ws && ws.readyState === WebSocket.OPEN){ try{ ws.send(JSON.stringify({ type:'subscribe', tfid: me.tf17 })); }catch(e){} } else connectWS(); });
-      // if no password set for this tfid, show banner & start 2min timer
       triggerPwBannerIfNeeded();
       resolve(true);
     }
@@ -552,30 +551,24 @@ function promptForMeModal(){
   });
 }
 
-/* trigger PW banner and timers */
+/* ================== PW BANNER/TIMERS ================== */
 function triggerPwBannerIfNeeded(){
   if(!me.tf17) return;
   if(hasPasswordFor(me.tf17)) { hidePwBanner(); return; }
-  // show banner
   pwBanner.style.display = 'block';
-  // clear previous timers
   if(pwWarningTimer) clearTimeout(pwWarningTimer);
   if(pwForceReloadTimer) clearTimeout(pwForceReloadTimer);
-  // after 2 minutes force modal (or refresh)
   pwWarningTimer = setTimeout(()=> {
-    // escalate: show modal immediately
     settingsModal.style.display = 'flex';
-    // prefill tfid
     updateSettingsUI();
-  }, 60 * 1000); // show modal in 1 minute as warning (first escalation)
+  }, 60 * 1000);
   pwForceReloadTimer = setTimeout(()=> {
-    // refresh page to force login flow (user asked for refresh)
     location.reload();
-  }, 2 * 60 * 1000); // 2 minutes
+  }, 2 * 60 * 1000);
 }
 function hidePwBanner(){ pwBanner.style.display = 'none'; if(pwWarningTimer) { clearTimeout(pwWarningTimer); pwWarningTimer=null; } if(pwForceReloadTimer){ clearTimeout(pwForceReloadTimer); pwForceReloadTimer=null; } }
 
-/* WEBSOCKET */
+/* ================== WEBSOCKET ================== */
 function connectWS(){
   if(!me.tf17){ wsStatusEl.textContent = 'WS: non connecté (pas de TFID)'; return; }
   try {
@@ -602,11 +595,19 @@ function connectWS(){
         const msgObj = { id: payload.id || null, cid: parsed.cid || null, from, text: parsed.text || parsed.message || '', parsed_time: parsed.time || null, _db_created_at: payload.created_at || null, created_at: created };
         addOrUpdateMessageToCache(me.tf17, other, msgObj);
 
-        // if message contains contact name, update contact display
         if(parsed.name){
           const c = ensureContactInList(other, parsed.name);
           c.name = parsed.name;
           c.lastMsg = msgObj.text;
+          c.lastTs = Date.now();
+          saveState(); renderContacts();
+        }
+
+        // if profile update
+        if(parsed.type === 'profile' && parsed.photo){
+          const c = ensureContactInList(other, parsed.name || null);
+          c.avatar = parsed.photo;
+          c.name = parsed.name || c.name;
           c.lastTs = Date.now();
           saveState(); renderContacts();
         }
@@ -628,7 +629,7 @@ function connectWS(){
 }
 function scheduleReconnect(){ if(reconnectTimer) return; reconnectTimer = setTimeout(()=>{ reconnectTimer=null; connectWS(); }, 3000); }
 
-/* SEARCH handling (+button) */
+/* ================== SEARCH ================== */
 async function performSearchQuery(raw){
   if(!raw) return;
   const digits = normalizeInputToDigits(raw);
@@ -645,27 +646,32 @@ async function performSearchQuery(raw){
       let lastMsg = '';
       try{ const p = JSON.parse(last.content); lastMsg = p.text || p.message || last.content; } catch(e){ lastMsg = last.content || ''; }
       const nameFromServer = (() => { try { const p = JSON.parse(last.content); return p.name || null } catch(_) { return null } })();
-      const c = { tf17, name: nameFromServer || formatTFShort(short7), lastMsg, lastTs: Date.now(), unread: 0, blocked:false };
+      const c = { tf17, name: nameFromServer || formatTFShort(short7), lastMsg, lastTs: Date.now(), unread: 0, blocked:false, avatar:null };
       contacts.unshift(c); saveState(); renderContacts(); openChat(c.tf17, c); return;
     } else {
       if(confirm('Pa jwenn done sou servèr. Kreye kontak lokal pou TFID sa a?')){
-        const c = { tf17, name: formatTFShort(short7), lastMsg: '', lastTs: Date.now(), unread:0, blocked:false };
+        const c = { tf17, name: formatTFShort(short7), lastMsg: '', lastTs: Date.now(), unread:0, blocked:false, avatar:null };
         contacts.unshift(c); saveState(); renderContacts(); openChat(c.tf17, c);
       }
     }
   } catch(err){ alert('Erè lè w ap chèche sou servèr: ' + (err.message||err)); }
 }
 
-/* PROFILE modal behavior */
+/* ================== PROFILE MODAL ================== */
 let profileCurrent = null;
+const chatTitleEl = document.getElementById('chatTitle');
 chatTitleEl?.addEventListener('click', ()=>{
   if(!currentPartner) return;
   openProfileModal(currentPartner.tf17);
 });
 function openProfileModal(tf17){
   profileCurrent = tf17;
-  const c = contacts.find(x=>x.tf17===tf17) || { tf17, name: formatTFShort(tf17), blocked:false };
-  profileAvatar.textContent = initials(c.name || c.tf17);
+  const c = contacts.find(x=>x.tf17===tf17) || { tf17, name: formatTFShort(tf17), blocked:false, avatar:null };
+  if(c.avatar) {
+    profileAvatar.innerHTML = `<img src="${c.avatar}" />`;
+  } else {
+    profileAvatar.textContent = initials(c.name || c.tf17);
+  }
   profileName.textContent = c.name || formatTFShort(tf17);
   profileTfid.textContent = c.tf17;
   blockBtn.textContent = c.blocked ? 'Débloquer' : 'Bloquer';
@@ -677,17 +683,117 @@ addContactBtn?.addEventListener('click', ()=>{
   alert('Contact ajouté : ' + (c.name || c.tf17));
   profileModal.style.display = 'none';
 });
-blockBtn?.addEventListener('click', ()=>{
+blockBtn?.addEventListener('click', async ()=>{
   if(!profileCurrent) return;
   const c = ensureContactInList(profileCurrent, null);
   c.blocked = !c.blocked;
   saveState();
   renderContacts();
+  // notify other side about block/unblock (optional)
+  try{
+    const payload = { type: c.blocked ? 'block' : 'unblock', from: me.tf17, time: nowISO(), name: me.name || null };
+    await apiAdd(profileCurrent, payload);
+  }catch(e){
+    console.warn('notify block failed', e);
+  }
   openProfileModal(profileCurrent);
 });
 closeProfileBtn?.addEventListener('click', ()=>{ profileModal.style.display = 'none'; });
 
-/* UI events */
+/* clicking profile avatar opens file picker for selecting photo */
+profileAvatar?.addEventListener('click', ()=> {
+  // open file picker (user initiates)
+  if(fileInput) fileInput.click();
+});
+
+/* file input handler: auto upload */
+fileInput?.addEventListener('change', async (e) => {
+  const f = e.target.files && e.target.files[0];
+  if(!f) return;
+  await autoUploadProfileFile(f);
+});
+
+/* support paste images */
+window.addEventListener('paste', (ev)=>{
+  const items = ev.clipboardData && ev.clipboardData.items;
+  if(!items) return;
+  for(const it of items){
+    if(it.kind === 'file' && it.type && it.type.startsWith('image/')){
+      const f = it.getAsFile();
+      if(f) {
+        autoUploadProfileFile(f);
+        ev.preventDefault();
+        break;
+      }
+    }
+  }
+}, false);
+
+/* auto upload function */
+async function autoUploadProfileFile(file){
+  if(!file) return;
+  if(!file.type || !file.type.startsWith('image/')) {
+    alert('Se sèlman imaj ki aksepte (jpg/png...).');
+    return;
+  }
+
+  const input = fileInput;
+  if(input) input.disabled = true;
+
+  try {
+    const fd = new FormData();
+    fd.append('file', file);
+
+    const resp = await fetch(PROFILE_UPLOAD_URL, { method: 'POST', body: fd });
+    const json = await resp.json().catch(()=>null);
+
+    if(!resp.ok || !json || !(json.ok || json.success) || !(json.url || json.path)) {
+      console.warn('Upload failed', resp.status, json);
+      alert('Upload échoué. Tcheke serve a.');
+      return;
+    }
+
+    const url = json.url || json.path;
+    me.avatarDataUrl = url;
+    saveState();
+
+    // update local contact entries where tf17 === me.tf17 (others who have this me in their contact list won't be auto-updated on their clients).
+    // But we push profile update to all contacts so they can update on receive.
+    contacts.forEach(c => { if(c.tf17 === me.tf17) c.avatar = url; });
+
+    // update visible avatars
+    document.querySelectorAll('.avatar').forEach(el=>{
+      if(el.dataset && el.dataset.tf17 && el.dataset.tf17 === me.tf17){
+        el.innerHTML = `<img src="${url}" />`;
+      }
+    });
+    // profile modal avatar update
+    profileAvatar.innerHTML = `<img src="${url}" />`;
+
+    // Push profile update to every contact via apiAdd
+    if(!me.tf17) {
+      console.warn('No me.tf17 — profile update saved locally but not pushed');
+      return;
+    }
+
+    const now = (new Date()).toISOString();
+    const contactsToNotify = Array.isArray(contacts) ? contacts.slice() : [];
+    for(const c of contactsToNotify){
+      if(!c || !c.tf17 || c.tf17 === me.tf17) continue;
+      const cid = makeCid();
+      const payload = { type: 'profile', from: me.tf17, name: me.name || null, photo: url, time: now, cid };
+      apiAdd(c.tf17, payload).catch(err => { console.warn('Push profile update failed for', c.tf17, err); });
+    }
+
+  } catch(err){
+    console.error('autoUploadProfileFile error', err);
+    alert('Erè pandan upload: ' + (err.message || err));
+  } finally {
+    if(input) { input.disabled = false; input.value = ''; }
+  }
+}
+
+/* ================== UI EVENTS ================== */
 document.getElementById('chatBack')?.addEventListener('click', ()=> hideChatModal());
 sendBtnEl?.addEventListener('click', sendMessageFromModal);
 chatTextEl?.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); sendMessageFromModal(); } });
@@ -695,7 +801,7 @@ searchInput?.addEventListener('keydown', async (e)=>{ if(e.key==='Enter'){ e.pre
 searchBtn?.addEventListener('click', async ()=>{ await performSearchQuery(searchInput.value.trim()); });
 document.getElementById('settingsBtn')?.addEventListener('click', ()=> { updateSettingsUI(); settingsModal.style.display = 'flex'; });
 
-/* profileSave: supports password setting - new behavior */
+/* profileSave logic (supports password set/confirm) */
 profileSaveBtn?.addEventListener('click', async ()=>{
   const newName = profileNameInput.value.trim();
   const short = normalizeInputToDigits(profileTfidInput.value.trim());
@@ -703,17 +809,14 @@ profileSaveBtn?.addEventListener('click', async ()=>{
   const tfShort = short.slice(-7);
   const tf17 = to17(tfShort);
 
-  // If tf17 exists and has a stored password, confirm before switching to it
   const existingHash = getPasswordHash(tf17);
   if(existingHash && (!me.tf17 || me.tf17 !== tf17)) {
-    // require current user to enter password for that account
     const pw = prompt('Kont sa deja egziste lokalman. Antre modpas li pou itilize li:');
     if(!pw) { alert('Modpas obligatwa.'); return; }
     const has = await hashPasswordHex(pw);
     if(has !== existingHash){ alert('Modpas pa kòrèk.'); return; }
   }
 
-  // If a new password provided, hash and store
   const newPw = profilePwInput.value || '';
   if(newPw){
     const hex = await hashPasswordHex(newPw);
@@ -735,135 +838,19 @@ profileSaveBtn?.addEventListener('click', async ()=>{
 /* Cancel settings */
 settingsCancelBtn?.addEventListener('click', ()=> settingsModal.style.display = 'none');
 
-/* BOOT */
+/* ================== BOOT ================== */
 renderContacts();
+if(me.avatarDataUrl){
+  // show avatar where applicable
+  document.querySelectorAll('.avatar').forEach(el => {
+    if(!el.querySelector('img')) el.innerHTML = `<img src="${me.avatarDataUrl}" />`;
+  });
+}
 if(me.tf17){ connectWS(); triggerPwBannerIfNeeded(); } else { setTimeout(()=> { promptForMeModal(); }, 250); }
 
 /* expose debug */
 window._tf_contacts = contacts;
 window._tf_me = me;
 </script>
-  <script>
-/* --- Auto-upload profile image (no click required) ---
-   - Requires an <input type="file" id="profileFile" accept="image/*"> somewhere in the page
-   - Uses: https://tf-stream-url.onrender.com/upload  (POST multipart/form-data with field "file")
-   - Expects JSON response: { ok: true, url: "https://..." }
-   - After success: stores me.avatarDataUrl, saveState(), and sends profile update to each contact via apiAdd
-*/
-
-const IMAGE_UPLOAD_URL = 'https://tf-stream-url.onrender.com/upload';
-
-async function autoUploadProfileFile(file){
-  if(!file) return;
-  if(!file.type || !file.type.startsWith('image/')) {
-    alert('Se sèlman imaj ki aksepte (jpg/png...).');
-    return;
-  }
-
-  // disable input while uploading (if exists)
-  const input = document.getElementById('profileFile');
-  if(input) input.disabled = true;
-
-  try {
-    const fd = new FormData();
-    fd.append('file', file);
-
-    // start upload
-    const resp = await fetch(IMAGE_UPLOAD_URL, { method: 'POST', body: fd });
-    const json = await resp.json().catch(()=>null);
-
-    if(!resp.ok || !json || !json.ok || !json.url){
-      console.warn('Upload failed', resp.status, json);
-      alert('Upload échoué. Tcheke serve a.');
-      return;
-    }
-
-    const url = json.url;
-    // Save avatar URL locally
-    me.avatarDataUrl = url;
-    try{ saveState(); }catch(e){ console.warn('saveState err', e); }
-
-    // Update any visible avatar UI immediately (if you have an element showing it)
-    const avatarEls = document.querySelectorAll('.avatar, #profileAvatar, #chatAvatar');
-    avatarEls.forEach(el=>{
-      if(el.tagName === 'IMG') {
-        el.src = url;
-      } else {
-        // replace innerHTML with image element, preserve style
-        el.innerHTML = `<img src="${url}" style="width:100%;height:100%;border-radius:50%">`;
-      }
-    });
-
-    // Push profile update to every contact via apiAdd (non-blocking)
-    // payload: { type: 'profile', from: me.tf17, name: me.name, photo: url, time, cid }
-    if(!me.tf17) {
-      console.warn('No me.tf17 — profile update saved locally but not pushed');
-      return;
-    }
-
-    const now = (new Date()).toISOString();
-    const contactsToNotify = Array.isArray(contacts) ? contacts.slice() : [];
-    for(const c of contactsToNotify){
-      // skip if contact is blocked or same as me
-      if(!c || !c.tf17 || c.tf17 === me.tf17) continue;
-      // build payload
-      const cid = makeCid();
-      const payload = { type: 'profile', from: me.tf17, name: me.name || null, photo: url, time: now, cid };
-      // fire and forget, but log errors
-      apiAdd(c.tf17, payload).catch(err => {
-        console.warn('Push profile update failed for', c.tf17, err);
-      });
-    }
-
-  } catch(err){
-    console.error('autoUploadProfileFile error', err);
-    alert('Erè pandan upload: ' + (err.message || err));
-  } finally {
-    if(input) { input.disabled = false; input.value = ''; } // reset input so same file can be reselected later
-  }
-}
-
-/* Attach handler to file input if present, else observe DOM and attach when added */
-function attachAutoUploader(){
-  const input = document.getElementById('profileFile');
-  if(input){
-    // prefer "change" event (user picks file). No extra click required.
-    input.addEventListener('change', (e)=>{
-      const f = e.target.files && e.target.files[0];
-      if(f) autoUploadProfileFile(f);
-    }, { passive:true });
-    return true;
-  }
-  return false;
-}
-
-if(!attachAutoUploader()){
-  // If input not yet in DOM, watch for it (use MutationObserver)
-  const mo = new MutationObserver((mutations, obs)=>{
-    if(attachAutoUploader()){
-      obs.disconnect();
-    }
-  });
-  mo.observe(document.body, { childList: true, subtree: true });
-}
-
-/* Optional: also support paste (ctrl+v) of images onto the page */
-window.addEventListener('paste', (ev)=>{
-  const items = ev.clipboardData && ev.clipboardData.items;
-  if(!items) return;
-  for(const it of items){
-    if(it.kind === 'file' && it.type && it.type.startsWith('image/')){
-      const f = it.getAsFile();
-      if(f) {
-        // directly upload pasted image (no click)
-        autoUploadProfileFile(f);
-        ev.preventDefault();
-        break;
-      }
-    }
-  }
-}, false);
-
-  </script>
 </body>
-        </html>
+  </html>
