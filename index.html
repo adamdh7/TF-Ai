@@ -33,7 +33,8 @@
     .input{flex:1;padding:12px;border-radius:999px;border:1px solid rgba(255,255,255,0.03);background:var(--card);color:var(--text);outline:none}
     .send-btn{background:transparent;border:0;padding:8px;border-radius:10px;cursor:pointer;color:var(--accent)}
     .muted{text-align:center;color:var(--muted);padding:20px}
-    .bottom-right { position: fixed; right: 16px; bottom: 16px; z-index: 1100; }
+    .bottom-right { position: fixed; right: 16px; bottom: 16px; z-index: 1100; display:flex; gap:8px; align-items:center; }
+    .ws-indicator{font-size:12px;color:var(--muted);margin-right:8px}
     @media (min-width:900px){main{max-width:700px;margin:0 auto}}
   </style>
 </head>
@@ -52,6 +53,7 @@
     <section class="list" id="contactsList" aria-live="polite"></section>
 
     <div class="bottom-right">
+      <div class="ws-indicator" id="wsStatus">WS: —</div>
       <button id="settingsBtn" class="send-btn">Paramètres</button>
     </div>
   </main>
@@ -76,7 +78,7 @@
     </div>
   </div>
 
-  <!-- Settings modal -->
+  <!-- Settings modal (uses fields from the FR UI logic) -->
   <div id="settingsModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.96);z-index:1200">
     <div style="height:100%;display:flex;flex-direction:column">
       <div style="height:56px;display:flex;align-items:center;padding:8px 12px;border-bottom:1px solid rgba(255,255,255,0.03)">
@@ -94,13 +96,13 @@
         </div>
 
         <div style="margin-top:16px">
-          <label>Modifier non</label>
-          <input id="profileNameInput" class="input" style="margin-top:6px;width:100%" />
+          <label style="color:var(--muted)">Modifier non</label>
+          <input id="profileNameInput" class="input" style="margin-top:6px;width:100%;background:var(--card)" />
         </div>
 
         <div style="margin-top:12px">
-          <label>TFID (7 chif) — pa egzanp: 1234567</label>
-          <input id="profileTfidInput" class="input" style="margin-top:6px;width:100%" />
+          <label style="color:var(--muted)">TFID (7 chif) — pa egzanp: 1234567</label>
+          <input id="profileTfidInput" class="input" style="margin-top:6px;width:100%;background:var(--card)" />
           <div style="margin-top:8px;color:var(--muted);font-size:13px">Sere TFID tankou TF-XXXXXXX. Sistèm lan konvèti otomatikman pou 17-chif lè sa nesesè.</div>
         </div>
 
@@ -112,37 +114,46 @@
   </div>
 
 <script>
-/* ---------- CONFIG ---------- */
+/* =========================
+   MERGED SCRIPT
+   - UI = dark HTML/CSS (HT)
+   - Logic/settings = FR script (me, WS_URL, ADMIN_API_TOKEN, register/frontend ...)
+   Notes: adapted to use existing dark element IDs (searchInput, contactsList, messages, chatText, sendBtn, settings modal fields)
+   ========================= */
+
+/* ====== CONFIG ====== */
 const API_BASE = 'https://tf-sove.onrender.com';
 const FRONTEND_NAME = 'site1';
-const API_TOKEN = 'tfstream_45dd9c02d4e34f18a42d'; // as requested (used for admin/register frontend)
- 
-/* ---------- STORAGE KEYS ---------- */
-const KEY_CONTACTS = 'tfai_contacts_v4';
-const KEY_PROFILE = 'tfai_profile_v4';
+const ADMIN_API_TOKEN = 'tfstream_45dd9c02d4e34f18a42d';
+const WS_URL = (location.protocol === "https:" ? "wss://" : "ws://") + "tf-sove.onrender.com/ws";
 
-/* ---------- HELPERS ---------- */
-function safeParse(json, fallback){ try{ return JSON.parse(json); }catch(e){ return fallback; } }
+/* ====== HELPERS ====== */
 function normalizeInputToDigits(inp){ if(!inp) return null; const s=String(inp).trim().toUpperCase(); const digits=s.replace(/[^0-9]/g,''); return digits||null; }
-function to17(shortOrDigits){ if(!shortOrDigits) return null; const ds=String(shortOrDigits).replace(/[^0-9]/g,''); if(ds.length>17) return ds.slice(-17); return ds.padStart(17,'0'); }
-function formatTFShort(digitsString){ if(!digitsString) return ''; const s=String(digitsString).replace(/[^0-9]/g,''); const last7 = s.slice(-7); return 'TF-'+ last7.padStart(7,'0'); }
-function generateRandomShortTF(){ return 'TF-'+ Math.floor(1000000 + Math.random()*9000000); }
-function makeCid(){ return String(Date.now()) + '-' + Math.floor(Math.random()*100000).toString(16); }
+function to17(shortOrDigits){ if(!shortOrDigits) return null; const ds=String(shortOrDigits); if(ds.length>17) return ds.slice(-17); return ds.padStart(17,'0'); }
+function formatTFShort(digitsString){ if(!digitsString) return ''; const s=String(digitsString); const last7 = s.slice(-7); return 'TF-'+ last7.padStart(7,'0'); }
+function nowISO(){ return (new Date()).toISOString(); }
+function fmtTime(iso){ try{ const d=new Date(iso); return d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});}catch(e){return '';} }
 function escapeHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-function initials(name){ if(!name) return 'U'; return name.split(' ').map(p=>p[0]).slice(0,2).join('').toUpperCase(); }
-function timeAgo(ts){ const diff=Math.floor((Date.now()-ts)/1000); if(diff<60) return diff+'s'; if(diff<3600) return Math.floor(diff/60)+'m'; if(diff<86400) return Math.floor(diff/3600)+'h'; return new Date(ts).toLocaleDateString(); }
+function makeCid(){ return String(Date.now()) + '-' + Math.floor(Math.random()*100000).toString(16); }
 
-/* ---------- STATE ---------- */
-let contacts = safeParse(localStorage.getItem(KEY_CONTACTS), []) || [];
-let profile = safeParse(localStorage.getItem(KEY_PROFILE), {}) || {};
-if(!profile.tfid) profile.tfid = generateRandomShortTF();
-if(!profile.name) profile.name = 'Utilisateur';
-localStorage.setItem(KEY_PROFILE, JSON.stringify(profile));
+/* ====== STORAGE & STATE ====== */
+/* We'll store user (me) under tfchat.* keys (from FR UI) so the "parameters" behaviour is preserved */
+let me = {
+  short: localStorage.getItem('tfchat.me.short') || null,
+  tf17: localStorage.getItem('tfchat.me.17') || null,
+  name: localStorage.getItem('tfchat.me.name') || 'Utilisateur',
+  avatarDataUrl: localStorage.getItem('tfchat.me.avatar') || null
+};
+let contacts = JSON.parse(localStorage.getItem('tfchat.contacts') || '[]');
+let ws = null;
+let reconnectTimer = null;
+let currentPartner = null;
+const conversationCache = {}; // 'me|other' -> messages array
 
-/* ---------- UI REFS ---------- */
-const contactsListEl = document.getElementById('contactsList');
+/* ====== DOM refs (dark UI IDs are used) ====== */
 const searchInputEl = document.getElementById('searchInput');
 const clearSearchEl = document.getElementById('clearSearch');
+const contactsListEl = document.getElementById('contactsList');
 
 const chatModalEl = document.getElementById('chatModal');
 const messagesEl = document.getElementById('messages');
@@ -161,14 +172,67 @@ const profileNameInput = document.getElementById('profileNameInput');
 const profileTfidInput = document.getElementById('profileTfidInput');
 const profileSave = document.getElementById('profileSave');
 
-let currentChat = null;
+const wsStatusEl = document.getElementById('wsStatus');
 
-/* ---------- NETWORK HELPERS ---------- */
+/* ====== save/load helpers ====== */
+function saveState(){
+  localStorage.setItem('tfchat.me.short', me.short || '');
+  localStorage.setItem('tfchat.me.17', me.tf17 || '');
+  localStorage.setItem('tfchat.me.name', me.name || '');
+  if(me.avatarDataUrl) localStorage.setItem('tfchat.me.avatar', me.avatarDataUrl);
+  localStorage.setItem('tfchat.contacts', JSON.stringify(contacts || []));
+}
+
+function initials(name){ if(!name) return 'U'; return name.split(' ').map(p=>p[0]).slice(0,2).join('').toUpperCase(); }
+
+/* ====== render helpers ====== */
+function updateSettingsUI(){
+  settingsAvatar.textContent = initials(me.name || me.tf17);
+  settingsName.textContent = me.name || 'Utilisateur';
+  settingsTfid.textContent = me.tf17 || '';
+  profileNameInput.value = me.name || '';
+  profileTfidInput.value = (me.tf17 || '').replace(/^TF-?/i, '').slice(-7);
+}
+function renderContacts(filter=''){
+  contactsListEl.innerHTML = '';
+  const q = (filter||'').toLowerCase().trim();
+  const list = contacts.filter(c => {
+    if(!q) return true;
+    return (c.name||'').toLowerCase().includes(q) || (c.tf17||'').toLowerCase().includes(q);
+  });
+  if(list.length === 0){
+    const div = document.createElement('div');
+    div.className = 'muted';
+    div.textContent = 'Pa gen kontak. Rechèch yon TFID oswa ajoute yon kontak.';
+    contactsListEl.appendChild(div);
+    return;
+  }
+  list.forEach(c => {
+    const el = document.createElement('div'); el.className = 'contact'; el.dataset.tf17 = c.tf17 || c.tf17;
+    const avatarHtml = c.logo ? `<img src="${c.logo}" style="width:100%;height:100%;border-radius:50%">` : escapeHtml((c.name||formatTFShort(c.tf17) || '').slice(0,2));
+    el.innerHTML = `<div class="avatar">${avatarHtml}</div>
+      <div class="meta">
+        <div class="meta-top">
+          <div class="name">${escapeHtml(c.name||formatTFShort(c.tf17)||'')}</div>
+          <div class="time">${c.lastTs? timeAgo(c.lastTs): ''}</div>
+        </div>
+        <div class="meta-bottom">
+          <div class="snippet">${escapeHtml(c.lastMsg||'')}</div>
+          <div>${c.unread?'<span class="badge">'+c.unread+'</span>':''}</div>
+        </div>
+      </div>`;
+    el.addEventListener('click', ()=> { openChat(c.tf17, c); });
+    contactsListEl.appendChild(el);
+  });
+}
+
+/* timeAgo (small util) */
+function timeAgo(ts){ if(!ts) return ''; const diff=Math.floor((Date.now()-ts)/1000); if(diff<60) return diff+'s'; if(diff<3600) return Math.floor(diff/60)+'m'; if(diff<86400) return Math.floor(diff/3600)+'h'; return new Date(ts).toLocaleDateString(); }
+
+/* ====== HTTP helpers ====== */
 async function callJSON(url, opts = {}) {
   opts = Object.assign({}, opts);
   opts.headers = Object.assign({}, opts.headers || {}, { 'Accept': 'application/json' });
-  // send admin/api token when available (register frontend needs it)
-  if (API_TOKEN) opts.headers['x-api-token'] = API_TOKEN;
   try {
     const r = await fetch(url, opts);
     const text = await r.text();
@@ -180,343 +244,316 @@ async function callJSON(url, opts = {}) {
   }
 }
 
-/* register frontend if missing (used when UI first loads) */
-async function registerFrontendIfNeeded(){
-  try {
-    const url = `${API_BASE}/admin/register-frontend`;
-    const payload = { name: FRONTEND_NAME, callback_url: location.origin };
-    const r = await callJSON(url, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) });
-    // r.ok true means registered (or replaced)
-    return r.ok;
-  } catch(e){
-    console.warn('registerFrontendIfNeeded error', e);
-    return false;
-  }
-}
-
-async function apiList(tf17) {
+async function apiList(tf17){
   const url = `${API_BASE}/api/list?tfid=${encodeURIComponent(tf17)}&name=${encodeURIComponent(FRONTEND_NAME)}`;
-  console.log('apiList ->', url);
   const r = await callJSON(url);
   if(!r.ok) throw new Error(r.json?.error || r.text || `HTTP ${r.status}`);
   return r.json.rows || [];
 }
 
-async function apiAdd(recipient17, contentObj) {
+async function apiAdd(recipient17, contentObj){
   const body = { tfid: recipient17, name: FRONTEND_NAME, content: JSON.stringify(contentObj), source_url: location.origin };
   const url = `${API_BASE}/api/add`;
-  console.log('apiAdd ->', url, body);
   const r = await callJSON(url, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
-  if(!r.ok) {
-    // try auto-register frontend and retry once if "Frontend name not registered"
-    const errMsg = r.json?.error || r.text || `HTTP ${r.status}`;
-    if(String(errMsg).toLowerCase().includes("frontend name not registered")) {
-      const ok = await registerFrontendIfNeeded();
-      if (ok) {
-        const r2 = await callJSON(url, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
-        if(!r2.ok) throw new Error(r2.json?.error || r2.text || `HTTP ${r2.status}`);
-        return r2.json;
-      }
-    }
-    throw new Error(errMsg);
-  }
+  if(!r.ok) throw new Error(r.json?.error || r.text || `HTTP ${r.status}`);
   return r.json;
 }
 
-/* ---------- RENDER ---------- */
-function renderContacts(filter = '') {
-  if(!contactsListEl) return;
-  contactsListEl.innerHTML = '';
-  const q = (filter || '').toLowerCase().trim();
-  const list = contacts.filter(c => {
-    if(!q) return true;
-    return (c.name||'').toLowerCase().includes(q) || (c.tfid||'').toLowerCase().includes(q);
-  });
-  if(list.length === 0){
-    const div = document.createElement('div');
-    div.className = 'muted';
-    div.textContent = 'Pa gen kontak. Rechèch yon TFID oswa ajoute yon kontak.';
-    contactsListEl.appendChild(div);
-    return;
-  }
-  list.forEach(c => {
-    const el = document.createElement('div'); el.className = 'contact'; el.dataset.id = c.id;
-    const avatarHtml = c.logo ? `<img src="${c.logo}" style="width:100%;height:100%;border-radius:50%">` : escapeHtml(initials(c.name||c.tfid));
-    el.innerHTML = `<div class="avatar">${avatarHtml}</div>
-      <div class="meta">
-        <div class="meta-top">
-          <div class="name">${escapeHtml(c.name||c.tfid)}</div>
-          <div class="time">${timeAgo(c.lastTs||Date.now())}</div>
-        </div>
-        <div class="meta-bottom">
-          <div class="snippet">${escapeHtml(c.lastMsg||'')}</div>
-          <div>${c.unread?'<span class="badge">'+c.unread+'</span>':''}</div>
-        </div>
-      </div>`;
-    el.addEventListener('click', ()=> openChat(c));
-    contactsListEl.appendChild(el);
-  });
+async function registerFrontendIfNeeded(){
+  try {
+    const url = `${API_BASE}/admin/register-frontend`;
+    const payload = { name: FRONTEND_NAME, callback_url: location.origin };
+    const r = await callJSON(url, { method:"POST", headers:{"Content-Type":"application/json","x-api-token": ADMIN_API_TOKEN}, body: JSON.stringify(payload) });
+    return r.ok;
+  } catch(e){ return false; }
 }
 
-/* ---------- SEARCH HANDLING ---------- */
-searchInputEl?.addEventListener('input', (e)=>{ renderContacts(e.target.value); clearSearchEl.style.display = e.target.value ? 'inline-block' : 'none'; });
-clearSearchEl?.addEventListener('click', ()=>{ searchInputEl.value=''; renderContacts(); clearSearchEl.style.display='none'; searchInputEl.focus(); });
-
-searchInputEl?.addEventListener('keydown', async (e) => {
-  if (e.key !== 'Enter') return;
-  const raw = searchInputEl.value.trim();
-  if (!raw) return;
-  const digits = normalizeInputToDigits(raw);
-  if (!digits) { renderContacts(raw); return; }
-  if (digits.length < 7) { alert('TFID dwe gen omwen 7 chif.'); return; }
-  const short7 = digits.slice(-7);
-  const tf17 = to17(short7);
-
-  // first check local contacts
-  let local = contacts.find(c => (c.tf17 === tf17) || (normalizeInputToDigits(c.tfid) === short7));
-  if (local) { openChat(local); return; }
-
-  // call server
-  try {
-    const rows = await apiList(tf17);
-    if (rows && rows.length > 0) {
-      // server has messages for this TFID & this frontend - create contact and open
-      const id = 'c_' + Date.now();
-      const last = rows[0] || rows[rows.length-1];
-      let lastMsg = '';
-      try { const p = JSON.parse(last.content); lastMsg = p.text || p.message || last.content; } catch(e){ lastMsg = last.content || ''; }
-      const c = { id, name: formatTFShort(short7), tfid: formatTFShort(short7), tf17, lastMsg, lastTs: Date.now(), unread: 0 };
-      contacts.unshift(c); localStorage.setItem(KEY_CONTACTS, JSON.stringify(contacts)); renderContacts();
-      openChat(c);
-      return;
-    } else {
-      // no server data: offer to create local contact
-      if (confirm('Pa jwenn done sou servèr. Kreye kontak lokal pou TFID sa a?')) {
-        const id = 'c_' + Date.now();
-        const c = { id, name: '', tfid: formatTFShort(short7), tf17, lastMsg:'', lastTs: Date.now(), unread: 0 };
-        contacts.unshift(c); localStorage.setItem(KEY_CONTACTS, JSON.stringify(contacts)); renderContacts();
-        openChat(c);
-      }
-    }
-  } catch(err) {
-    alert('Erè lè w ap chèche sou servèr: ' + (err.message||err));
+/* ====== conversation caching & rendering (light logic) ====== */
+function convKey(a,b){ return `${a}|${b}`; }
+function addOrUpdateMessageToCache(me17, other17, msg){
+  const key = convKey(me17, other17);
+  if(!conversationCache[key]) conversationCache[key] = [];
+  const list = conversationCache[key];
+  // dedupe by cid or id
+  const findIndex = msg.cid ? list.findIndex(x => x.cid && x.cid === msg.cid) : (msg.id ? list.findIndex(x => x.id && String(x.id) === String(msg.id)) : -1);
+  if(findIndex !== -1){
+    list[findIndex] = Object.assign({}, list[findIndex], msg);
+  } else {
+    list.push(msg);
   }
-});
-
-/* ---------- CHAT logic ---------- */
-function showChat(){ chatModalEl.style.display = 'block'; setTimeout(()=> chatTextEl?.focus(), 150); }
-function hideChat(){ chatModalEl.style.display = 'none'; currentChat = null; }
-
-chatBack?.addEventListener('click', ()=> hideChat());
-
-async function openChat(contact) {
-  currentChat = contact;
-  chatTitleEl.textContent = contact.name || contact.tfid;
-  contact.unread = 0;
-  localStorage.setItem(KEY_CONTACTS, JSON.stringify(contacts));
-  renderContacts(searchInputEl?.value);
-
-  messagesEl.innerHTML = '<div class="muted">Chaje mesaj...</div>';
-  try {
-    const me17 = to17(normalizeInputToDigits(profile.tfid) || profile.tfid);
-    const other17 = to17(normalizeInputToDigits(contact.tfid) || contact.tfid);
-    const conv = await loadConversation(me17, other17);
-    renderMessageList(conv);
-  } catch(err) {
-    messagesEl.innerHTML = `<div class="muted">Pa kapab chaje mesaj: ${escapeHtml(err.message||err)}</div>`;
-  }
-  showChat();
+  list.sort((a,b)=> new Date(a.created_at) - new Date(b.created_at));
 }
 
-/* conversation loader: merge outgoing (name=FRONTEND_NAME) and incoming */
-async function loadConversation(me17, other17) {
-  const all = [];
-  try {
-    const rowsOther = await apiList(other17).catch(()=>[]);
-    const rowsMe = await apiList(me17).catch(()=>[]);
-    function pushRows(rows) {
-      (rows || []).forEach(r => {
-        try {
-          const parsed = JSON.parse(r.content);
-          const from = parsed.from || null;
-          const text = parsed.text || parsed.message || r.content || '';
-          const time = parsed.time || r.created_at || r.created_at;
-          all.push({ id: r.id, from, text, created_at: time });
-        } catch(e) {
-          all.push({ id: r.id, from: null, text: r.content || '', created_at: r.created_at });
-        }
-      });
-    }
-    pushRows(rowsOther);
-    pushRows(rowsMe);
-  } catch(e) {
-    console.warn('loadConversation error', e);
+async function loadConversation(me17, other17){
+  const key = convKey(me17, other17);
+  conversationCache[key] = conversationCache[key] || [];
+  const seen = new Set();
+
+  function pushRow(r, expectedFrom){
+    let parsed = null;
+    try { parsed = JSON.parse(r.content); } catch(e){ parsed = null; }
+    const parsedFrom = parsed && parsed.from ? parsed.from : null;
+    const parsedTime = parsed && parsed.time ? parsed.time : null;
+    const parsedCid = parsed && parsed.cid ? parsed.cid : null;
+    const parsedText = parsed && (parsed.text || parsed.message) ? (parsed.text || parsed.message) : (r.content || "");
+    if(!parsedFrom || parsedFrom !== expectedFrom) return;
+    const m = {
+      id: r.id || null,
+      cid: parsedCid || null,
+      from: parsedFrom,
+      text: parsedText,
+      created_at: parsedTime || r.created_at || nowISO()
+    };
+    const keyu = (m.cid ? 'cid:'+m.cid : (m.id ? 'id:'+m.id : Math.random().toString(36)));
+    if(seen.has(keyu)) return;
+    seen.add(keyu);
+    addOrUpdateMessageToCache(me17, other17, m);
   }
-  all.sort((a,b) => new Date(a.created_at) - new Date(b.created_at));
-  return all;
+
+  // outgoing (messages I sent stored under other17)
+  try {
+    const outRows = await apiList(other17);
+    for(const r of outRows) pushRow(r, me17);
+  } catch(e){ console.warn('LIST outgoing failed', e); }
+
+  // incoming (messages stored under me17)
+  try {
+    const inRows = await apiList(me17);
+    for(const r of inRows) pushRow(r, other17);
+  } catch(e){ console.warn('LIST incoming failed', e); }
+
+  renderConversation(me17, other17);
 }
 
-function renderMessageList(arr) {
-  if(!messagesEl) return;
+function renderConversation(me17, other17){
+  const key = convKey(me17, other17);
+  const arr = conversationCache[key] ? [...conversationCache[key]] : [];
   messagesEl.innerHTML = '';
-  if(!arr || arr.length === 0){ messagesEl.innerHTML = `<div class="muted">Pa gen mesaj ankò.</div>`; return; }
-  const me17 = to17(normalizeInputToDigits(profile.tfid) || profile.tfid);
-  arr.forEach(m=>{
-    const isUser = m.from && String(m.from) === String(me17);
-    const d = document.createElement('div'); d.className = 'msg ' + (isUser ? 'user' : 'bot');
-    const ts = m.created_at ? new Date(m.created_at).toLocaleString() : '';
-    const text = (m.text || '').toString();
-    d.innerHTML = `<div>${escapeHtml(text)}</div><div style="font-size:11px;color:var(--muted);margin-top:6px">${formatTFShort(m.from || '')} • ${ts}</div>`;
-    messagesEl.appendChild(d);
-  });
+  if(arr.length === 0){
+    messagesEl.innerHTML = `<div class="muted">Pa gen mesaj ankò.</div>`;
+  } else {
+    arr.sort((a,b)=> new Date(a.created_at) - new Date(b.created_at));
+    for(const m of arr){
+      const d = document.createElement('div');
+      d.className = 'msg ' + (m.from === me17 ? 'user' : 'bot');
+      const ts = m.created_at ? (new Date(m.created_at)).toLocaleString() : '';
+      d.innerHTML = `<div>${escapeHtml(m.text)}</div><div style="font-size:11px;color:var(--muted);margin-top:6px">${formatTFShort(m.from||'')} • ${ts}</div>`;
+      messagesEl.appendChild(d);
+    }
+  }
   messagesEl.scrollTop = messagesEl.scrollHeight;
 }
 
-/* ---------- SEND MESSAGE ---------- */
-sendBtnEl?.addEventListener('click', sendMessage);
-chatTextEl?.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); sendMessage(); } });
+/* ====== Open chat (adapted for modal) ====== */
+async function openChat(other17, contactObj=null){
+  if(!me.tf17){
+    if(!await promptForMe()) return;
+  }
+  currentPartner = { tf17: other17, name: (contactObj && contactObj.name) || null };
+  chatTitleEl.textContent = (currentPartner.name || formatTFShort(currentPartner.tf17));
+  // mark read
+  const c = contacts.find(x => x.tf17 === other17);
+  if(c){ c.unread = 0; saveState(); renderContacts(); }
+  messagesEl.innerHTML = '<div class="muted">Chaje mesaj...</div>';
+  try {
+    await loadConversation(me.tf17, other17);
+  } catch(e){
+    messagesEl.innerHTML = `<div class="muted">Pa kapab chaje mesaj: ${escapeHtml(e.message||e)}</div>`;
+  }
+  showChatModal();
+}
 
-async function sendMessage(){
+/* Chat modal show/hide */
+function showChatModal(){ chatModalEl.style.display = 'block'; setTimeout(()=> chatTextEl?.focus(), 150); }
+function hideChatModal(){ chatModalEl.style.display = 'none'; currentPartner = null; }
+
+/* ====== send message from modal ====== */
+async function sendMessageFromModal(){
   const txt = (chatTextEl?.value || '').trim();
-  if(!txt || !currentChat) return;
-  if(!profile.tfid){ alert('Pa gen TFID pou itilizatè a. Mete li nan Paramètres.'); return; }
-
-  const me17 = to17(normalizeInputToDigits(profile.tfid) || profile.tfid);
-  const recipientShort = normalizeInputToDigits(currentChat.tfid) || currentChat.tfid;
-  const recipient17 = to17(recipientShort);
+  if(!txt || !currentPartner) return;
+  if(!me.tf17){ alert('Pa gen TFID pou itilizatè a. Mete li nan Paramètres.'); return; }
+  const recipient17 = currentPartner.tf17;
   const cid = makeCid();
-  const payload = { type:'text', from: me17, text: txt, time: (new Date()).toISOString(), cid };
-
-  // optimistic UI: append message locally
-  addLocalMessage(me17, recipient17, payload);
-  renderMessageList(conversationCache[convKey(me17, recipient17)] || []);
-
+  const payload = { type:'text', from: me.tf17, text: txt, time: (new Date()).toISOString(), cid };
+  // optimistic
+  addOrUpdateMessageToCache(me.tf17, recipient17, { id:null, cid, from: me.tf17, text: txt, created_at: payload.time });
+  renderConversation(me.tf17, recipient17);
   chatTextEl.value = '';
-  currentChat.lastMsg = txt; currentChat.lastTs = Date.now();
-  localStorage.setItem(KEY_CONTACTS, JSON.stringify(contacts));
-  renderContacts(searchInputEl?.value);
-
+  // update contact preview
+  const c = contacts.find(x=>x.tf17===recipient17);
+  if(c){ c.lastMsg = txt; c.lastTs = Date.now(); saveState(); renderContacts(); }
   try {
     await apiAdd(recipient17, payload);
-    setTimeout(()=> { attemptReloadConversation(me17, recipient17); }, 1000);
-  } catch(err) {
-    console.warn('send failed', err);
-    alert('Envoi echwe: '+ (err.message||err));
+    // short poll to reconcile
+    startShortPollForMessage(recipient17, cid);
+  } catch(e){
+    alert('Envoi echwe: ' + (e.message||e));
   }
 }
 
-/* simple local cache helpers for optimistic UI */
-const conversationCache = {};
-function convKey(a,b){ return `${a}|${b}`; }
-function addLocalMessage(me17, other17, msg){
-  const key = convKey(me17, other17);
-  if(!conversationCache[key]) conversationCache[key]=[];
-  conversationCache[key].push({ id:null, cid: msg.cid, from: msg.from, text: msg.text, created_at: msg.time });
-  conversationCache[key].sort((a,b)=> new Date(a.created_at) - new Date(b.created_at));
-}
-
-/* attempt to reload conversation after send to reflect server-stored messages */
-async function attemptReloadConversation(me17, recipient17){
-  try {
-    const conv = await loadConversation(me17, recipient17);
-    conversationCache[convKey(me17, recipient17)] = conv;
-    renderMessageList(conv);
-  } catch(e){ console.warn('attemptReloadConversation error', e); }
-}
-
-/* ---------- WEBSOCKET (subscribe to my TFID) ---------- */
-let ws = null;
-let wsConnected = false;
-function wsUrlFromApiBase(apiBase) {
-  try{
-    const u = new URL(apiBase);
-    u.protocol = (u.protocol === 'https:' ? 'wss:' : 'ws:');
-    u.pathname = '/ws';
-    return u.toString();
-  } catch(e) {
-    return apiBase.replace(/^http/, 'ws') + '/ws';
-  }
-}
-
-function initWebSocket(){
-  const url = wsUrlFromApiBase(API_BASE);
-  console.log('Connecting ws to', url);
-  try {
-    ws = new WebSocket(url);
-  } catch(e) {
-    console.warn('WS create failed', e);
-    return;
-  }
-  ws.onopen = () => {
-    wsConnected = true;
-    console.log('WS open');
-    const my17 = to17(normalizeInputToDigits(profile.tfid) || profile.tfid);
-    try { ws.send(JSON.stringify({ type: 'subscribe', tfid: my17 })); console.log('WS subscribed to', my17); } catch(e){ console.warn('subscribe send failed', e); }
-  };
-  ws.onmessage = (evt) => {
+function startShortPollForMessage(target17, cid){
+  let tries = 0;
+  const maxTries = 6;
+  const interval = 1200;
+  const attempt = async ()=>{
+    tries++;
     try {
-      const data = JSON.parse(evt.data);
-      if (!data) return;
-      if (data.type === 'message' && data.tfid) {
-        const my17 = to17(normalizeInputToDigits(profile.tfid) || profile.tfid);
-        // if message stored for my TFID, reload current chat if open
-        if (String(data.tfid) === String(my17)) {
-          if (currentChat) {
-            const other17 = to17(normalizeInputToDigits(currentChat.tfid) || currentChat.tfid);
-            attemptReloadConversation(my17, other17);
-          }
-        }
-        // preview and update contact list unread
-        let preview = '';
-        try{ const c = JSON.parse(data.content || '{}'); preview = c.text || c.message || data.content || ''; }catch(e){ preview = data.content || ''; }
-        const match = contacts.find(c => c.tf17 === data.tfid || normalizeInputToDigits(c.tfid) === String(data.tfid).slice(-7));
-        if (match) { match.lastMsg = preview; match.lastTs = Date.now(); match.unread = (match.unread||0) + 1; localStorage.setItem(KEY_CONTACTS, JSON.stringify(contacts)); renderContacts(searchInputEl?.value); }
-      }
-    } catch(e) { console.warn('ws message parse err', e); }
+      const rows = await apiList(target17);
+      const found = rows.find(r => {
+        try { const p = JSON.parse(r.content); return p && p.cid === cid; } catch(e){ return false; }
+      });
+      if(found){ await loadConversation(me.tf17, target17); return true; }
+    } catch(e){}
+    if(tries < maxTries) setTimeout(attempt, interval);
   };
-  ws.onclose = () => { wsConnected = false; console.log('WS closed, reconnect in 3s'); setTimeout(initWebSocket, 3000); };
-  ws.onerror = (err) => { console.warn('WS error', err); ws?.close?.(); };
+  attempt();
 }
 
-/* ---------- SETTINGS UI ---------- */
-function updateSettingsUI(){
-  settingsAvatar.textContent = initials(profile.name || profile.tfid);
-  settingsName.textContent = profile.name || 'Utilisateur';
-  settingsTfid.textContent = profile.tfid || '';
-  profileNameInput.value = profile.name || '';
-  profileTfidInput.value = (profile.tfid || '').replace(/^TF-?/i, '').slice(-7);
+/* ====== ensure contact list helpers ====== */
+function ensureContactInList(tf17, name){
+  let c = contacts.find(x => x.tf17 === tf17);
+  if(!c){ c = { tf17, name: name||null, lastMsg:'', lastTs: Date.now(), unread:0 }; contacts.unshift(c); saveState(); renderContacts(); }
+  return c;
 }
-settingsBtn?.addEventListener('click', ()=> { updateSettingsUI(); settingsModal.style.display = 'block'; });
-settingsClose?.addEventListener('click', ()=> settingsModal.style.display = 'none');
-profileSave?.addEventListener('click', async ()=> {
-  const newName = profileNameInput.value.trim();
-  const short = normalizeInputToDigits(profileTfidInput.value.trim());
-  if (!short || short.length < 7) { alert('TFID pa valab — antre 7 chif.'); return; }
-  profile.name = newName || profile.name;
-  profile.tfid = formatTFShort(short);
-  localStorage.setItem(KEY_PROFILE, JSON.stringify(profile));
+
+/* ====== prompt for me (TFID) ====== */
+async function promptForMe(){
+  const v = prompt('Entrer votre TFID (ex: TF-0204143 ou 0204143).');
+  if(!v) return false;
+  const digits = normalizeInputToDigits(v);
+  if(!digits){ alert('TFID invalide'); return false; }
+  me.short = digits.slice(-7);
+  me.tf17 = to17(me.short);
+  saveState();
   updateSettingsUI();
-  settingsModal.style.display = 'none';
-  // register frontend (in case not yet registered) then re-subscribe websocket with new tfid
-  await registerFrontendIfNeeded();
-  if (wsConnected && ws) {
+  if(ws){ try{ ws.close(); }catch(e){} }
+  connectWS();
+  return true;
+}
+
+/* ====== WebSocket logic (from FR UI, adapted) ====== */
+function connectWS(){
+  if(!me.tf17){ wsStatusEl.textContent = 'WS: non connecté (pas de TFID)'; return; }
+  try {
+    ws = new WebSocket(WS_URL);
+  } catch(e){ scheduleReconnect(); return; }
+  ws.onopen = ()=>{
+    wsStatusEl.textContent = 'WS: connecté';
+    try{ ws.send(JSON.stringify({ type:'subscribe', tfid: me.tf17 })); } catch(e){}
+  };
+  ws.onmessage = (ev)=>{
     try {
-      const my17 = to17(normalizeInputToDigits(profile.tfid) || profile.tfid);
-      ws.send(JSON.stringify({ type: 'subscribe', tfid: my17 }));
-      console.log('WS re-subscribed to', my17);
-    } catch(e){ console.warn('ws resub failed', e); }
-  } else {
-    initWebSocket();
-  }
+      const data = JSON.parse(ev.data);
+      if(data.type === 'subscribed') return;
+      if(data.type === 'message'){
+        const payload = data;
+        let parsed = null;
+        try{ parsed = JSON.parse(payload.content); } catch(e){ parsed = null; }
+        if(!parsed || !parsed.from) return;
+        const recipient = payload.tfid || null;
+        const from = parsed.from;
+        const other = (recipient === me.tf17) ? from : recipient;
+        if(!other) return;
+        const created = parsed.time || payload.created_at || nowISO();
+        const msgObj = { id: payload.id || null, cid: parsed.cid || null, from, text: parsed.text || parsed.message || '', created_at: created };
+        addOrUpdateMessageToCache(me.tf17, other, msgObj);
+        // update UI
+        if(currentPartner && currentPartner.tf17 === other){
+          renderConversation(me.tf17, other);
+        } else if(recipient === me.tf17){
+          const c = ensureContactInList(other, null);
+          c.unread = (c.unread||0) + 1;
+          c.lastMsg = msgObj.text;
+          c.lastTs = Date.now();
+          saveState();
+          renderContacts();
+        }
+      }
+    } catch(err){ console.warn('WS parse err', err); }
+  };
+  ws.onclose = ()=>{ wsStatusEl.textContent = 'WS: déconnecté'; scheduleReconnect(); };
+  ws.onerror = (e)=>{ console.warn('WS error', e); wsStatusEl.textContent = 'WS: erreur'; try{ ws.close(); }catch(e){} };
+}
+
+function scheduleReconnect(){ if(reconnectTimer) return; reconnectTimer = setTimeout(()=>{ reconnectTimer=null; connectWS(); }, 3000); }
+
+/* ====== UI event bindings ====== */
+chatBack?.addEventListener('click', ()=> hideChatModal());
+sendBtnEl?.addEventListener('click', sendMessageFromModal);
+chatTextEl?.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); sendMessageFromModal(); } });
+
+searchInputEl?.addEventListener('input', (e)=>{ renderContacts(e.target.value); clearSearchEl.style.display = e.target.value ? 'inline-block' : 'none'; });
+clearSearchEl?.addEventListener('click', ()=>{ searchInputEl.value=''; renderContacts(); clearSearchEl.style.display='none'; searchInputEl.focus(); });
+
+searchInputEl?.addEventListener('keydown', async (e)=>{
+  if(e.key !== 'Enter') return;
+  const raw = searchInputEl.value.trim();
+  if(!raw) return;
+  const digits = normalizeInputToDigits(raw);
+  if(!digits){ renderContacts(raw); return; }
+  if(digits.length < 7){ alert('TFID dwe gen omwen 7 chif.'); return; }
+  const short7 = digits.slice(-7);
+  const tf17 = to17(short7);
+  // check local
+  let local = contacts.find(c => c.tf17 === tf17);
+  if(local){ openChat(local.tf17, local); return; }
+  // call server
+  try {
+    const rows = await apiList(tf17);
+    if(rows && rows.length > 0){
+      const id = 'c_' + Date.now();
+      const last = rows[rows.length-1] || rows[0];
+      let lastMsg = '';
+      try{ const p = JSON.parse(last.content); lastMsg = p.text || p.message || last.content; } catch(e){ lastMsg = last.content || ''; }
+      const c = { tf17, name: formatTFShort(short7), lastMsg, lastTs: Date.now(), unread: 0 };
+      contacts.unshift(c); saveState(); renderContacts(); openChat(c.tf17, c); return;
+    } else {
+      if(confirm('Pa jwenn done sou servèr. Kreye kontak lokal pou TFID sa a?')){
+        const c = { tf17, name: formatTFShort(short7), lastMsg: '', lastTs: Date.now(), unread:0 };
+        contacts.unshift(c); saveState(); renderContacts(); openChat(c.tf17, c);
+      }
+    }
+  } catch(err){ alert('Erè lè w ap chèche sou servèr: ' + (err.message||err)); }
 });
 
-/* ---------- BOOT ---------- */
+/* Settings modal open/close and save */
+settingsBtn?.addEventListener('click', ()=> { updateSettingsUI(); settingsModal.style.display = 'block'; });
+settingsClose?.addEventListener('click', ()=> settingsModal.style.display = 'none');
+profileSave?.addEventListener('click', async ()=>{
+  const newName = profileNameInput.value.trim();
+  const short = normalizeInputToDigits(profileTfidInput.value.trim());
+  if(!short || short.length < 7){ alert('TFID pa valab — antre 7 chif.'); return; }
+  me.name = newName || me.name;
+  me.short = short.slice(-7);
+  me.tf17 = to17(me.short);
+  saveState();
+  updateSettingsUI();
+  settingsModal.style.display = 'none';
+  // register frontend if needed and (re)connect WS
+  await registerFrontendIfNeeded();
+  if(ws && ws.readyState === WebSocket.OPEN){
+    try{ ws.send(JSON.stringify({ type:'subscribe', tfid: me.tf17 })); }catch(e){}
+  } else connectWS();
+});
+
+/* small helper used above */
+function formatTFShort(digitsStringLocal){ if(!digitsStringLocal) return ''; const s=String(digitsStringLocal); const last7=s.slice(-7); return 'TF-'+ last7.padStart(7,'0'); }
+
+/* ====== BOOT ====== */
 renderContacts();
 updateSettingsUI();
-registerFrontendIfNeeded().then(()=> initWebSocket());
-window._tf_contacts = contacts;
-window._tf_profile = profile;
+if(me.tf17){
+  connectWS();
+} else {
+  // ask user to set TFID (non-blocking)
+  setTimeout(()=> {
+    if(confirm("Ou pa idantifye. Antre TFID kounye a?")) promptForMe();
+  }, 600);
+}
 
+/* expose for debugging */
+window._tf_contacts = contacts;
+window._tf_me = me;
 </script>
 </body>
-            </html>
+  </html>
