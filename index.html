@@ -8,7 +8,6 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
-    /* (same CSS as you provided) */
     :root{--bg:#000000;--panel:#000000;--text:#e6eefb;--muted:#9aa6bf;--card:#0b0b0b;--accent:#0b81ff;--header-h:56px;--radius:12px}
     *{box-sizing:border-box}
     html,body{height:100%;margin:0;padding:0;background:var(--bg);color:var(--text);font-family:Roboto,system-ui,Arial,sans-serif;-webkit-font-smoothing:antialiased}
@@ -32,10 +31,6 @@
     .meta-bottom{display:flex;justify-content:space-between;margin-top:6px;align-items:center}
     .snippet{font-size:13px;color:var(--muted);overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
     .badge{background:var(--accent);color:white;padding:4px 8px;border-radius:999px;font-weight:600;font-size:13px}
-    .fab{position:fixed;right:18px;bottom:22px;width:62px;height:62px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;border:0;color:white;box-shadow:0 10px 30px rgba(11,129,255,0.22);z-index:1100}
-    .menu-popup{position:fixed;right:18px;bottom:90px;display:none;flex-direction:column;gap:8px;z-index:1100}
-    .menu-popup.show{display:flex}
-    .menu-item{background:var(--panel);border:1px solid rgba(255,255,255,0.03);padding:10px 12px;border-radius:10px;cursor:pointer}
     .modal{position:fixed;inset:0;background:rgba(0,0,0,0.96);display:none;z-index:1200}
     .modal.show{display:block}
     .modal .full{height:100%;display:flex;flex-direction:column}
@@ -58,8 +53,6 @@
     .send-btn{background:transparent;border:0;padding:8px;border-radius:10px;cursor:pointer;color:var(--accent)}
     .settings{display:flex;flex-direction:column;gap:12px}
     .item{padding:12px;border-radius:12px;background:transparent;border:1px solid rgba(255,255,255,0.02);display:flex;justify-content:space-between;align-items:center;cursor:pointer}
-    .group-contacts{display:flex;flex-direction:column;gap:8px}
-    .file-input{padding:8px;border-radius:8px;background:var(--card);border:1px solid rgba(255,255,255,0.03);width:100%}
     @media (min-width:900px){main{max-width:700px;margin:0 auto}}
   </style>
 </head>
@@ -88,12 +81,6 @@
     </section>
 
     <section class="list" id="contactsList" aria-live="polite"></section>
-
-    <button id="fab" type="button" class="fab" aria-label="Ajouter">＋</button>
-    <div class="menu-popup" id="fabMenu" role="menu" aria-hidden="true">
-      <button id="fabAdd" type="button" class="menu-item">Ajouter contact</button>
-      <button id="fabGroup" type="button" class="menu-item">Créer groupe</button>
-    </div>
   </main>
 
   <!-- Chat modal -->
@@ -153,7 +140,7 @@
     <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="profileTitle">
       <div class="row" id="profileTitle" style="text-align:center;font-weight:700;padding-bottom:6px">Profil</div>
       <div class="row">
-        <div id="profileAvatarRound" class="round-avatar" title="Cliquer pour changer la photo"></div>
+        <div id="profileAvatarRound" class="round-avatar" title="Cliquer pou chanje photo"></div>
         <input type="file" id="profilePhotoInput" accept="image/*">
       </div>
       <div class="row"><label>Nom</label><input id="profileNameInput" type="text" class="input"></div>
@@ -179,46 +166,6 @@
       <div id="tfidTitle" style="text-align:center;font-weight:700;padding-bottom:6px">Modifier tfid</div>
       <div class="row"><label>tfid</label><input id="tfidInput" type="text" class="input"></div>
       <div class="actions"><button class="icon-btn" type="button" id="tfidCancel">Retour</button><button class="icon-btn" type="button" id="tfidSave">Valider</button></div>
-    </div>
-  </div>
-
-  <!-- Add contact modal -->
-  <div class="modal" id="addModal" aria-hidden="true">
-    <div class="full">
-      <div class="modal-header">
-        <button class="icon-btn" type="button" onclick="closeModal('addModal')">Retour</button>
-        <div style="flex:1;text-align:center;font-weight:700">Ajouter un contact</div>
-        <div style="width:44px"></div>
-      </div>
-      <div class="modal-body">
-        <div style="margin-bottom:12px"><label>Nom (optionnel)</label><input id="newName" type="text" class="input" style="border-radius:8px;padding:10px"></div>
-        <div style="margin-bottom:12px"><label>tfid</label><input id="newTfid" type="text" class="input" placeholder="TF-0204143"></div>
-        <div style="color:var(--muted);font-size:13px;margin-top:8px">TFID dwe gen 7 chif (eg: TF-0204143 oswa 0204143).</div>
-      </div>
-      <div class="modal-footer" style="display:flex;gap:8px;justify-content:flex-end">
-        <button class="icon-btn" type="button" onclick="closeModal('addModal')">Annuler</button>
-        <button class="icon-btn" id="addConfirm" type="button">Ajouter et écrire</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Create group modal -->
-  <div class="modal" id="groupModal" aria-hidden="true">
-    <div class="full">
-      <div class="modal-header">
-        <button class="icon-btn" type="button" onclick="closeModal('groupModal')">Retour</button>
-        <div style="flex:1;text-align:center;font-weight:700">Créer un groupe</div>
-        <div style="width:44px"></div>
-      </div>
-      <div class="modal-body">
-        <div style="margin-bottom:12px"><label>Nom du groupe</label><input id="groupName" type="text" class="input" placeholder="Nom du groupe"></div>
-        <div style="margin-bottom:12px"><label>Logo</label><input id="groupLogo" type="file" accept="image/*" class="file-input"></div>
-        <div><label>Choisir contacts</label><div class="group-contacts" id="groupContactList"></div></div>
-      </div>
-      <div class="modal-footer" style="display:flex;gap:8px;justify-content:flex-end">
-        <button class="icon-btn" type="button" onclick="closeModal('groupModal')">Annuler</button>
-        <button class="icon-btn" id="createGroupConfirm" type="button">Créer</button>
-      </div>
     </div>
   </div>
 
@@ -261,6 +208,7 @@ function saveLang(){ try{ localStorage.setItem(KEY_LANG, lang); }catch(e){ conso
 function normalizeInputToDigits(inp){ if(!inp) return null; const s=String(inp).trim().toUpperCase(); const digits=s.replace(/[^0-9]/g,''); return digits||null; }
 function to17(shortOrDigits){ if(!shortOrDigits) return null; const ds=String(shortOrDigits).replace(/[^0-9]/g,''); if(ds.length>17) return ds.slice(-17); return ds.padStart(17,'0'); }
 function formatTFShort(digitsString){ if(!digitsString) return ''; const s=String(digitsString).replace(/[^0-9]/g,''); const last7 = s.slice(-7); return 'TF-'+ last7.padStart(7,'0'); }
+// generate 7-digit short TF like TF-1234567
 function generateRandomShortTF(){ return 'TF-'+ Math.floor(1000000 + Math.random()*9000000); }
 function makeCid(){ return String(Date.now()) + '-' + Math.floor(Math.random()*100000).toString(16); }
 function escapeHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
@@ -279,39 +227,33 @@ async function callJSON(url, opts={}){
 }
 async function apiList(tf17){
   const url = `${API_BASE}/api/list?tfid=${encodeURIComponent(tf17)}&name=${encodeURIComponent(FRONTEND_NAME)}`;
+  console.log('apiList ->', url);
   const r = await callJSON(url);
+  console.log('apiList response', r);
   if(!r.ok) throw new Error(r.json?.error || r.text || `HTTP ${r.status}`);
   return r.json.rows || [];
 }
 async function apiAdd(recipient17, contentObj){
   const body = { tfid: recipient17, name: FRONTEND_NAME, content: JSON.stringify(contentObj), source_url: location.origin };
   const url = `${API_BASE}/api/add`;
+  console.log('apiAdd ->', url, body);
   const r = await callJSON(url, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+  console.log('apiAdd response', r);
   if(!r.ok) throw new Error(r.json?.error || r.text || `HTTP ${r.status}`);
   return r.json;
 }
-// best-effort register (no crash on error)
+// best-effort register (no crash on error) — fixed to use API_BASE
 async function registerFrontendIfNeeded(){
   try{
-    await callJSON('/internal/register-frontend', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ name: FRONTEND_NAME, callback_url: location.origin }) });
-  }catch(e){}
+    const url = `${API_BASE}/internal/register-frontend`;
+    await callJSON(url, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ name: FRONTEND_NAME, callback_url: location.origin }) });
+  }catch(e){ console.warn('registerFrontendIfNeeded failed', e); }
 }
 
 /* ========= UI refs ========= */
 const contactsListEl = document.getElementById('contactsList');
 const searchInputEl = document.getElementById('searchInput');
 const clearSearchEl = document.getElementById('clearSearch');
-const fabEl = document.getElementById('fab');
-const fabMenuEl = document.getElementById('fabMenu');
-
-const addModalEl = document.getElementById('addModal');
-const newNameEl = document.getElementById('newName');
-const newTfidEl = document.getElementById('newTfid');
-const addConfirmBtn = document.getElementById('addConfirm');
-
-const groupModalEl = document.getElementById('groupModal');
-const groupContactListEl = document.getElementById('groupContactList');
-const createGroupConfirmBtn = document.getElementById('createGroupConfirm');
 
 const chatModalEl = document.getElementById('chatModal');
 const messagesEl = document.getElementById('messages');
@@ -335,7 +277,7 @@ function renderContacts(filter = ''){
   if(list.length === 0){
     const div = document.createElement('div');
     div.style.padding='20px'; div.style.textAlign='center'; div.style.color='var(--muted)';
-    div.textContent = 'Pa gen kontak. Klike + pou ajoute.';
+    div.textContent = 'Pa gen kontak. Rechèch yon TFID oswa ajoute yon kontak nan kòd.';
     contactsListEl.appendChild(div);
     return;
   }
@@ -355,7 +297,6 @@ function renderContacts(filter = ''){
       </div>`;
     el.addEventListener('click', ()=> {
       if(c.isGroup) {
-        // if openGroupInfo exists
         if(typeof openGroupInfo === 'function') openGroupInfo(c);
       } else {
         if(typeof openChat === 'function') openChat(c);
@@ -366,9 +307,6 @@ function renderContacts(filter = ''){
 }
 
 /* ========= SEARCH ========= */
-/* - local filtering while typing
-   - on Enter: if digits -> try local -> call backend apiList -> create/open contact
-*/
 if(searchInputEl){
   searchInputEl.addEventListener('input', (e)=>{ renderContacts(e.target.value); if(clearSearchEl) clearSearchEl.style.display = e.target.value ? 'inline-block' : 'none'; });
   if(clearSearchEl) clearSearchEl.addEventListener('click', ()=>{ searchInputEl.value=''; renderContacts(); clearSearchEl.style.display='none'; searchInputEl.focus(); });
@@ -410,66 +348,14 @@ if(searchInputEl){
         alert('Erè lè w ap chèche sou servèr: ' + (err.message||err)); return;
       }
     } else {
-      // non-digit: local filter already applied
       renderContacts(raw);
     }
   });
 }
 
-/* ========= FAB MENU ========= */
-if(fabEl && fabMenuEl){
-  fabEl.addEventListener('click', (e)=>{ e.stopPropagation(); fabMenuEl.classList.toggle('show'); fabMenuEl.setAttribute('aria-hidden', fabMenuEl.classList.contains('show')? 'false':'true'); });
-  document.addEventListener('click', (e)=>{ if(!fabEl.contains(e.target) && !fabMenuEl.contains(e.target)){ fabMenuEl.classList.remove('show'); fabMenuEl.setAttribute('aria-hidden','true'); }});
-  document.getElementById('fabAdd')?.addEventListener('click', ()=>{ showModal('addModal'); fabMenuEl.classList.remove('show'); });
-  document.getElementById('fabGroup')?.addEventListener('click', ()=>{ openCreateGroup?.(); fabMenuEl.classList.remove('show'); });
-}
-
 /* ========= MODAL HELPERS ========= */
 function showModal(id){ const el = document.getElementById(id); if(!el) return; el.classList.add('show'); el.setAttribute('aria-hidden','false'); }
 function closeModal(id){ const el = document.getElementById(id); if(!el) return; el.classList.remove('show'); el.setAttribute('aria-hidden','true'); }
-
-/* ========= ADD CONTACT ========= */
-if(addConfirmBtn){
-  addConfirmBtn.addEventListener('click', ()=>{
-    const name = newNameEl ? newNameEl.value.trim() : '';
-    const raw = newTfidEl ? newTfidEl.value.trim() : '';
-    const digits = normalizeInputToDigits(raw);
-    if(!digits || digits.length < 7){ alert('TFID pa valab. TFID dwe gen 7 chif.'); return; }
-    const short7 = digits.slice(-7);
-    const tf17 = to17(short7);
-    const id = 'c_'+Date.now();
-    const c = { id, name: name||'', tfid: formatTFShort(short7), tf17: tf17, lastMsg:'', lastTs:Date.now(), unread:0 };
-    contacts.unshift(c); saveContacts(); closeModal('addModal'); renderContacts();
-    setTimeout(()=> { if(typeof openChat === 'function') openChat(c); }, 150);
-  });
-}
-
-/* ========= CREATE GROUP ========= */
-/* (kept same guard-checked) */
-function openCreateGroup(){
-  createGroupSelected = new Set(); createGroupLogoData = null;
-  const nameEl = document.getElementById('groupName'); if(nameEl) nameEl.value = '';
-  const list = groupContactListEl;
-  if(!list) return;
-  list.innerHTML = '';
-  if(contacts.length === 0){
-    const p = document.createElement('div'); p.style.color='var(--muted)'; p.textContent = 'Ou pa gen kontak pou chwazi.'; list.appendChild(p); showModal('groupModal'); return;
-  }
-  contacts.forEach(c=>{
-    const row = document.createElement('label'); row.style.display='flex'; row.style.gap='8px'; row.style.padding='8px 0';
-    row.innerHTML = `<input type="checkbox" value="${c.id}"> <div style="flex:1">${escapeHtml(c.name||c.tfid)}</div>`;
-    list.appendChild(row);
-  });
-  showModal('groupModal');
-}
-document.getElementById('createGroupConfirm')?.addEventListener('click', ()=>{
-  const name = document.getElementById('groupName')?.value.trim() || ('Groupe '+(contacts.length+1));
-  const chosen = Array.from(document.querySelectorAll('#groupContactList input[type=checkbox]:checked')).map(i=>i.value);
-  if(chosen.length===0){ alert('Chwazi omwen yon kontak pou gwoup la'); return; }
-  const id = 'g_'+Date.now();
-  const group = {id,name,tfid:id,lastMsg:'Groupe kreye',lastTs:Date.now(),unread:0,isGroup:true,members:chosen};
-  contacts.unshift(group); saveContacts(); closeModal('groupModal'); renderContacts();
-});
 
 /* ========= CHAT ========= */
 async function openChat(contact){
@@ -493,7 +379,7 @@ async function openChat(contact){
   showModal('chatModal'); setTimeout(()=> chatTextEl?.focus(),150);
 }
 
-/* conversation merge loader (kept simple & robust) */
+/* conversation merge loader */
 const conversationCache = {};
 function convKey(a,b){ return `${a}|${b}`; }
 async function loadConversation(me17, other17){
@@ -504,13 +390,14 @@ async function loadConversation(me17, other17){
     const parsedFrom = parsed && parsed.from ? parsed.from : null;
     const parsedText = parsed && (parsed.text || parsed.message) ? (parsed.text || parsed.message) : (r.content || '');
     const parsedTime = parsed && parsed.time ? parsed.time : r.created_at;
+    // keep rows where content.from matches expectedFrom (this matches how server stores outgoing vs incoming)
     if(!parsedFrom || parsedFrom !== expectedFrom) return;
     const m = { id: r.id||null, cid: parsed && parsed.cid ? parsed.cid : null, from: parsedFrom, text: parsedText, created_at: parsedTime || new Date().toISOString() };
     const keyu = (m.cid? 'cid:'+m.cid : (m.id? 'id:'+m.id : m.created_at+'|'+m.text));
     if(seen.has(keyu)) return; seen.add(keyu); result.push(m);
   }
-  try{ const outRows = await apiList(other17); outRows.forEach(r=> pushRow(r, me17)); }catch(e){ console.warn('outgoing list fail', e); }
-  try{ const inRows = await apiList(me17); inRows.forEach(r=> pushRow(r, other17)); }catch(e){ console.warn('incoming list fail', e); }
+  try{ const outRows = await apiList(other17); console.log('loadConversation outRows', other17, outRows); outRows.forEach(r=> pushRow(r, me17)); }catch(e){ console.warn('outgoing list fail', e); }
+  try{ const inRows = await apiList(me17); console.log('loadConversation inRows', me17, inRows); inRows.forEach(r=> pushRow(r, other17)); }catch(e){ console.warn('incoming list fail', e); }
   result.sort((a,b)=> new Date(a.created_at) - new Date(b.created_at));
   conversationCache[convKey(me17, other17)] = result;
   return result;
@@ -531,25 +418,27 @@ function renderMessageList(arr){
   messagesEl.scrollTop = messagesEl.scrollHeight;
 }
 
-/* reconcile optimistic send */
-function shortPollForMessage(target17, cid){
-  let tries = 0; const maxTries = 6; const interval = 1200;
-  const attempt = async ()=>{
-    tries++;
-    try{
-      const rows = await apiList(target17);
-      const found = rows.find(r=>{ try{ const p = JSON.parse(r.content); return p && p.cid === cid; }catch(e){ return false; } });
-      if(found){
-        const meShort = normalizeInputToDigits(profile.tfid) || profile.tfid;
-        const me17 = to17(meShort);
-        const conv = await loadConversation(me17, target17);
-        renderMessageList(conv);
-        return true;
-      }
-    }catch(e){}
-    if(tries < maxTries) setTimeout(attempt, interval);
-  };
-  attempt();
+/* robust polling: check both lists (recipient & me) for the cid — longer timeout */
+function robustPollForMessage(me17, recipient17, cid){
+  let tries = 0; const maxTries = 30; const interval = 1000;
+  return new Promise((resolve)=>{
+    const attempt = async ()=>{
+      tries++;
+      try{
+        // check recipient list
+        const rowsR = await apiList(recipient17).catch(e=>{ console.warn('apiList recipient fail', e); return []; });
+        const foundR = rowsR.find(r=>{ try{ const p = JSON.parse(r.content); return p && p.cid === cid; }catch(e){ return false; } });
+        if(foundR){ console.log('found on recipient list', foundR); resolve(true); return; }
+
+        // check my list (in case server stores messages on sender side)
+        const rowsM = await apiList(me17).catch(e=>{ console.warn('apiList me fail', e); return []; });
+        const foundM = rowsM.find(r=>{ try{ const p = JSON.parse(r.content); return p && p.cid === cid; }catch(e){ return false; } });
+        if(foundM){ console.log('found on my list', foundM); resolve(true); return; }
+      }catch(e){ console.warn('robustPoll attempt error', e); }
+      if(tries < maxTries) setTimeout(attempt, interval); else resolve(false);
+    };
+    attempt();
+  });
 }
 
 /* SEND MESSAGE */
@@ -577,8 +466,21 @@ async function sendMessage(){
     const recipientShort = normalizeInputToDigits(currentChat.tfid) || currentChat.tfid;
     const recipient17 = to17(recipientShort);
     await registerFrontendIfNeeded();
-    await apiAdd(recipient17, payload);
-    shortPollForMessage(recipient17, cid);
+
+    // send and inspect response
+    const addRes = await apiAdd(recipient17, payload);
+    console.log('apiAdd result object:', addRes);
+
+    // then robust poll both sides for message to appear (find by cid)
+    const ok = await robustPollForMessage(me17, recipient17, cid);
+    if(ok){
+      // reload full conversation
+      const conv = await loadConversation(me17, recipient17);
+      renderMessageList(conv);
+    } else {
+      console.warn('Message not found after polling for cid', cid);
+      alert('Mesaj voye, men pa t konfime sou servèr. Tcheke Console / Network.');
+    }
   } catch(err){ console.warn('send failed', err); alert('Envoi echwe: '+ (err.message||err)); }
 }
 
@@ -638,4 +540,4 @@ function addOrUpdateMessageToCache(me17, other17, msg){
 }
 </script>
 </body>
-  </html>
+        </html>
