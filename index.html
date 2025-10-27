@@ -6,25 +6,22 @@
 <title>TF-Chat</title>
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
-:root{ --bg:#000000; --panel:#000000; --text:#e6eefb; --muted:#9aa6bf; --card:#0b0b0b; --accent:#0b81ff; --header-h:56px; --tab-h:62px; }
+:root{
+  --bg:#000000; --panel:#000000; --text:#e6eefb; --muted:#9aa6bf;
+  --card:#0b0b0b; --accent:#0b81ff; --header-h:56px; --tab-h:60px;
+}
 *{box-sizing:border-box}
 html,body{height:100%;margin:0;padding:0;background:var(--bg);color:var(--text);font-family:Roboto,system-ui,Arial,sans-serif;-webkit-font-smoothing:antialiased}
 header{position:fixed;left:0;right:0;top:0;height:var(--header-h);display:flex;align-items:center;justify-content:center;background:var(--panel);z-index:1000;border-bottom:1px solid rgba(255,255,255,0.03)}
 .app-title{font-weight:700;font-size:18px;cursor:pointer}
-main{position:fixed;left:0;right:0;top:var(--header-h);bottom:var(--tab-h);overflow:auto;padding:12px;margin:0 auto;max-width:980px}
-
-/* tabbar bottom */
-.tabbar { position:fixed; left:0; right:0; bottom:0; height:var(--tab-h); display:flex; gap:0; border-top:1px solid rgba(255,255,255,0.03); background:var(--panel); align-items:center; justify-content:center; z-index:1000; }
-.tab { flex:1; text-align:center; padding:10px 6px; cursor:pointer; font-weight:700; color:var(--muted); }
-.tab.active{ color:var(--text); border-top:3px solid var(--accent); background: linear-gradient(180deg, rgba(255,255,255,0.01), transparent); }
-
-/* rest kept / adjusted */
+main{position:fixed;left:0;right:0;top:var(--header-h);bottom:calc(var(--tab-h) + 12px);overflow:auto;padding:12px}
+.container{max-width:980px;margin:0 auto}
 .search{padding:8px 12px;display:flex;justify-content:center}
-.search-box{display:flex;align-items:center;gap:8px;background:var(--card);padding:10px;border-radius:999px;border:1px solid rgba(255,255,255,0.03);width:100%;max-width:980px}
+.search-box{display:flex;align-items:center;gap:8px;background:var(--card);padding:10px;border-radius:999px;border:1px solid rgba(255,255,255,0.03);width:100%}
 .search-box input{flex:1;background:transparent;border:0;outline:none;color:var(--text);font-size:15px}
 .search-btn{background:var(--accent);border:none;color:white;padding:8px 12px;border-radius:10px;cursor:pointer;font-weight:600}
 .list{margin-top:12px}
-.contact{display:flex;gap:12px;align-items:center;padding:12px;border-radius:12px;cursor:pointer;width:100%}
+.contact{display:flex;gap:12px;align-items:center;padding:12px;border-radius:12px;cursor:pointer}
 .contact:hover{background:rgba(255,255,255,0.02)}
 .avatar{width:56px;height:56px;border-radius:50%;background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;color:var(--text);flex-shrink:0;overflow:hidden}
 .avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%}
@@ -45,37 +42,29 @@ main{position:fixed;left:0;right:0;top:var(--header-h);bottom:var(--tab-h);overf
 .input{flex:1;padding:12px;border-radius:999px;border:1px solid rgba(255,255,255,0.03);background:var(--card);color:var(--text);outline:none}
 .send-btn{background:transparent;border:0;padding:8px;border-radius:10px;cursor:pointer;color:var(--accent)}
 .muted{text-align:center;color:var(--muted);padding:20px}
-.bottom-right { position: fixed; right: 16px; bottom: 16px; z-index: 1100; display:flex; gap:8px; align-items:center; }
-/* hide websocket text indicator per request; keep space available for other UI */
+.bottom-right { position: fixed; right: 16px; bottom: 88px; z-index: 1100; display:flex; gap:8px; align-items:center; }
 .ws-indicator{display:none}
-@media (min-width:900px){main{max-width:700px;margin:0 auto}}
-
-/* white settings panel on dark backdrop */
-.settings-panel{width:420px;background:#fff;border-radius:12px;padding:18px;box-shadow:0 10px 30px rgba(11,18,32,0.2);color:#0b1220}
-.settings-label{font-size:13px;color:#374151}
-/* small banner for password warning (disabled by JS) */
-.banner { position: fixed; left: 50%; transform: translateX(-50%); top: var(--header-h); z-index:1300; background: #fffbeb; color:#92400e; border:1px solid #f59e0b; padding:10px 14px;border-radius:10px;box-shadow:0 6px 20px rgba(0,0,0,0.2);font-weight:600; display:none; }
-/* contact fullscreen profile modal */
+@media (min-width:900px){ main{max-width:700px;margin:0 auto} .container{max-width:700px} }
+.tabs{position:fixed;left:0;right:0;bottom:0;height:var(--tab-h);display:flex;border-top:1px solid rgba(255,255,255,0.03);background:var(--panel);align-items:center;justify-content:center;gap:20px;z-index:1200}
+.tab-btn{background:transparent;border:0;color:var(--muted);padding:8px 12px;border-radius:12px;cursor:pointer;font-weight:700}
+.tab-btn.active{color:var(--text);background:rgba(255,255,255,0.02)}
+.tab-count{font-size:12px;color:var(--muted);margin-left:6px}
+.group-card{display:flex;gap:12px;align-items:center;padding:12px;border-radius:12px;cursor:pointer;background:var(--card);margin-bottom:8px}
+.group-avatar{width:56px;height:56px;border-radius:12px;background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;color:var(--text);overflow:hidden}
+.group-meta{flex:1}
+.group-name{font-weight:700}
+.group-bio{font-size:13px;color:var(--muted);margin-top:6px}
+.modal-full { position:fixed; inset:0; display:none; align-items:flex-start; justify-content:center; z-index:1400; background:rgba(0,0,0,0.85); padding-top:56px; }
+.modal-panel { width:100%; max-width:520px; background:#0b0b0b; color:var(--text); border-radius:12px; padding:16px; margin:20px; }
+.settings-panel{width:100%; max-width:420px;background:#fff;border-radius:12px;padding:18px;box-shadow:0 10px 30px rgba(11,18,32,0.2);color:#0b1220}
 .profile-modal { position:fixed; inset:0; display:none; align-items:center; justify-content:center; z-index:1400; background:rgba(0,0,0,0.6); }
 .profile-card { width:320px; background:#fff; color:#0b1220; padding:18px; border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,0.3); }
 .profile-row{display:flex;align-items:center;gap:12px;margin-bottom:10px}
 .profile-avatar{width:64px;height:64px;border-radius:12px;background:#cbd5e1;display:flex;align-items:center;justify-content:center;font-weight:700;overflow:hidden}
 .profile-avatar img{width:100%;height:100%;object-fit:cover;border-radius:12px}
 .small{font-size:12px;color:var(--muted)}
-/* ensure chat modal covers full height and messages area reserves space for input */
 #chatModal .messages-wrap { height: calc(100% - 56px - 64px - 24px); }
-
-/* create group modal */
-.create-group { position:fixed; inset:0; display:none; align-items:center; justify-content:center; z-index:1500; background:rgba(0,0,0,0.6); }
-.create-panel { width:360px; background:#fff; color:#0b1220; padding:16px; border-radius:12px; box-shadow:0 10px 40px rgba(0,0,0,0.4); }
-.create-avatar { width:84px; height:84px; border-radius:999px; background:#f3f4f6; display:flex; align-items:center; justify-content:center; cursor:pointer; overflow:hidden; margin-bottom:8px }
-.create-avatar img{width:100%;height:100%;object-fit:cover}
-@media (max-width:640px){
-  .avatar{width:48px;height:48px}
-  .profile-avatar{width:56px;height:56px}
-  .create-panel{ width:92%; }
-  main{ padding:10px; }
-}
+@media (max-width:420px){ .avatar, .group-avatar{ width:48px; height:48px } .profile-avatar{ width:56px; height:56px; } }
 </style>
 </head>
 <body>
@@ -84,9 +73,8 @@ main{position:fixed;left:0;right:0;top:var(--header-h);bottom:var(--tab-h);overf
   <div class="banner" id="pwBanner">Tanpri mete yon modpas pou sekirize sesyon ou. Ou gen 2 min pou sove li.</div>
 
   <main>
-    <!-- Accueil (default) -->
-    <section id="section-accueil">
-      <section class="search">
+    <div class="container" id="viewContainer">
+      <section class="search" id="searchSection">
         <div class="search-box" role="search">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none"><path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="1.6"/><circle cx="11" cy="11" r="6" stroke="currentColor" stroke-width="1.6"/></svg>
           <input id="searchInput" placeholder="Recherche (TFID ou 7 chif)" aria-label="Recherche" />
@@ -95,42 +83,30 @@ main{position:fixed;left:0;right:0;top:var(--header-h);bottom:var(--tab-h);overf
       </section>
 
       <section class="list" id="contactsList" aria-live="polite"></section>
-    </section>
 
-    <!-- Groupes -->
-    <section id="section-groupes" style="display:none">
-      <section class="search">
-        <div class="search-box" role="search">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none"><path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="1.6"/><circle cx="11" cy="11" r="6" stroke="currentColor" stroke-width="1.6"/></svg>
-          <input id="groupSearchInput" placeholder="Chercher un groupe…" aria-label="Recherche groupe" />
-          <button id="groupSearchBtn" class="search-btn">Recherche</button>
+      <section class="list" id="groupsList" aria-live="polite" style="display:none">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <div style="font-weight:700">Groupes</div>
+          <button id="createGroupBtn" class="search-btn" style="padding:8px 10px">Créer</button>
         </div>
+        <div id="groupsContainer"></div>
       </section>
 
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px">
-        <div style="font-weight:700">Mes groupes</div>
-        <button id="openCreateGroup" class="search-btn" style="background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--text);padding:8px 12px;border-radius:10px">Créer</button>
-      </div>
+    </div>
 
-      <section class="list" id="groupsList" aria-live="polite" style="margin-top:12px"></section>
-    </section>
-
+    <div class="bottom-right">
+      <div class="ws-indicator" id="wsStatus">WS: —</div>
+    </div>
   </main>
 
-  <div class="tabbar">
-    <div id="tabAccueil" class="tab active">Accueil</div>
-    <div id="tabGroupes" class="tab">Groupes</div>
-  </div>
-
-  <!-- Chat modal -->
-  <div id="chatModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.96);z-index:1200">
-    <div style="height:100%;display:flex;flex-direction:column">
+  <div id="chatModal" class="modal-full" style="display:none;">
+    <div class="modal-panel" style="height:calc(100vh - 120px); display:flex; flex-direction:column;">
       <div style="height:56px;display:flex;align-items:center;padding:8px 12px;border-bottom:1px solid rgba(255,255,255,0.03)">
         <button id="chatBack" style="background:transparent;border:0;color:var(--text);cursor:pointer">←</button>
         <div style="flex:1;text-align:center;font-weight:700;cursor:pointer" id="chatTitle">Chat</div>
         <div style="width:44px"></div>
       </div>
-      <div class="messages-wrap">
+      <div class="messages-wrap" style="flex:1; overflow:auto;">
         <div class="messages" id="messages"></div>
       </div>
       <div class="chat-input" id="chatInputRow">
@@ -140,40 +116,23 @@ main{position:fixed;left:0;right:0;top:var(--header-h);bottom:var(--tab-h);overf
     </div>
   </div>
 
-  <!-- Create group modal -->
-  <div class="create-group" id="createGroupModal">
-    <div class="create-panel">
-      <h3>Kreye gwoup</h3>
-      <div style="display:flex;gap:12px">
-        <div>
-          <div class="create-avatar" id="groupAvatarPicker" title="Chwazi logo/gwoup">
-            <span id="groupAvatarLabel">+</span>
-            <img id="groupAvatarPreview" style="display:none" />
-          </div>
-          <input type="file" id="groupAvatarFile" accept="image/*" style="display:none">
-        </div>
+  <div id="groupModal" class="modal-full" style="display:none;align-items:center;">
+    <div class="modal-panel" style="max-width:520px;background:#fff;color:#0b1220;">
+      <h3 style="margin:0 0 12px 0;color:#0b1220">Créer un groupe</h3>
+      <div style="display:flex;gap:12px;align-items:center;margin-bottom:10px">
+        <div id="groupAvatarPreview" class="group-avatar" style="width:72px;height:72px;border-radius:12px;cursor:pointer">+</div>
         <div style="flex:1">
-          <div style="margin-bottom:10px">
-            <label>Non gwoup <span style="color:#ef4444">*</span></label>
-            <input id="groupNameInput" style="width:100%;padding:8px;border-radius:8px;border:1px solid #e6eef3;margin-top:6px" />
-          </div>
-          <div style="margin-bottom:10px">
-            <label>Bio (opsyonèl)</label>
-            <textarea id="groupBioInput" rows="3" style="width:100%;padding:8px;border-radius:8px;border:1px solid #e6eef3;margin-top:6px"></textarea>
-          </div>
-          <div style="display:flex;justify-content:flex-end;gap:8px">
-            <button id="createCancel" style="padding:8px 12px;border-radius:8px;border:1px solid #e6edf3;background:white;cursor:pointer">Retour</button>
-            <button id="createConfirm" class="search-btn">Valider</button>
-          </div>
+          <input id="groupNameInput" placeholder="Nom du groupe (obligatoire)" style="width:100%;padding:10px;border-radius:8px;border:1px solid #e6eef3" />
+          <textarea id="groupBioInput" placeholder="Bio (optionnel)" style="width:100%;margin-top:8px;padding:10px;border-radius:8px;border:1px solid #e6eef3" rows="3"></textarea>
         </div>
+      </div>
+      <div style="display:flex;justify-content:flex-end;gap:8px">
+        <button id="groupCancelBtn" style="padding:8px 12px;border-radius:8px;border:1px solid #e6edf3;background:white;cursor:pointer">Retour</button>
+        <button id="groupCreateBtn" style="padding:8px 12px;border-radius:8px;background:#007aff;color:white;border:none;cursor:pointer">Valider</button>
       </div>
     </div>
   </div>
 
-  <!-- invisible file input for avatar selection -->
-  <input type="file" id="profileFile" accept="image/*" style="display:none" />
-
-  <!-- Profile modal (fullscreen contact info) -->
   <div class="profile-modal" id="profileModal">
     <div class="profile-card" role="dialog" aria-modal="true">
       <div class="profile-row">
@@ -185,14 +144,14 @@ main{position:fixed;left:0;right:0;top:var(--header-h);bottom:var(--tab-h);overf
       </div>
       <div style="display:flex;gap:8px;justify-content:flex-end">
         <button id="addContactBtn" style="padding:8px 12px;border-radius:8px;border:1px solid #e6edf3;background:white;cursor:pointer">Ajouter</button>
+        <button id="reportBtn" style="padding:8px 12px;border-radius:8px;background:#f59e0b;color:white;border:none;cursor:pointer">Signaler</button>
         <button id="blockBtn" style="padding:8px 12px;border-radius:8px;background:#ef4444;color:white;border:none;cursor:pointer">Bloquer</button>
         <button id="closeProfileBtn" style="padding:8px 12px;border-radius:8px;border:1px solid #e6edf3;background:white;cursor:pointer">Fermer</button>
       </div>
     </div>
   </div>
 
-  <!-- Settings modal: white inner panel -->
-  <div id="settingsModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:1200;align-items:center;justify-content:center;">
+  <div id="settingsModal" class="profile-modal" style="display:none">
     <div class="settings-panel" role="dialog" aria-modal="true">
       <h3 style="margin:0 0 12px 0">Paramètres — Identité</h3>
 
@@ -207,7 +166,6 @@ main{position:fixed;left:0;right:0;top:var(--header-h);bottom:var(--tab-h);overf
         <div style="font-size:12px;color:#6b7280;margin-top:6px">Sere TFID tankou TF-XXXXXXX. Sistèm lan konvèti pou TF-17-chif otomatikman.</div>
       </div>
 
-      <!-- PASSWORD UI -->
       <div style="margin-bottom:12px">
         <label class="settings-label">Mot de passe (créer / changer)</label>
         <input id="profilePwInput" type="password" placeholder="Nouveau mot de passe" style="width:100%;padding:10px;border-radius:8px;border:1px solid #e6eef3;margin-top:6px" />
@@ -221,11 +179,24 @@ main{position:fixed;left:0;right:0;top:var(--header-h);bottom:var(--tab-h);overf
     </div>
   </div>
 
+  <input type="file" id="profileFile" accept="image/*" style="display:none" />
+  <input type="file" id="groupFile" accept="image/*" style="display:none" />
+
+  <div class="tabs" role="tablist">
+    <button class="tab-btn active" id="tabAccueil">Accueil</button>
+    <button class="tab-btn" id="tabGroup">Groupe <span id="groupCount" class="tab-count"></span></button>
+  </div>
+
 <script>
 /* ================== CONFIG ================== */
 const API_BASE = 'https://tf-sove.onrender.com';
-const PROFILE_UPLOAD_URL = 'https://tf-stream-url.onrender.com/upload';
+/* Use backend /upload endpoint (sa a ap retounen {ok:true,url} sou servèr ofisyel nou an).
+   Si w bezwen itilize tf-stream-url uploader, mete li la men fonksyon upload ap eseye plizyè cles repons. */
+const PROFILE_UPLOAD_URL = `${API_BASE}/upload`;
 const FRONTEND_NAME = 'site1';
+/* NOTE: mete ADMIN_API_TOKEN si ou konprann eksposisyon li sou frontend (pa konseye pou prod).
+   Nou kenbe li pou dev/test — men pi bon se fè group creation atravè backend-only route.
+*/
 const ADMIN_API_TOKEN = 'tfstream_45dd9c02d4e34f18a42d';
 const WS_URL = (location.protocol === "https:" ? "wss://" : "ws://") + "tf-sove.onrender.com/ws";
 
@@ -238,44 +209,40 @@ function escapeHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,
 function makeCid(){ return String(Date.now()) + '-' + Math.floor(Math.random()*100000).toString(16); }
 function parseDatePrefer(isoOrDb, parsedTime){ const t1 = parsedTime ? Date.parse(parsedTime) : NaN; if(!isNaN(t1)) return t1; const t2 = Date.parse(isoOrDb || ""); return isNaN(t2) ? 0 : t2; }
 async function hashPasswordHex(pw){ const enc = new TextEncoder(); const data = enc.encode(String(pw)); const hashBuffer = await crypto.subtle.digest('SHA-256', data); const hashArray = Array.from(new Uint8Array(hashBuffer)); return hashArray.map(b => b.toString(16).padStart(2,'0')).join(''); }
-function isValidTfid(tfid){ return typeof tfid === 'string' && /^\d{17}$/.test(tfid); }
+
+/* Notification helpers */
+function isNotificationSupported(){ return typeof window !== 'undefined' && 'Notification' in window; }
+async function requestNotificationPermission(){ if(!isNotificationSupported()) return false; if(Notification.permission === 'granted') return true; if(Notification.permission === 'denied') return false; try { const p = await Notification.requestPermission(); return p === 'granted'; } catch(e){ return false; } }
+function showDesktopNotification(fromNameOrTfid, fromTfid, text, onClickOpen){
+  if(!isNotificationSupported()) return;
+  if(Notification.permission !== 'granted') return;
+  try {
+    const title = 'Vous avez une nouveau message';
+    const body = (fromNameOrTfid ? `${fromNameOrTfid}` : formatTFShort(fromTfid)) + (text ? ` — ${String(text).slice(0,120)}` : '');
+    const n = new Notification(title, { body, tag: 'tfchat-msg-' + (fromTfid || Math.random()), renotify: false });
+    n.onclick = function(ev){ try { window.focus(); } catch(e){} if(typeof onClickOpen === 'function') onClickOpen(); n.close(); };
+    setTimeout(()=>{ try{ n.close(); }catch(e){} }, 6000);
+  } catch(e){ console.warn('notif err', e); }
+}
 
 /* ================== STATE ================== */
 let me = { short: localStorage.getItem('tfchat.me.short') || null, tf17: localStorage.getItem('tfchat.me.17') || null, name: localStorage.getItem('tfchat.me.name') || 'Utilisateur', avatarDataUrl: localStorage.getItem('tfchat.me.avatar') || null };
 let contacts = JSON.parse(localStorage.getItem('tfchat.contacts') || '[]');
 let groups = [];
-let ws = null; let reconnectTimer = null; let currentPartner = null; let currentGroup = null; const conversationCache = {}; let pwWarningTimer = null; let pwForceReloadTimer = null;
+let ws = null; let reconnectTimer = null; let currentPartner = null; let currentGroup = null;
+const conversationCache = {}; let pwWarningTimer = null; let pwForceReloadTimer = null;
 
 /* ================== DOM REFS ================== */
-const tabAccueil = document.getElementById('tabAccueil');
-const tabGroupes = document.getElementById('tabGroupes');
-const sectionAccueil = document.getElementById('section-accueil');
-const sectionGroupes = document.getElementById('section-groupes');
-
 const searchInput = document.getElementById('searchInput');
 const searchBtn = document.getElementById('searchBtn');
 const contactsListEl = document.getElementById('contactsList');
-
-const groupSearchInput = document.getElementById('groupSearchInput');
-const groupSearchBtn = document.getElementById('groupSearchBtn');
 const groupsListEl = document.getElementById('groupsList');
-const openCreateGroup = document.getElementById('openCreateGroup');
-const createGroupModal = document.getElementById('createGroupModal');
-const groupAvatarPicker = document.getElementById('groupAvatarPicker');
-const groupAvatarFile = document.getElementById('groupAvatarFile');
-const groupAvatarPreview = document.getElementById('groupAvatarPreview');
-const groupAvatarLabel = document.getElementById('groupAvatarLabel');
-const groupNameInput = document.getElementById('groupNameInput');
-const groupBioInput = document.getElementById('groupBioInput');
-const createCancel = document.getElementById('createCancel');
-const createConfirm = document.getElementById('createConfirm');
-
+const groupsContainer = document.getElementById('groupsContainer');
 const chatModalEl = document.getElementById('chatModal');
 const messagesEl = document.getElementById('messages');
 const chatInputRow = document.getElementById('chatInputRow');
 const chatTextEl = document.getElementById('chatText');
 const sendBtnEl = document.getElementById('sendBtn');
-
 const wsStatusEl = document.getElementById('wsStatus');
 const settingsModal = document.getElementById('settingsModal');
 const profileNameInput = document.getElementById('profileNameInput');
@@ -292,12 +259,25 @@ const profileTfid = document.getElementById('profileTfid');
 const addContactBtn = document.getElementById('addContactBtn');
 const blockBtn = document.getElementById('blockBtn');
 const closeProfileBtn = document.getElementById('closeProfileBtn');
+const reportBtn = document.getElementById('reportBtn');
 const fileInput = document.getElementById('profileFile');
 const appTitleEl = document.querySelector('.app-title');
-const chatTitleEl = document.getElementById('chatTitle');
+
+const tabAccueil = document.getElementById('tabAccueil');
+const tabGroup = document.getElementById('tabGroup');
+const groupsCountEl = document.getElementById('groupCount');
+
+const groupModal = document.getElementById('groupModal');
+const groupAvatarPreview = document.getElementById('groupAvatarPreview');
+const groupFile = document.getElementById('groupFile');
+const groupNameInput = document.getElementById('groupNameInput');
+const groupBioInput = document.getElementById('groupBioInput');
+const groupCancelBtn = document.getElementById('groupCancelBtn');
+const groupCreateBtn = document.getElementById('groupCreateBtn');
+const createGroupBtn = document.getElementById('createGroupBtn');
 
 /* ================== STORAGE HELPERS ================== */
-function saveState(){ localStorage.setItem('tfchat.me.short', me.short || ''); localStorage.setItem('tfchat.me.17', me.tf17 || ''); localStorage.setItem('tfchat.me.name', me.name || ''); if(me.avatarDataUrl) localStorage.setItem('tfchat.me.avatar', me.avatarDataUrl); localStorage.setItem('tfchat.contacts', JSON.stringify(contacts || [])); localStorage.setItem('tfchat.groups', JSON.stringify(groups || [])); }
+function saveState(){ localStorage.setItem('tfchat.me.short', me.short || ''); localStorage.setItem('tfchat.me.17', me.tf17 || ''); localStorage.setItem('tfchat.me.name', me.name || ''); if(me.avatarDataUrl) localStorage.setItem('tfchat.me.avatar', me.avatarDataUrl); localStorage.setItem('tfchat.contacts', JSON.stringify(contacts || [])); }
 function initials(name){ if(!name) return 'U'; return name.split(' ').map(p=>p[0]).slice(0,2).join('').toUpperCase(); }
 function pwKeyForTf(tf17){ return `tfchat.pw.${tf17}`; }
 function hasPasswordFor(tf17){ return !!localStorage.getItem(pwKeyForTf(tf17)); }
@@ -306,77 +286,159 @@ function getPasswordHash(tf17){ return localStorage.getItem(pwKeyForTf(tf17)); }
 
 /* ================== RENDER ================== */
 function updateSettingsUI(){ profileNameInput.value = me.name || ''; profileTfidInput.value = (me.tf17 || '').replace(/^TF-?/i, '').slice(-7); profilePwInput.value = ''; }
-function renderContacts(filter=''){ contactsListEl.innerHTML = ''; const q = (filter||'').toLowerCase().trim(); const list = contacts.filter(c => { if(!q) return true; return (c.name||'').toLowerCase().includes(q) || (c.tf17||'').toLowerCase().includes(q); }); if(list.length === 0){ const div = document.createElement('div'); div.className = 'muted'; div.textContent = 'Pa gen kontak. Rechèch yon TFID oswa ajoute yon kontak.'; contactsListEl.appendChild(div); return; } list.forEach(c => { const el = document.createElement('div'); el.className = 'contact'; el.dataset.tf17 = c.tf17 || ''; const avatarHtml = c.logo ? `<img src="${c.logo}" style="width:100%;height:100%;border-radius:50%">` : (c.avatar ? `<img src="${c.avatar}" />` : escapeHtml((c.name||formatTFShort(c.tf17) || '').slice(0,2))); const blockedBadge = c.blocked ? ' <span style="color:#ffdcdc;font-weight:700"> (Bloqué)</span>' : ''; el.innerHTML = `<div class="avatar">${avatarHtml}</div>\n      <div class="meta">\n        <div class="meta-top">\n          <div class="name">${escapeHtml(c.name||formatTFShort(c.tf17)||'')}${blockedBadge}</div>\n          <div class="time">${c.lastTs? timeAgo(c.lastTs): ''}</div>\n        </div>\n        <div class="meta-bottom">\n          <div class="snippet">${escapeHtml(c.lastMsg||'')}</div>\n          <div>${c.unread?'<span class="badge">'+c.unread+'</span>':''}</div>\n        </div>\n      </div>`; el.addEventListener('click', ()=> { openChat(c.tf17, c, true); }); contactsListEl.appendChild(el); }); }
-
-function renderGroups(filter=''){ groupsListEl.innerHTML = ''; const q = (filter||'').toLowerCase().trim(); const list = Array.isArray(groups) ? groups.filter(g => { if(!q) return true; return (g.name||'').toLowerCase().includes(q) || (g.owner_name||'').toLowerCase().includes(q); }) : []; if(list.length === 0){ const div = document.createElement('div'); div.className = 'muted'; div.textContent = "Vous avez aucun groupe pour l'instant"; groupsListEl.appendChild(div); return; } list.forEach(g => { const el = document.createElement('div'); el.className = 'contact'; const avatarHtml = g.avatar_url ? `<img src="${g.avatar_url}" />` : escapeHtml((g.name||'G').slice(0,2)); el.innerHTML = `<div class="avatar">${avatarHtml}</div>\n      <div class="meta">\n        <div class="meta-top"><div class="name">${escapeHtml(g.name||'')}</div><div class="time">${g.created_at? new Date(g.created_at).toLocaleDateString() : ''}</div></div>\n        <div class="meta-bottom"><div class="snippet">${escapeHtml(g.bio||'')}</div><div></div></div>\n      </div>`; el.addEventListener('click', ()=> { openGroupChat(g.name); }); groupsListEl.appendChild(el); }); }
-
+function renderContacts(filter=''){
+  contactsListEl.innerHTML = '';
+  const q = (filter||'').toLowerCase().trim();
+  const list = contacts.filter(c => { if(!q) return true; return (c.name||'').toLowerCase().includes(q) || (c.tf17||'').toLowerCase().includes(q); });
+  if(list.length === 0){
+    const div = document.createElement('div'); div.className = 'muted'; div.textContent = 'Pa gen kontak. Rechèch yon TFID oswa ajoute yon kontak.'; contactsListEl.appendChild(div); return;
+  }
+  list.forEach(c => {
+    const el = document.createElement('div'); el.className = 'contact'; el.dataset.tf17 = c.tf17 || c.tf17;
+    const avatarHtml = c.logo ? `<img src="${c.logo}" style="width:100%;height:100%;border-radius:50%">` : (c.avatar ? `<img src="${c.avatar}" />` : escapeHtml((c.name||formatTFShort(c.tf17) || '').slice(0,2)));
+    const blockedBadge = c.blocked ? ' <span style="color:#ffdcdc;font-weight:700"> (Bloqué)</span>' : '';
+    el.innerHTML = `<div class="avatar">${avatarHtml}</div>
+      <div class="meta">
+        <div class="meta-top">
+          <div class="name">${escapeHtml(c.name||formatTFShort(c.tf17)||'')}${blockedBadge}</div>
+          <div class="time">${c.lastTs? timeAgo(c.lastTs): ''}</div>
+        </div>
+        <div class="meta-bottom">
+          <div class="snippet">${escapeHtml(c.lastMsg||'')}</div>
+          <div>${c.unread?'<span class="badge">'+c.unread+'</span>':''}</div>
+        </div>
+      </div>`;
+    el.addEventListener('click', ()=> { openChat(c.tf17, c, true); });
+    contactsListEl.appendChild(el);
+  });
+}
 function timeAgo(ts){ if(!ts) return ''; const diff=Math.floor((Date.now()-ts)/1000); if(diff<60) return diff+'s'; if(diff<3600) return Math.floor(diff/60)+'m'; if(diff<86400) return Math.floor(diff/3600)+'h'; return new Date(ts).toLocaleDateString(); }
 
-/* ================== NETWORK ================== */
+function renderGroups(){
+  groupsContainer.innerHTML = '';
+  if(!groups || groups.length === 0){
+    const div = document.createElement('div'); div.className = 'muted'; div.textContent = "Vous avez aucun groupe pour l'instant";
+    groupsContainer.appendChild(div);
+    groupsCountEl.textContent = '';
+    return;
+  }
+  groups.forEach(g => {
+    const el = document.createElement('div'); el.className = 'group-card'; el.dataset.name = g.name;
+    const avatarHtml = g.avatar_url ? `<img src="${g.avatar_url}" style="width:100%;height:100%;border-radius:12px"/>` : escapeHtml((g.name||'').slice(0,2));
+    el.innerHTML = `<div class="group-avatar">${avatarHtml}</div>
+      <div class="group-meta">
+        <div class="group-name">${escapeHtml(g.name)}</div>
+        <div class="group-bio">${escapeHtml(g.bio || '')}</div>
+      </div>`;
+    el.addEventListener('click', ()=> { openGroup(g.name, g); });
+    groupsContainer.appendChild(el);
+  });
+  groupsCountEl.textContent = groups.length || '';
+}
+
+/* ================== NETWORK HELPERS ================== */
 async function callJSON(url, opts = {}) { opts = Object.assign({}, opts); opts.headers = Object.assign({}, opts.headers || {}, { 'Accept': 'application/json' }); try { const r = await fetch(url, opts); const text = await r.text(); let json = null; try{ json = JSON.parse(text); }catch(e){} return { ok: r.ok, status: r.status, json, text }; } catch (err) { return { ok: false, error: err.message }; } }
 
 async function apiList(tf17){ const url = `${API_BASE}/api/list?tfid=${encodeURIComponent(tf17)}&name=${encodeURIComponent(FRONTEND_NAME)}`; const r = await callJSON(url); if(!r.ok) throw new Error(r.json?.error || r.text || `HTTP ${r.status}`); return r.json.rows || []; }
 
-async function apiAdd(recipient17, contentObj){ const body = { tfid: recipient17, name: FRONTEND_NAME, content: JSON.stringify(contentObj), source_url: location.origin }; const url = `${API_BASE}/api/add`; const r = await callJSON(url, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) }); if(!r.ok) { const errMsg = r.json?.error || r.text || `HTTP ${r.status}`; if(String(errMsg).toLowerCase().includes("frontend name not registered")) { const regOk = await registerFrontendIfNeeded(); if(regOk) { const r2 = await callJSON(url, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) }); if(!r2.ok) throw new Error(r2.json?.error || r2.text || `HTTP ${r2.status}`); return r2.json; } } throw new Error(errMsg); } return r.json; }
+/* apiAddToTfids wrapper */
+async function apiAddToTfids(tfids, contentObj, options = {}) {
+  const body = Object.assign({}, options);
+  if(Array.isArray(tfids)) body.tfid = tfids;
+  else body.tfid = tfids;
+  body.name = FRONTEND_NAME;
+  body.content = JSON.stringify(contentObj);
+  body.source_url = location.origin;
+  const url = `${API_BASE}/api/add`;
+  const r = await callJSON(url, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
+  if(!r.ok) throw new Error(r.json?.error || r.text || `HTTP ${r.status}`);
+  return r.json;
+}
+
+async function apiAddToGroup(groupName, contentObj){
+  const body = { group_name: groupName, name: FRONTEND_NAME, content: JSON.stringify(contentObj), source_url: location.origin };
+  const url = `${API_BASE}/api/add`;
+  const r = await callJSON(url, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
+  if(!r.ok) throw new Error(r.json?.error || r.text || `HTTP ${r.status}`);
+  return r.json;
+}
 
 async function registerFrontendIfNeeded(){ try { const url = `${API_BASE}/admin/register-frontend`; const payload = { name: FRONTEND_NAME, callback_url: location.origin }; const r = await callJSON(url, { method:"POST", headers:{"Content-Type":"application/json","x-api-token": ADMIN_API_TOKEN}, body: JSON.stringify(payload) }); return r.ok; } catch(e){ return false; } }
 
-/* Admin group helpers */
-async function adminCreateGroup({ name, owner_name, bio, avatar_url }){ const url = `${API_BASE}/admin/groups/create`; const r = await callJSON(url, { method:'POST', headers:{ 'Content-Type':'application/json', 'x-api-token': ADMIN_API_TOKEN }, body: JSON.stringify({ name, owner_name, bio, avatar_url }) }); if(!r.ok) throw new Error(r.json?.error || r.text || `HTTP ${r.status}`); return r.json; }
-async function adminAddMember({ group_name, tfid }){ const url = `${API_BASE}/admin/groups/add`; const r = await callJSON(url, { method:'POST', headers:{ 'Content-Type':'application/json', 'x-api-token': ADMIN_API_TOKEN }, body: JSON.stringify({ group_name, tfid }) }); if(!r.ok) throw new Error(r.json?.error || r.text || `HTTP ${r.status}`); return r.json; }
-async function fetchGroupsForMe(){ if(!me.tf17) { groups = JSON.parse(localStorage.getItem('tfchat.groups') || '[]'); renderGroups(); return groups; } try { const url = `${API_BASE}/api/groups?tfid=${encodeURIComponent(me.tf17)}`; const r = await callJSON(url); if(!r.ok) throw new Error(r.json?.error || r.text || `HTTP ${r.status}`); groups = r.json.groups || []; saveState(); renderGroups(); return groups; } catch(e){ console.warn('fetchGroupsForMe failed', e); groups = JSON.parse(localStorage.getItem('tfchat.groups') || '[]'); renderGroups(); return groups; } }
-
-/* upload helper with error messages */
-async function uploadFileToProfile(file){ const fd = new FormData(); fd.append('file', file); const resp = await fetch(PROFILE_UPLOAD_URL, { method:'POST', body: fd }); const text = await resp.text().catch(()=>null); let json = null; try{ json = JSON.parse(text); }catch(e){} if(!resp.ok || !json || !(json.ok || json.success) || !(json.url || json.path)) { const msg = json?.error || text || `status ${resp.status}`; throw new Error('Upload failed: ' + msg); } return json.url || json.path; }
+/* Upload helper - robustly parses multiple upload response formats */
+async function uploadFileToProfile(file){
+  const fd = new FormData();
+  fd.append('file', file);
+  const resp = await fetch(PROFILE_UPLOAD_URL, { method:'POST', body: fd });
+  const text = await resp.text().catch(()=>null);
+  let json = null;
+  try{ json = JSON.parse(text); }catch(e){}
+  // Accept many possible keys returned by different uploaders
+  const possibleUrls = [
+    json?.url,
+    json?.path,
+    json?.sharePath,
+    json?.data?.url,
+    (json?.info && json.info.url) || null
+  ].filter(Boolean);
+  if(resp.ok && possibleUrls.length > 0){
+    return possibleUrls[0];
+  }
+  // Some uploaders return ok:true + url
+  if(resp.ok && json && typeof json === 'object'){
+    // Try to detect nested url keys
+    const keys = Object.keys(json);
+    for(const k of keys){
+      const v = json[k];
+      if(typeof v === 'string' && v.startsWith('http')) return v;
+    }
+  }
+  // If not ok, throw a descriptive error (include parsed JSON if available)
+  const errBody = json ? JSON.stringify(json) : text || `status ${resp.status}`;
+  throw new Error('Upload failed: ' + errBody);
+}
 
 /* ================== CONVERSATION CACHE ================== */
 function convKey(a,b){ return `${a}|${b}`; }
 function messageUniqueKey(m){ if(m.cid) return "cid:"+m.cid; if(m.id) return "id:"+m.id; return "temp:"+ (m._tempKey || (m._tempKey = Math.random().toString(36).slice(2))); }
 function compareMessagesAsc(a,b){ const ta = parseDatePrefer(a._db_created_at, a.parsed_time); const tb = parseDatePrefer(b._db_created_at, b.parsed_time); if(ta !== tb) return ta - tb; if(a.id && b.id && a.id !== b.id) return Number(a.id) - Number(b.id); if(a.cid && b.cid && a.cid !== b.cid) return a.cid < b.cid ? -1 : 1; return 0; }
 function addOrUpdateMessageToCache(me17, other17, msg){ const key = convKey(me17, other17); if(!conversationCache[key]) conversationCache[key] = []; const list = conversationCache[key]; const findIndex = msg.cid ? list.findIndex(x => x.cid && x.cid === msg.cid) : (msg.id ? list.findIndex(x => x.id && String(x.id) === String(msg.id)) : -1); if(findIndex !== -1){ list[findIndex] = Object.assign({}, list[findIndex], msg); } else { list.push(msg); } list.sort(compareMessagesAsc); }
-
-async function loadConversation(me17, other17){ const key = convKey(me17, other17); conversationCache[key] = conversationCache[key] || []; const seen = new Set(); function pushRow(r, expectedFrom){ let parsed = null; try { parsed = JSON.parse(r.content); } catch(e){ parsed = null; } const parsedFrom = parsed && parsed.from ? parsed.from : null; const parsedTime = parsed && parsed.time ? parsed.time : null; const parsedCid = parsed && parsed.cid ? parsed.cid : null; const parsedText = parsed && (parsed.text || parsed.message) ? (parsed.text || parsed.message) : (r.content || ""); if(!parsedFrom || parsedFrom !== expectedFrom) return; const m = { id: r.id || null, cid: parsedCid || null, from: parsedFrom, text: parsedText, parsed_time: parsedTime || null, _db_created_at: r.created_at || null, created_at: parsedTime || r.created_at || nowISO() }; const keyu = messageUniqueKey(m); if(seen.has(keyu)) return; seen.add(keyu); addOrUpdateMessageToCache(me17, other17, m); }
-
-  // always try to read messages WHERE recipient == other17 (outgoing)
-  try {
-    const outRows = await apiList(other17);
-    for(const r of outRows) pushRow(r, me17); // pushRow will ignore if parsed.from !== me17
-  } catch(e){
-    console.warn("LIST outgoing failed for", other17, e.message || e);
-  }
-  // load incoming only if we have a valid me17
-  if(isValidTfid(me17)){
-    try {
-      const inRows = await apiList(me17);
-      for(const r of inRows) pushRow(r, other17);
-    } catch(e){
-      console.warn("LIST incoming failed for", me17, e.message || e);
-    }
-  }
-  renderConversation(me17, other17);
-}
-
+async function loadConversation(me17, other17){ const key = convKey(me17, other17); conversationCache[key] = conversationCache[key] || []; const seen = new Set(); function pushRow(r, expectedFrom){ let parsed = null; try { parsed = JSON.parse(r.content); } catch(e){ parsed = null; } const parsedFrom = parsed && parsed.from ? parsed.from : null; const parsedTime = parsed && parsed.time ? parsed.time : null; const parsedCid = parsed && parsed.cid ? parsed.cid : null; const parsedText = parsed && (parsed.text || parsed.message) ? (parsed.text || parsed.message) : (r.content || ""); if(!parsedFrom || parsedFrom !== expectedFrom) return; const m = { id: r.id || null, cid: parsedCid || null, from: parsedFrom, text: parsedText, parsed_time: parsedTime || null, _db_created_at: r.created_at || null, created_at: parsedTime || r.created_at || nowISO() }; const keyu = messageUniqueKey(m); if(seen.has(keyu)) return; seen.add(keyu); addOrUpdateMessageToCache(me17, other17, m); } try { const outRows = await apiList(other17); for(const r of outRows) pushRow(r, me17); } catch(e){ console.warn("LIST outgoing failed for", other17, e.message || e); } try { const inRows = await apiList(me17); for(const r of inRows) pushRow(r, other17); } catch(e){ console.warn("LIST incoming failed for", me17, e.message || e); } renderConversation(me17, other17); }
 function ensureMessagesPadding(){ const wrap = document.querySelector('#chatModal .messages-wrap'); if(!wrap) return; const inputRow = document.getElementById('chatInputRow'); const h = inputRow ? inputRow.getBoundingClientRect().height : 80; wrap.style.paddingBottom = (h + 16) + 'px'; }
 window.addEventListener('resize', ensureMessagesPadding);
 
-function renderConversation(me17, other17){ ensureMessagesPadding(); const key = convKey(me17, other17); const arr = conversationCache[key] ? [...conversationCache[key]] : []; messagesEl.innerHTML = ''; if(arr.length === 0){ messagesEl.innerHTML = `<div class="muted">Pa gen mesaj ankò.</div>`; } else { arr.sort(compareMessagesAsc); for(const m of arr){ const d = document.createElement('div'); d.className = 'msg ' + (m.from === me17 ? 'user' : 'bot'); const ts = m.created_at ? (new Date(m.created_at)).toLocaleString() : ''; let checksHtml = ''; if(m.from === me17){ if(m.id) checksHtml = '<span class="checks">✓✓</span>'; else checksHtml = '<span class="checks">✓</span>'; } d.innerHTML = `<div>${escapeHtml(m.text)}</div><div style="font-size:11px;color:var(--muted);margin-top:6px">${formatTFShort(m.from||'')} • ${ts} ${checksHtml}</div>`; messagesEl.appendChild(d); } } setTimeout(()=> { messagesEl.parentElement.scrollTop = messagesEl.parentElement.scrollHeight; }, 50); }
+function renderConversation(me17, other17, isGroup=false){
+  ensureMessagesPadding();
+  const key = convKey(me17, other17);
+  const arr = conversationCache[key] ? [...conversationCache[key]] : [];
+  messagesEl.innerHTML = '';
+  if(arr.length === 0){ messagesEl.innerHTML = `<div class="muted">Pa gen mesaj ankò.</div>`; }
+  else {
+    arr.sort(compareMessagesAsc);
+    for(const m of arr){
+      const d = document.createElement('div'); d.className = 'msg ' + (m.from === me17 ? 'user' : 'bot');
+      const ts = m.created_at ? (new Date(m.created_at)).toLocaleString() : '';
+      let checksHtml = '';
+      if(m.from === me17){ if(m.id) checksHtml = '<span class="checks">✓✓</span>'; else checksHtml = '<span class="checks">✓</span>'; }
+      const senderLabel = (isGroup && m.from && m.from !== me17) ? `<div style="font-size:12px;color:var(--muted);margin-bottom:6px">${formatTFShort(m.from)}</div>` : '';
+      d.innerHTML = `${senderLabel}<div>${escapeHtml(m.text)}</div><div style="font-size:11px;color:var(--muted);margin-top:6px">${formatTFShort(m.from||'')} • ${ts} ${checksHtml}</div>`;
+      messagesEl.appendChild(d);
+    }
+  }
+  setTimeout(()=> { messagesEl.parentElement.scrollTop = messagesEl.parentElement.scrollHeight; }, 50);
+}
 
 /* ================== CHAT OPEN/SEND ================== */
 async function openChat(other17, contactObj=null, pushHistory=true){
-  // allow opening even if user didn't configure me.tf17 yet (read-only)
+  if(!me.tf17){ alert('Pa gen TFID pou itilizatè a. Louver Paramèt pou mete TFID la.'); return; }
+  currentGroup = null;
   currentPartner = { tf17: other17, name: (contactObj && contactObj.name) || null };
-  chatTitleEl.textContent = (currentPartner.name || formatTFShort(currentPartner.tf17));
+  document.getElementById('chatTitle').textContent = (currentPartner.name || formatTFShort(currentPartner.tf17));
   const c = contacts.find(x => x.tf17 === other17);
   if(c){ c.unread = 0; saveState(); renderContacts(); }
   messagesEl.innerHTML = '<div class="muted">Chaje mesaj...</div>';
-
-  try {
-    await loadConversation(me.tf17 || null, other17);
-  } catch(e){
-    messagesEl.innerHTML = `<div class="muted">Pa kapab chaje mesaj: ${escapeHtml(e.message||e)}</div>`;
-  }
+  try { await loadConversation(me.tf17, other17); } catch(e){ messagesEl.innerHTML = `<div class="muted">Pa kapab chaje mesaj: ${escapeHtml(e.message||e)}</div>`; }
   showChatModal();
-
   try {
     const slug = encodeURIComponent(other17);
     if(pushHistory){
@@ -386,72 +448,124 @@ async function openChat(other17, contactObj=null, pushHistory=true){
   } catch(e){ console.warn('history push failed', e); }
 }
 
-function openGroupChat(groupName){
-  currentGroup = groupName;
+async function openGroup(groupName, groupObj){
+  if(!me.tf17){ alert('Pa gen TFID pou itilizatè a. Louver Paramèt pou mete TFID la.'); return; }
   currentPartner = null;
-  chatTitleEl.textContent = `# ${groupName}`;
-  messagesEl.innerHTML = '<div class="muted">Chaje mesaj gwoup...</div>';
-  (async ()=>{
-    try {
-      const r = await callJSON(`${API_BASE}/api/group/messages?group_name=${encodeURIComponent(groupName)}&tfid=${encodeURIComponent(me.tf17||'')}&name=${encodeURIComponent(FRONTEND_NAME)}`);
-      if(!r.ok) throw new Error(r.json?.error || r.text || `HTTP ${r.status}`);
-      // clear and display rows
-      const rows = r.json.rows || [];
-      const key = convKey(me.tf17 || 'anon', `GROUP:${groupName}`);
-      conversationCache[key] = [];
-      for(const row of rows.reverse()){
-        let parsed = null; try{ parsed = JSON.parse(row.content); }catch(e){ parsed = null; }
-        const from = parsed?.from || null;
-        const text = parsed?.text || parsed?.message || (row.content || '');
-        const created_at = parsed?.time || row.created_at || nowISO();
-        if(!from) continue;
-        addOrUpdateMessageToCache(me.tf17 || 'anon', `GROUP:${groupName}`, { id: row.id, from, text, created_at });
-      }
-      renderConversation(me.tf17 || 'anon', `GROUP:${groupName}`, true);
-      showChatModal();
-      try { history.pushState({ group: groupName }, '', '/groupe/' + encodeURIComponent(groupName)); } catch(e){}
-    } catch(e){
-      messagesEl.innerHTML = `<div class="muted">Pa kapab chaje mesaj gwoup: ${escapeHtml(e.message||e)}</div>`;
-      showChatModal();
-    }
-  })();
-}
-
-function showChatModal(){ chatModalEl.style.display = 'block'; ensureMessagesPadding(); setTimeout(()=> chatTextEl?.focus(), 150); }
-function hideChatModal(){ chatModalEl.style.display = 'none'; currentPartner = null; currentGroup = null; }
-
-async function sendMessageFromModal(){ const txt = (chatTextEl?.value || '').trim(); if(!txt) return; if(!me.tf17){ alert('Ou dwe mete TFID nan Paramètres avan ou voye mesaj. Klike sou TF-Chat anlè a pou mete li.'); return; } if(currentGroup){ // send to group via api.add with group_name
-    const payload = { type:'text', group: currentGroup, from: me.tf17, text: txt, time: nowISO(), cid: makeCid(), name: me.name || null };
-    addOrUpdateMessageToCache(me.tf17, `GROUP:${currentGroup}`, { id:null, cid: payload.cid, from: me.tf17, text: txt, created_at: payload.time });
-    renderConversation(me.tf17, `GROUP:${currentGroup}`, true);
-    chatTextEl.value = '';
-    try {
-      const body = { group_name: currentGroup, name: FRONTEND_NAME, content: JSON.stringify(payload), content_type: 'group' };
-      const r = await callJSON(`${API_BASE}/api/add`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
-      if(!r.ok) throw new Error(r.json?.error || r.text || `HTTP ${r.status}`);
-    } catch(e){ alert('Envoi gwoup echwe: ' + (e.message||e)); }
-    return;
-  }
-
-  if(!currentPartner){ alert('Pa gen konvèsasyon chwazi.'); return; }
-  const recipient17 = currentPartner.tf17;
-  const c = contacts.find(x=>x.tf17===recipient17);
-  if(c && c.blocked){ alert('Ou bloke kontak sa — ou pa ka voye mesaj.'); return; }
-  const cid = makeCid();
-  const payload = { type:'text', from: me.tf17, text: txt, time: nowISO(), cid, name: me.name || null };
-  addOrUpdateMessageToCache(me.tf17, recipient17, { id:null, cid, from: me.tf17, text: txt, created_at: payload.time, _optimistic:true });
-  renderConversation(me.tf17, recipient17);
-  chatTextEl.value = '';
-  if(c){ c.lastMsg = txt; c.lastTs = Date.now(); saveState(); renderContacts(); }
+  currentGroup = groupName;
+  document.getElementById('chatTitle').textContent = groupName;
+  messagesEl.innerHTML = '<div class="muted">Chaje messages du groupe...</div>';
   try {
-    await apiAdd(recipient17, payload);
-    startShortPollForMessage(recipient17, cid);
-  } catch(e){
-    alert('Envoi echwe: ' + (e.message||e));
+    const url = `${API_BASE}/api/group/messages?group_name=${encodeURIComponent(groupName)}&tfid=${encodeURIComponent(me.tf17)}&name=${encodeURIComponent(FRONTEND_NAME)}`;
+    const r = await callJSON(url);
+    if(!r.ok) throw new Error(r.json?.error || r.text || `HTTP ${r.status}`);
+    const rows = r.json.rows || [];
+    const key = convKey(me.tf17, groupName);
+    conversationCache[key] = [];
+    for(const row of rows.reverse()){
+      let parsed = null;
+      try{ parsed = JSON.parse(row.content); }catch(e){ parsed = null; }
+      const from = parsed && parsed.from ? parsed.from : null;
+      const text = parsed && (parsed.text||parsed.message) ? (parsed.text||parsed.message) : (row.content||'');
+      const m = { id: row.id, cid: parsed && parsed.cid || null, from: from || row.tfid, text, parsed_time: parsed && parsed.time || row.created_at, _db_created_at: row.created_at, created_at: parsed && parsed.time || row.created_at };
+      addOrUpdateMessageToCache(me.tf17, groupName, m);
+    }
+    renderConversation(me.tf17, groupName, true);
+  } catch (e){
+    messagesEl.innerHTML = `<div class="muted">Pa kapab chaje messages groupe: ${escapeHtml(e.message||e)}</div>`;
+  }
+  showChatModal();
+  try{
+    if(!history.state || !history.state._tfchat_init){ history.replaceState(Object.assign({}, history.state || {}, {_tfchat_init:true}), '', location.pathname); }
+    history.pushState({tfchat_group: groupName}, '', '/groupe/' + encodeURIComponent(groupName));
+  } catch(e){ console.warn('history push failed', e); }
+}
+
+function showChatModal(){ chatModalEl.style.display = 'flex'; ensureMessagesPadding(); setTimeout(()=> chatTextEl?.focus(), 150); }
+function hideChatModal(){ chatModalEl.style.display = 'none'; currentPartner = null; currentGroup = null; chatTextEl.value = ''; }
+
+async function sendMessageFromModal(){ const txt = (chatTextEl?.value || '').trim(); if(!txt) return;
+  if(!me.tf17){ alert('Pa gen TFID pou itilizatè a. Mete li nan Paramètres.'); return; }
+  const cid = makeCid();
+  const payload = { type:'text', from: me.tf17, text: txt, time: (new Date()).toISOString(), cid, name: me.name || null };
+  if(currentGroup){
+    addOrUpdateMessageToCache(me.tf17, currentGroup, { id:null, cid, from: me.tf17, text: txt, parsed_time: payload.time, _db_created_at:null, created_at: payload.time });
+    renderConversation(me.tf17, currentGroup, true);
+    chatTextEl.value = '';
+    try{
+      await apiAddToGroup(currentGroup, Object.assign({}, payload, { group: currentGroup }));
+    } catch(e){
+      alert('Création du message groupe échoué: ' + (e.message||e));
+    }
+  } else if(currentPartner){
+    const recipient17 = currentPartner.tf17;
+    addOrUpdateMessageToCache(me.tf17, recipient17, { id:null, cid, from: me.tf17, text: txt, parsed_time: payload.time, _db_created_at:null, created_at: payload.time });
+    renderConversation(me.tf17, recipient17, false);
+    chatTextEl.value = '';
+    const cobj = contacts.find(x=>x.tf17===recipient17); if(cobj){ cobj.lastMsg = txt; cobj.lastTs = Date.now(); saveState(); renderContacts(); }
+    try { await apiAddToTfids(recipient17, payload); } catch(e){ alert('Envoi échwe: ' + (e.message||e)); }
+  } else {
+    alert('Pa gen destinataire seleksyone.');
   }
 }
 
-function startShortPollForMessage(target17, cid){ let tries = 0; const maxTries = 6; const interval = 1200; const attempt = async ()=>{ tries++; try { const rows = await apiList(target17); const found = rows.find(r => { try { const p = JSON.parse(r.content); return p && p.cid === cid; } catch(e){ return false; } }); if(found){ await loadConversation(me.tf17, target17); return true; } } catch(e){} if(tries < maxTries) setTimeout(attempt, interval); }; attempt(); }
+/* ================== GROUP API (admin create/add) ================== */
+/* Use token as query param AND header for better compatibility with CORS/server checks */
+async function createGroupOnServer(name, owner_name, bio, avatar_url){
+  const url = `${API_BASE}/admin/groups/create?token=${encodeURIComponent(ADMIN_API_TOKEN)}`;
+  const body = { name, owner_name, bio, avatar_url };
+  const r = await callJSON(url, { method: 'POST', headers: {'Content-Type':'application/json', 'x-api-token': ADMIN_API_TOKEN}, body: JSON.stringify(body) });
+  if(!r.ok) {
+    // throw a detailed error
+    const errText = r.json ? (JSON.stringify(r.json)) : (r.text || `HTTP ${r.status}`);
+    throw new Error(errText);
+  }
+  return r.json;
+}
+async function addMemberToGroupOnServer(group_name, tfid){
+  const url = `${API_BASE}/admin/groups/add?token=${encodeURIComponent(ADMIN_API_TOKEN)}`;
+  const body = { group_name, tfid };
+  const r = await callJSON(url, { method: 'POST', headers: {'Content-Type':'application/json', 'x-api-token': ADMIN_API_TOKEN}, body: JSON.stringify(body) });
+  if(!r.ok) { const err = r.json ? JSON.stringify(r.json) : r.text; throw new Error(err); }
+  return r.json;
+}
+
+/* ================== GROUP UI ACTIONS ================== */
+groupAvatarPreview.addEventListener('click', ()=> groupFile.click());
+groupFile.addEventListener('change', (ev)=> {
+  const f = ev.target.files && ev.target.files[0];
+  if(!f) return;
+  const reader = new FileReader();
+  reader.onload = function(e){ groupAvatarPreview.innerHTML = `<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover;border-radius:12px"/>`; };
+  reader.readAsDataURL(f);
+});
+
+createGroupBtn?.addEventListener('click', ()=> { switchView('groups'); openGroupModal(); });
+groupCancelBtn.addEventListener('click', ()=> { closeGroupModal(); });
+groupCreateBtn.addEventListener('click', async ()=> {
+  const name = (groupNameInput.value || '').trim();
+  if(!name){ alert('Nom du groupe est obligatoire'); return; }
+  const bio = (groupBioInput.value || '').trim();
+  let avatar_url = null;
+  const f = groupFile.files && groupFile.files[0];
+  try {
+    if(f){ avatar_url = await uploadFileToProfile(f); }
+  } catch(err){
+    alert('Upload échoué: ' + (err.message || err)); return;
+  }
+  try {
+    await createGroupOnServer(name, me.name || null, bio || null, avatar_url || null);
+    if(me.tf17){ try{ await addMemberToGroupOnServer(name, me.tf17); }catch(e){ console.warn('add member failed', e); } }
+    alert('Groupe créé: ' + name);
+    closeGroupModal();
+    await loadGroups();
+    openGroup(name, { name, bio, avatar_url });
+  } catch(err){
+    alert('Création groupe échoué: ' + (err.message||err));
+  }
+});
+
+function openGroupModal(){ groupNameInput.value=''; groupBioInput.value=''; groupFile.value=''; groupAvatarPreview.textContent = '+'; groupModal.style.display = 'flex'; }
+function closeGroupModal(){ groupModal.style.display = 'none'; }
 
 /* ================== CONTACTS HELPERS ================== */
 function ensureContactInList(tf17, name){ let c = contacts.find(x=>x.tf17===tf17); if(!c){ c = { tf17, short: formatTFShort(tf17), name: name||null, unread:0, blocked:false, avatar:null }; contacts.unshift(c); saveState(); renderContacts(); } return c; }
@@ -482,7 +596,6 @@ function promptForMeModal(){
       settingsModal.style.display = 'none';
       cleanup();
       registerFrontendIfNeeded().then(()=>{ if(ws && ws.readyState === WebSocket.OPEN){ try{ ws.send(JSON.stringify({ type:'subscribe', tfid: me.tf17 })); }catch(e){} } else connectWS(); });
-      try{ await fetchGroupsForMe(); }catch(e){}
       resolve(true);
     }
     function onCancel(){ settingsModal.style.display = 'none'; cleanup(); resolve(false); }
@@ -497,11 +610,35 @@ function triggerPwBannerIfNeeded(){ if(!me.tf17) return; if(hasPasswordFor(me.tf
 function hidePwBanner(){ pwBanner.style.display = 'none'; if(pwWarningTimer) { clearTimeout(pwWarningTimer); pwWarningTimer=null; } if(pwForceReloadTimer){ clearTimeout(pwForceReloadTimer); pwForceReloadTimer=null; } }
 
 /* ================== WEBSOCKET ================== */
-function connectWS(){ if(!me.tf17){ wsStatusEl.textContent = ''; return; } try { ws = new WebSocket(WS_URL); } catch(e){ scheduleReconnect(); return; } ws.onopen = ()=>{ wsStatusEl.textContent = ''; try{ ws.send(JSON.stringify({ type:'subscribe', tfid: me.tf17 })); } catch(e){} }; ws.onmessage = (ev)=>{ try { const data = JSON.parse(ev.data); if(data.type === 'subscribed') return; if(data.type === 'message'){ const payload = data; let parsed = null; try{ parsed = JSON.parse(payload.content); } catch(e){ parsed = null; } if(!parsed || !parsed.from) return; const recipient = payload.tfid || null; const from = parsed.from; const other = (recipient === me.tf17) ? from : recipient; if(!other) return; const created = parsed.time || payload.created_at || nowISO(); const msgObj = { id: payload.id || null, cid: parsed.cid || null, from, text: parsed.text || parsed.message || '', parsed_time: parsed.time || null, _db_created_at: payload.created_at || null, created_at: created }; addOrUpdateMessageToCache(me.tf17, other, msgObj);
+function connectWS(){ if(!me.tf17){ wsStatusEl.textContent = ''; return; } try { ws = new WebSocket(WS_URL); } catch(e){ scheduleReconnect(); return; } ws.onopen = ()=>{ wsStatusEl.textContent = ''; try{ ws.send(JSON.stringify({ type:'subscribe', tfid: me.tf17 })); } catch(e){} }; ws.onmessage = (ev)=>{ try { const data = JSON.parse(ev.data); if(data.type === 'subscribed') return; if(data.type === 'message'){ const payload = data; let parsed = null; try{ parsed = JSON.parse(payload.content); } catch(e){ parsed = null; } if(!parsed || !parsed.from) return; const recipient = payload.tfid || null; const from = parsed.from; const other = (recipient === me.tf17) ? from : recipient; if(!other) return; const created = parsed.time || payload.created_at || nowISO(); const msgObj = { id: payload.id || null, cid: parsed.cid || null, from, text: parsed.text || parsed.message || '', parsed_time: parsed.time || null, _db_created_at: payload.created_at || null, created_at: created };
+
+            if(parsed.group){
+              addOrUpdateMessageToCache(me.tf17, parsed.group, { id: payload.id || null, cid: parsed.cid || null, from, text: parsed.text || parsed.message || '', parsed_time: parsed.time || null, _db_created_at: payload.created_at || null, created_at: created });
+              if(currentGroup && currentGroup === parsed.group){ renderConversation(me.tf17, parsed.group, true); }
+              else {
+                showDesktopNotification(parsed.name || parsed.group, from, parsed.text || parsed.message || '', ()=> { openGroup(parsed.group); });
+                const g = groups.find(x=>x.name===parsed.group); if(g){ g._unread = (g._unread||0)+1; renderGroups(); }
+              }
+              return;
+            }
+
+            addOrUpdateMessageToCache(me.tf17, other, msgObj);
             if(parsed.name){ const c = ensureContactInList(other, parsed.name); c.name = parsed.name; c.lastMsg = msgObj.text; c.lastTs = Date.now(); saveState(); renderContacts(); }
             if(parsed.type === 'profile' && parsed.photo){ const c = ensureContactInList(other, parsed.name || null); c.avatar = parsed.photo; c.name = parsed.name || c.name; c.lastTs = Date.now(); saveState(); renderContacts(); }
             if(currentPartner && currentPartner.tf17 === other){ renderConversation(me.tf17, other); }
-            else if(recipient === me.tf17){ const c = ensureContactInList(other, parsed && parsed.name ? parsed.name : null); c.unread = (c.unread||0) + 1; c.lastMsg = msgObj.text; c.lastTs = Date.now(); saveState(); renderContacts(); }
+            else if(recipient === me.tf17){
+              const c = ensureContactInList(other, parsed && parsed.name ? parsed.name : null);
+              c.unread = (c.unread||0) + 1;
+              c.lastMsg = msgObj.text;
+              c.lastTs = Date.now();
+              saveState();
+              renderContacts();
+
+              const fromLabel = parsed && parsed.name ? parsed.name : formatTFShort(parsed && parsed.from ? parsed.from : other);
+              showDesktopNotification(fromLabel, parsed && parsed.from ? parsed.from : other, parsed && (parsed.text||parsed.message) ? (parsed.text||parsed.message) : '', () => {
+                try{ openChat(parsed.from || other, contacts.find(c=>c.tf17 === (parsed.from || other)) || null, true); }catch(e){}
+              });
+            }
         }
     } catch(err){ console.warn('WS parse err', err); } };
   ws.onclose = ()=>{ wsStatusEl.textContent = ''; scheduleReconnect(); };
@@ -514,56 +651,31 @@ async function performSearchQuery(raw){ if(!raw) return; const digits = normaliz
 
 /* ================== PROFILE MODAL ================== */
 let profileCurrent = null;
-chatTitleEl?.addEventListener('click', ()=>{ if(!currentPartner && !currentGroup) return; if(currentPartner) openProfileModal(currentPartner.tf17); else if(currentGroup) alert('Groupe info: ' + currentGroup); });
+const chatTitleEl = document.getElementById('chatTitle');
+chatTitleEl?.addEventListener('click', ()=>{ if(!currentPartner && !currentGroup) return; if(currentGroup){ return; } if(!currentPartner) return; openProfileModal(currentPartner.tf17); });
 function openProfileModal(tf17){ profileCurrent = tf17; const c = contacts.find(x=>x.tf17===tf17) || { tf17, name: formatTFShort(tf17), blocked:false, avatar:null }; if(c.avatar) { profileAvatar.innerHTML = `<img src="${c.avatar}" />`; } else { profileAvatar.textContent = initials(c.name || c.tf17); } profileName.textContent = c.name || formatTFShort(tf17); profileTfid.textContent = c.tf17; blockBtn.textContent = c.blocked ? 'Débloquer' : 'Bloquer'; profileModal.style.display = 'flex'; }
 addContactBtn?.addEventListener('click', ()=>{ if(!profileCurrent) return; const c = ensureContactInList(profileCurrent, null); alert('Contact ajouté : ' + (c.name || c.tf17)); profileModal.style.display = 'none'; });
-blockBtn?.addEventListener('click', async ()=>{ if(!profileCurrent) return; const c = ensureContactInList(profileCurrent, null); c.blocked = !c.blocked; saveState(); renderContacts(); try{ const payload = { type: c.blocked ? 'block' : 'unblock', from: me.tf17, time: nowISO(), name: me.name || null }; await apiAdd(profileCurrent, payload); }catch(e){ console.warn('notify block failed', e); } openProfileModal(profileCurrent); });
+blockBtn?.addEventListener('click', async ()=>{ if(!profileCurrent) return; const c = ensureContactInList(profileCurrent, null); c.blocked = !c.blocked; saveState(); renderContacts(); try{ const payload = { type: c.blocked ? 'block' : 'unblock', from: me.tf17, time: nowISO(), name: me.name || null }; await apiAddToTfids(profileCurrent, payload); }catch(e){ console.warn('notify block failed', e); } openProfileModal(profileCurrent); });
 closeProfileBtn?.addEventListener('click', ()=>{ profileModal.style.display = 'none'; });
+reportBtn?.addEventListener('click', async ()=>{ if(!profileCurrent) return; const reason = prompt('Raison du signalement (optionnel)'); try{ const url = `${API_BASE}/admin/report?token=${encodeURIComponent(ADMIN_API_TOKEN)}`; const body = { reported_tfid: profileCurrent, reporter_tfid: me.tf17 || null, reason: reason || null }; const r = await callJSON(url, { method:'POST', headers:{'Content-Type':'application/json','x-api-token': ADMIN_API_TOKEN}, body: JSON.stringify(body) }); if(!r.ok) throw new Error(r.json?.error || r.text || `HTTP ${r.status}`); alert('Signaler envoyé'); profileModal.style.display = 'none'; } catch(e){ alert('Signaler échoué: ' + (e.message||e)); } });
+
 profileAvatar?.addEventListener('click', ()=> { if(fileInput) fileInput.click(); });
 
 window.addEventListener('paste', (ev)=>{ const items = ev.clipboardData && ev.clipboardData.items; if(!items) return; for(const it of items){ if(it.kind === 'file' && it.type && it.type.startsWith('image/')){ const f = it.getAsFile(); if(f) { autoUploadProfileFile(f); ev.preventDefault(); break; } } } }, false);
 
 async function autoUploadProfileFile(file){ if(!file) return; if(!file.type || !file.type.startsWith('image/')) { alert('Se sèlman imaj ki aksepte (jpg/png...).'); return; }
-  const input = fileInput; if(input) input.disabled = true; try { const url = await uploadFileToProfile(file); me.avatarDataUrl = url; saveState(); contacts.forEach(c => { if(c.tf17 === me.tf17) c.avatar = url; }); document.querySelectorAll('.avatar').forEach(el=>{ if(el.dataset && el.dataset.tf17 && el.dataset.tf17 === me.tf17){ el.innerHTML = `<img src="${url}" />`; } }); profileAvatar.innerHTML = `<img src="${url}" />`; if(!me.tf17) { console.warn('No me.tf17 — profile update saved locally but not pushed'); return; } const now = (new Date()).toISOString(); const contactsToNotify = Array.isArray(contacts) ? contacts.slice() : []; for(const c of contactsToNotify){ if(!c || !c.tf17 || c.tf17 === me.tf17) continue; const cid = makeCid(); const payload = { type: 'profile', from: me.tf17, name: me.name || null, photo: url, time: now, cid }; apiAdd(c.tf17, payload).catch(err => { console.warn('Push profile update failed for', c.tf17, err); }); }
-  } catch(err){ console.error('autoUploadProfileFile error', err); alert('Erè pandan upload: ' + (err.message || err)); } finally { if(input) { input.disabled = false; input.value = ''; } }
-}
-
-/* ================== CREATE GROUP FLOW ================== */
-groupAvatarPicker?.addEventListener('click', ()=> groupAvatarFile.click());
-groupAvatarFile?.addEventListener('change', async (ev)=> {
-  const f = ev.target.files && ev.target.files[0]; if(!f) return;
-  const url = URL.createObjectURL(f);
-  groupAvatarPreview.src = url; groupAvatarPreview.style.display = ''; groupAvatarLabel.style.display = 'none';
-  groupAvatarPicker._file = f;
-});
-
-openCreateGroup?.addEventListener('click', ()=> {
-  groupAvatarPreview.style.display = 'none'; groupAvatarLabel.style.display = ''; groupNameInput.value=''; groupBioInput.value=''; createGroupModal.style.display = 'flex';
-});
-
-createCancel?.addEventListener('click', ()=> createGroupModal.style.display = 'none');
-
-createConfirm?.addEventListener('click', async ()=> {
-  const name = (groupNameInput.value || '').trim();
-  const bio = (groupBioInput.value || '').trim();
-  if(!name){ alert('Nom obligatoire'); return; }
-  createConfirm.disabled = true;
+  const input = fileInput; if(input) input.disabled = true;
   try {
-    let avatar_url = null;
-    if(groupAvatarPicker._file){ avatar_url = await uploadFileToProfile(groupAvatarPicker._file); }
-    const resp = await adminCreateGroup({ name, owner_name: me.name || null, bio: bio || null, avatar_url: avatar_url || null });
-    // add current user as member (if me.tf17)
-    if(me.tf17) {
-      try { await adminAddMember({ group_name: name, tfid: me.tf17 }); } catch(e){ console.warn('add self to group failed', e); }
-    }
-    await fetchGroupsForMe();
-    createGroupModal.style.display = 'none';
-    alert('Gwoup kreye avèk siksè.');
-  } catch(e){
-    console.error('create group error', e);
-    alert('Kreye gwoup echwe: ' + (e.message || String(e)));
-  } finally { createConfirm.disabled = false; }
-});
+    const url = await uploadFileToProfile(file);
+    me.avatarDataUrl = url; saveState(); contacts.forEach(c => { if(c.tf17 === me.tf17) c.avatar = url; });
+    document.querySelectorAll('.avatar').forEach(el=>{ if(el.dataset && el.dataset.tf17 && el.dataset.tf17 === me.tf17){ el.innerHTML = `<img src="${url}" />`; } });
+    profileAvatar.innerHTML = `<img src="${url}" />`;
+    if(!me.tf17) return;
+    const now = (new Date()).toISOString();
+    const contactsToNotify = Array.isArray(contacts) ? contacts.slice() : [];
+    for(const c of contactsToNotify){ if(!c || !c.tf17 || c.tf17 === me.tf17) continue; const cid = makeCid(); const payload = { type: 'profile', from: me.tf17, name: me.name || null, photo: url, time: now, cid }; apiAddToTfids(c.tf17, payload).catch(err => { console.warn('Push profile update failed for', c.tf17, err); }); }
+  } catch(err){ alert('Erè pandan upload: ' + (err.message || err)); } finally { if(input) { input.disabled = false; input.value = ''; } }
+}
 
 /* ================== UI EVENTS ================== */
 document.getElementById('chatBack')?.addEventListener('click', ()=>{
@@ -578,54 +690,87 @@ sendBtnEl?.addEventListener('click', sendMessageFromModal);
 chatTextEl?.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); sendMessageFromModal(); } });
 searchInput?.addEventListener('keydown', async (e)=>{ if(e.key==='Enter'){ e.preventDefault(); await performSearchQuery(searchInput.value.trim()); } });
 searchBtn?.addEventListener('click', async ()=>{ await performSearchQuery(searchInput.value.trim()); });
-groupSearchInput?.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); renderGroups(groupSearchInput.value.trim()); }});
-groupSearchBtn?.addEventListener('click', ()=> renderGroups(groupSearchInput.value.trim()));
 
-tabAccueil?.addEventListener('click', ()=> { tabAccueil.classList.add('active'); tabGroupes.classList.remove('active'); sectionAccueil.style.display='block'; sectionGroupes.style.display='none'; });
-tabGroupes?.addEventListener('click', ()=> { tabGroupes.classList.add('active'); tabAccueil.classList.remove('active'); sectionGroupes.style.display='block'; sectionAccueil.style.display='none'; fetchGroupsForMe(); });
-
-// open settings modal when user clicks the TF-Chat title
 appTitleEl?.addEventListener('click', ()=> { updateSettingsUI(); settingsModal.style.display = 'flex'; });
 
-/* profileSave logic */
-profileSaveBtn?.addEventListener('click', async ()=>{ const newName = profileNameInput.value.trim(); const short = normalizeInputToDigits(profileTfidInput.value.trim()); if(!short || short.length < 7){ alert('TFID pa valab — antre 7 chif.'); return; } const tfShort = short.slice(-7); const tf17 = to17(tfShort); const existingHash = getPasswordHash(tf17); if(existingHash && (!me.tf17 || me.tf17 !== tf17)) { const pw = prompt('Kont sa deja egziste lokalman. Antre modpas li pou itilize li:'); if(!pw) { alert('Modpas obligatwa.'); return; } const has = await hashPasswordHex(pw); if(has !== existingHash){ alert('Modpas pa kòrèk.'); return; } } const newPw = profilePwInput.value || ''; if(newPw){ const hex = await hashPasswordHex(newPw); storePasswordHash(tf17, hex); } me.name = newName || me.name; me.short = tfShort; me.tf17 = tf17; saveState(); settingsModal.style.display = 'none'; await registerFrontendIfNeeded(); if(ws && ws.readyState === WebSocket.OPEN){ try{ ws.send(JSON.stringify({ type:'subscribe', tfid: me.tf17 })); }catch(e){} } else connectWS(); triggerPwBannerIfNeeded(); try{ await fetchGroupsForMe(); }catch(e){} });
+profileSaveBtn?.addEventListener('click', async ()=>{ const newName = profileNameInput.value.trim(); const short = normalizeInputToDigits(profileTfidInput.value.trim()); if(!short || short.length < 7){ alert('TFID pa valab — antre 7 chif.'); return; } const tfShort = short.slice(-7); const tf17 = to17(tfShort); const existingHash = getPasswordHash(tf17); if(existingHash && (!me.tf17 || me.tf17 !== tf17)) { const pw = prompt('Kont sa deja egziste lokalman. Antre modpas li pou itilize li:'); if(!pw) { alert('Modpas obligatwa.'); return; } const has = await hashPasswordHex(pw); if(has !== existingHash){ alert('Modpas pa kòrèk.'); return; } } const newPw = profilePwInput.value || ''; if(newPw){ const hex = await hashPasswordHex(newPw); storePasswordHash(tf17, hex); } me.name = newName || me.name; me.short = tfShort; me.tf17 = tf17; saveState(); settingsModal.style.display = 'none'; await registerFrontendIfNeeded(); if(ws && ws.readyState === WebSocket.OPEN){ try{ ws.send(JSON.stringify({ type:'subscribe', tfid: me.tf17 })); }catch(e){} } else connectWS(); triggerPwBannerIfNeeded(); });
 settingsCancelBtn?.addEventListener('click', ()=> settingsModal.style.display = 'none');
 
-/* ================== POPSTATE / URL SLUG HANDLING ================== */
+/* popstate for groups as well */
 window.addEventListener('popstate', (ev)=>{
   const s = ev.state;
-  if(s && s.tfchat){ openChat(s.tfchat, contacts.find(c=>c.tf17===s.tfchat)||null, false); } else if(s && s.group){ openGroupChat(s.group); } else { hideChatModal(); }
+  if(s && s.tfchat){ openChat(s.tfchat, contacts.find(c=>c.tf17===s.tfchat)||null, false); }
+  else if(s && s.tfchat_group){ openGroup(s.tfchat_group); }
+  else { hideChatModal(); }
 });
 
-/* if page loaded with a slug, try open chat or group */
-(function handleInitialPath(){ const raw = location.pathname.replace(/^\/+/, ''); if(!raw) return; try {
-      if(raw.startsWith('groupe/')){ const name = decodeURIComponent(raw.replace(/^groupe\//,'')); (async ()=>{ await fetchGroupsForMe(); const g = groups.find(x=>x.name===name); if(g){ openGroupChat(name); } else { groups.unshift({ name, owner_name:'', bio:'', avatar_url:null, created_at:null}); renderGroups(); openGroupChat(name); } })();
-      } else if(/^TF-?\d{7,}$/.test(raw) || /^\d{7,}$/.test(raw) || /^\d{17,}$/.test(raw)){ const tf17 = raw.startsWith('TF-') ? raw : to17(raw); let c = contacts.find(x=>x.tf17===tf17); if(!c){ c = { tf17, name: formatTFShort(tf17), lastMsg:'', lastTs: Date.now(), unread:0, blocked:false, avatar:null }; contacts.unshift(c); saveState(); renderContacts(); } if(me.tf17){ openChat(tf17, c, false); } else { openChat(tf17, c, false); } }
+/* initial path handling */
+(function handleInitialPath(){ const raw = location.pathname.replace(/^\/+/, ''); if(!raw) return; let candidate = raw; try {
+      if(candidate.startsWith('groupe/')){ const g = decodeURIComponent(candidate.replace(/^groupe\//,'')); setTimeout(()=> { switchView('groups'); loadGroups().then(()=> openGroup(g)).catch(()=>openGroup(g)); }, 300); return; }
+      if(/^TF-?\d{7,}$/.test(candidate) || /^\d{7,}$/.test(candidate) || /^\d{17,}$/.test(candidate)){
+        const tf17 = candidate.startsWith('TF-') ? candidate : to17(candidate);
+        let c = contacts.find(x=>x.tf17===tf17);
+        if(!c){ c = { tf17, name: formatTFShort(tf17), lastMsg:'', lastTs: Date.now(), unread:0, blocked:false, avatar:null }; contacts.unshift(c); saveState(); renderContacts(); }
+        if(me.tf17){ openChat(tf17, c, false); } else { /* don't auto-open settings here */ }
+      }
     } catch(e){ console.warn('initial path parse failed', e); }
 })();
 
+/* ================== VIEWS ================== */
+function switchView(v){
+  if(v === 'accueil'){
+    tabAccueil.classList.add('active'); tabGroup.classList.remove('active');
+    document.getElementById('searchSection').style.display = 'flex';
+    contactsListEl.style.display = 'block';
+    groupsListEl.style.display = 'none';
+  } else {
+    tabAccueil.classList.remove('active'); tabGroup.classList.add('active');
+    document.getElementById('searchSection').style.display = 'flex';
+    contactsListEl.style.display = 'none';
+    groupsListEl.style.display = 'block';
+    loadGroups();
+  }
+}
+tabAccueil.addEventListener('click', ()=> switchView('accueil'));
+tabGroup.addEventListener('click', ()=> switchView('groups'));
+
+/* ================== LOAD GROUPS ================== */
+async function loadGroups(){
+  if(!me.tf17){ renderGroups(); return; }
+  try {
+    const url = `${API_BASE}/api/groups?tfid=${encodeURIComponent(me.tf17)}`;
+    const r = await callJSON(url);
+    if(!r.ok) throw new Error(r.json?.error || r.text || `HTTP ${r.status}`);
+    groups = r.json.groups || [];
+    renderGroups();
+  } catch (e){
+    console.warn('loadGroups failed', e);
+    groups = [];
+    renderGroups();
+  }
+}
+
 /* ================== BOOT ================== */
 renderContacts();
-renderGroups();
 if(me.avatarDataUrl){ document.querySelectorAll('.avatar').forEach(el => { if(!el.querySelector('img')) el.innerHTML = `<img src="${me.avatarDataUrl}" />`; }); }
+
+(async ()=> {
+  try { if(isNotificationSupported() && Notification.permission === 'default') await requestNotificationPermission(); } catch(e) {}
+})();
 
 if(me.tf17){
   connectWS();
-  fetchGroupsForMe();
+  loadGroups().catch(()=>{});
 } else {
   const shownOnce = localStorage.getItem('tfchat.settings_shown_once');
   if(!shownOnce){
-    // do NOT auto-open settings modal — user asked settings appear on header click only
-    // but show prompt once to set identity:
-    // we will NOT open it automatically; only record that we showed once
+    promptForMeModal().then(()=>{ /* no-op */ });
     localStorage.setItem('tfchat.settings_shown_once', '1');
   }
 }
 
-/* expose debug */
 window._tf_contacts = contacts;
 window._tf_me = me;
-window._tf_groups = groups;
 </script>
 </body>
-      </html>
+          </html>
