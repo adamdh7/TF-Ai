@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-<title>TF-Chat (dark • site1)</title>
+<title>TF-Chat (dark • site1) — patched</title>
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -34,6 +34,7 @@ main{position:fixed;left:0;right:0;top:var(--header-h);bottom:0;overflow:auto;pa
 .msg{max-width:74%;padding:10px;border-radius:12px;margin-bottom:4px}
 .msg.bot{background:#121212;color:var(--text);align-self:flex-start}
 .msg.user{background:linear-gradient(180deg,var(--accent),#0563c9);color:white;align-self:flex-end}
+.msg .checks{font-size:11px;margin-left:8px;opacity:0.9}
 .chat-input{display:flex;gap:8px;align-items:center}
 .input{flex:1;padding:12px;border-radius:999px;border:1px solid rgba(255,255,255,0.03);background:var(--card);color:var(--text);outline:none}
 .send-btn{background:transparent;border:0;padding:8px;border-radius:10px;cursor:pointer;color:var(--accent)}
@@ -44,10 +45,35 @@ main{position:fixed;left:0;right:0;top:var(--header-h);bottom:0;overflow:auto;pa
 /* white settings panel on dark backdrop */
 .settings-panel{width:420px;background:#fff;border-radius:12px;padding:18px;box-shadow:0 10px 30px rgba(11,18,32,0.2);color:#0b1220}
 .settings-label{font-size:13px;color:#374151}
+
+/* small banner for password warning */
+.banner {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  top: var(--header-h);
+  z-index:1300;
+  background: #fffbeb;
+  color:#92400e;
+  border:1px solid #f59e0b;
+  padding:10px 14px;border-radius:10px;box-shadow:0 6px 20px rgba(0,0,0,0.2);font-weight:600;
+  display:none;
+}
+
+/* contact fullscreen profile modal */
+.profile-modal { position:fixed; inset:0; display:none; align-items:center; justify-content:center; z-index:1400; background:rgba(0,0,0,0.6); }
+.profile-card { width:320px; background:#fff; color:#0b1220; padding:18px; border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,0.3); }
+.profile-row{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.profile-avatar{width:64px;height:64px;border-radius:12px;background:#cbd5e1;display:flex;align-items:center;justify-content:center;font-weight:700}
+.small{font-size:12px;color:var(--muted)}
 </style>
 </head>
 <body>
   <header><div class="app-title">TF-Chat</div></header>
+
+  <div class="banner" id="pwBanner">
+    Tanpri mete yon modpas pou sekirize sesyon ou. Ou gen 2 min pou sove li.
+  </div>
 
   <main>
     <section class="search">
@@ -71,7 +97,7 @@ main{position:fixed;left:0;right:0;top:var(--header-h);bottom:0;overflow:auto;pa
     <div style="height:100%;display:flex;flex-direction:column">
       <div style="height:56px;display:flex;align-items:center;padding:8px 12px;border-bottom:1px solid rgba(255,255,255,0.03)">
         <button id="chatBack" style="background:transparent;border:0;color:var(--text);cursor:pointer">←</button>
-        <div style="flex:1;text-align:center;font-weight:700" id="chatTitle">Chat</div>
+        <div style="flex:1;text-align:center;font-weight:700;cursor:pointer" id="chatTitle">Chat</div>
         <div style="width:44px"></div>
       </div>
       <div style="overflow:auto;padding:12px;flex:1">
@@ -86,19 +112,47 @@ main{position:fixed;left:0;right:0;top:var(--header-h);bottom:0;overflow:auto;pa
     </div>
   </div>
 
+  <!-- Profile modal (fullscreen contact info) -->
+  <div class="profile-modal" id="profileModal">
+    <div class="profile-card" role="dialog" aria-modal="true">
+      <div class="profile-row">
+        <div class="profile-avatar" id="profileAvatar">U</div>
+        <div>
+          <div id="profileName" style="font-weight:800">Utilisateur</div>
+          <div id="profileTfid" class="small">TF-0000000</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end">
+        <button id="addContactBtn" style="padding:8px 12px;border-radius:8px;border:1px solid #e6edf3;background:white;cursor:pointer">Ajouter</button>
+        <button id="blockBtn" style="padding:8px 12px;border-radius:8px;background:#ef4444;color:white;border:none;cursor:pointer">Bloquer</button>
+        <button id="closeProfileBtn" style="padding:8px 12px;border-radius:8px;border:1px solid #e6edf3;background:white;cursor:pointer">Fermer</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Settings modal: white inner panel -->
   <div id="settingsModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:1200;align-items:center;justify-content:center;display:flex;">
     <div class="settings-panel" role="dialog" aria-modal="true">
       <h3 style="margin:0 0 12px 0">Paramètres — Identité</h3>
+
       <div style="margin-bottom:8px">
         <label class="settings-label">Pseudo affiché</label>
         <input id="profileNameInput" style="width:100%;padding:10px;border-radius:8px;border:1px solid #e6eef3;margin-top:6px" />
       </div>
+
       <div style="margin-bottom:12px">
         <label class="settings-label">TFID (7 chif) — ex: 0204143</label>
         <input id="profileTfidInput" style="width:100%;padding:10px;border-radius:8px;border:1px solid #e6eef3;margin-top:6px" />
         <div style="font-size:12px;color:#6b7280;margin-top:6px">Sere TFID tankou TF-XXXXXXX. Sistèm lan konvèti pou TF-17-chif otomatikman.</div>
       </div>
+
+      <!-- PASSWORD UI (new) -->
+      <div style="margin-bottom:12px">
+        <label class="settings-label">Mot de passe (créer / changer)</label>
+        <input id="profilePwInput" type="password" placeholder="Nouveau mot de passe" style="width:100%;padding:10px;border-radius:8px;border:1px solid #e6eef3;margin-top:6px" />
+        <div style="font-size:12px;color:#6b7280;margin-top:6px">Le mot de passe est haché côté client et stocké localement. Ne partagez pas ce mot de passe.</div>
+      </div>
+
       <div style="display:flex;justify-content:flex-end;gap:8px">
         <button id="settingsCancel" style="padding:8px 12px;border-radius:8px;border:1px solid #e6edf3;background:white;cursor:pointer">Annuler</button>
         <button id="profileSave" style="padding:8px 12px;border-radius:8px;background:#007aff;color:white;border:none;cursor:pointer">Sove</button>
@@ -107,6 +161,16 @@ main{position:fixed;left:0;right:0;top:var(--header-h);bottom:0;overflow:auto;pa
   </div>
 
 <script>
+/*
+  Patch notes in code:
+  - SESSION persistence already used: extended to password hashing storage
+  - Added client-side password management (hashed via SHA-256)
+  - Banner warns users to set password, triggers forced modal/refresh after 2 minutes if not set
+  - Block/unblock stored in contacts list
+  - Read/delivered checks implemented by optimistic marker + server confirmation (id present)
+  - Profile modal on chat header click: shows name/TFID and block/add actions
+*/
+
 /* CONFIG */
 const API_BASE = 'https://tf-sove.onrender.com';
 const FRONTEND_NAME = 'site1';
@@ -123,6 +187,15 @@ function escapeHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,
 function makeCid(){ return String(Date.now()) + '-' + Math.floor(Math.random()*100000).toString(16); }
 function parseDatePrefer(isoOrDb, parsedTime){ const t1 = parsedTime ? Date.parse(parsedTime) : NaN; if(!isNaN(t1)) return t1; const t2 = Date.parse(isoOrDb || ""); return isNaN(t2) ? 0 : t2; }
 
+/* password hashing helper (Web Crypto) - returns hex */
+async function hashPasswordHex(pw){
+  const enc = new TextEncoder();
+  const data = enc.encode(String(pw));
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
 /* STATE */
 let me = {
   short: localStorage.getItem('tfchat.me.short') || null,
@@ -135,6 +208,8 @@ let ws = null;
 let reconnectTimer = null;
 let currentPartner = null;
 const conversationCache = {};
+let pwWarningTimer = null;
+let pwForceReloadTimer = null;
 
 /* DOM refs */
 const searchInput = document.getElementById('searchInput');
@@ -150,8 +225,18 @@ const settingsBtn = document.getElementById('settingsBtn');
 const settingsModal = document.getElementById('settingsModal');
 const profileNameInput = document.getElementById('profileNameInput');
 const profileTfidInput = document.getElementById('profileTfidInput');
+const profilePwInput = document.getElementById('profilePwInput');
 const profileSaveBtn = document.getElementById('profileSave');
 const settingsCancelBtn = document.getElementById('settingsCancel');
+const pwBanner = document.getElementById('pwBanner');
+
+const profileModal = document.getElementById('profileModal');
+const profileAvatar = document.getElementById('profileAvatar');
+const profileName = document.getElementById('profileName');
+const profileTfid = document.getElementById('profileTfid');
+const addContactBtn = document.getElementById('addContactBtn');
+const blockBtn = document.getElementById('blockBtn');
+const closeProfileBtn = document.getElementById('closeProfileBtn');
 
 /* STORAGE helpers */
 function saveState(){
@@ -163,10 +248,17 @@ function saveState(){
 }
 function initials(name){ if(!name) return 'U'; return name.split(' ').map(p=>p[0]).slice(0,2).join('').toUpperCase(); }
 
+/* password storage helpers (client-side hashed) */
+function pwKeyForTf(tf17){ return `tfchat.pw.${tf17}`; }
+function hasPasswordFor(tf17){ return !!localStorage.getItem(pwKeyForTf(tf17)); }
+function storePasswordHash(tf17, hexHash){ localStorage.setItem(pwKeyForTf(tf17), hexHash); }
+function getPasswordHash(tf17){ return localStorage.getItem(pwKeyForTf(tf17)); }
+
 /* RENDER helpers */
 function updateSettingsUI(){
   profileNameInput.value = me.name || '';
   profileTfidInput.value = (me.tf17 || '').replace(/^TF-?/i, '').slice(-7);
+  profilePwInput.value = '';
 }
 function renderContacts(filter=''){
   contactsListEl.innerHTML = '';
@@ -185,10 +277,11 @@ function renderContacts(filter=''){
   list.forEach(c => {
     const el = document.createElement('div'); el.className = 'contact'; el.dataset.tf17 = c.tf17 || c.tf17;
     const avatarHtml = c.logo ? `<img src="${c.logo}" style="width:100%;height:100%;border-radius:50%">` : escapeHtml((c.name||formatTFShort(c.tf17) || '').slice(0,2));
+    const blockedBadge = c.blocked ? ' <span style="color:#ffdcdc;font-weight:700"> (Bloqué)</span>' : '';
     el.innerHTML = `<div class="avatar">${avatarHtml}</div>
       <div class="meta">
         <div class="meta-top">
-          <div class="name">${escapeHtml(c.name||formatTFShort(c.tf17)||'')}</div>
+          <div class="name">${escapeHtml(c.name||formatTFShort(c.tf17)||'')}${blockedBadge}</div>
           <div class="time">${c.lastTs? timeAgo(c.lastTs): ''}</div>
         </div>
         <div class="meta-bottom">
@@ -202,7 +295,7 @@ function renderContacts(filter=''){
 }
 function timeAgo(ts){ if(!ts) return ''; const diff=Math.floor((Date.now()-ts)/1000); if(diff<60) return diff+'s'; if(diff<3600) return Math.floor(diff/60)+'m'; if(diff<86400) return Math.floor(diff/3600)+'h'; return new Date(ts).toLocaleDateString(); }
 
-/* NETWORK helpers (identical behavior as white UI) */
+/* NETWORK helpers */
 async function callJSON(url, opts = {}) {
   opts = Object.assign({}, opts);
   opts.headers = Object.assign({}, opts.headers || {}, { 'Accept': 'application/json' });
@@ -252,7 +345,7 @@ async function registerFrontendIfNeeded(){
   } catch(e){ return false; }
 }
 
-/* CONVERSATION cache & sort (same logic as white) */
+/* CONVERSATION cache & sort */
 function convKey(a,b){ return `${a}|${b}`; }
 function messageUniqueKey(m){
   if(m.cid) return "cid:"+m.cid;
@@ -333,7 +426,13 @@ function renderConversation(me17, other17){
       const d = document.createElement('div');
       d.className = 'msg ' + (m.from === me17 ? 'user' : 'bot');
       const ts = m.created_at ? (new Date(m.created_at)).toLocaleString() : '';
-      d.innerHTML = `<div>${escapeHtml(m.text)}</div><div style="font-size:11px;color:var(--muted);margin-top:6px">${formatTFShort(m.from||'')} • ${ts}</div>`;
+      // checks: optimistic (no id) => single check; with id => double check (delivered/confirmed)
+      let checksHtml = '';
+      if(m.from === me17){
+        if(m.id) checksHtml = '<span class="checks">✓✓</span>';
+        else checksHtml = '<span class="checks">✓</span>';
+      }
+      d.innerHTML = `<div>${escapeHtml(m.text)}</div><div style="font-size:11px;color:var(--muted);margin-top:6px">${formatTFShort(m.from||'')} • ${ts} ${checksHtml}</div>`;
       messagesEl.appendChild(d);
     }
   }
@@ -360,20 +459,24 @@ async function openChat(other17, contactObj=null){
 function showChatModal(){ chatModalEl.style.display = 'block'; setTimeout(()=> chatTextEl?.focus(), 150); }
 function hideChatModal(){ chatModalEl.style.display = 'none'; currentPartner = null; }
 
+/* send message with optimistic + checks */
 async function sendMessageFromModal(){
   const txt = (chatTextEl?.value || '').trim();
   if(!txt || !currentPartner) return;
   if(!me.tf17){ alert('Pa gen TFID pou itilizatè a. Mete li nan Paramètres.'); return; }
+  const c = contacts.find(x=>x.tf17===currentPartner.tf17);
+  if(c && c.blocked){ alert('Ou bloke kontak sa — ou pa ka voye mesaj.'); return; }
   const recipient17 = currentPartner.tf17;
   const cid = makeCid();
   const payload = { type:'text', from: me.tf17, text: txt, time: (new Date()).toISOString(), cid };
-  addOrUpdateMessageToCache(me.tf17, recipient17, { id:null, cid, from: me.tf17, text: txt, parsed_time: payload.time, _db_created_at:null, created_at: payload.time });
+  addOrUpdateMessageToCache(me.tf17, recipient17, { id:null, cid, from: me.tf17, text: txt, parsed_time: payload.time, _db_created_at:null, created_at: payload.time, _optimistic:true });
   renderConversation(me.tf17, recipient17);
   chatTextEl.value = '';
-  const c = contacts.find(x=>x.tf17===recipient17);
-  if(c){ c.lastMsg = txt; c.lastTs = Date.now(); saveState(); renderContacts(); }
+  const cobj = contacts.find(x=>x.tf17===recipient17);
+  if(cobj){ cobj.lastMsg = txt; cobj.lastTs = Date.now(); saveState(); renderContacts(); }
   try {
-    await apiAdd(recipient17, payload);
+    const r = await apiAdd(recipient17, payload);
+    // after server stored it, short-poll to reconcile presence (will show double-check)
     startShortPollForMessage(recipient17, cid);
   } catch(e){
     alert('Envoi echwe: ' + (e.message||e));
@@ -400,27 +503,46 @@ function startShortPollForMessage(target17, cid){
 /* CONTACTS helpers */
 function ensureContactInList(tf17, name){
   let c = contacts.find(x=>x.tf17===tf17);
-  if(!c){ c = { tf17, short: formatTFShort(tf17), name: name||null, unread:0 }; contacts.unshift(c); saveState(); renderContacts(); }
+  if(!c){ c = { tf17, short: formatTFShort(tf17), name: name||null, unread:0, blocked:false }; contacts.unshift(c); saveState(); renderContacts(); }
   return c;
 }
 
-/* PROMPT FOR ME (modal) */
+/* PROMPT FOR ME (modal) - now supports password checking on existing TFID */
 function promptForMeModal(){
   updateSettingsUI();
   settingsModal.style.display = 'flex';
   profileNameInput.focus();
   return new Promise(resolve=>{
-    function onSave(){
+    async function onSave(){
       const nameVal = profileNameInput.value.trim();
       const short = normalizeInputToDigits(profileTfidInput.value.trim());
+      // if trying to take an existing local TFID, require password
       if(!short || short.length < 7){ alert('TFID invalide — antre 7 chif.'); return; }
+      const tfShort = short.slice(-7);
+      const tf17c = to17(tfShort);
+      const existingHash = getPasswordHash(tf17c);
+
+      if(existingHash){
+        // ask user for password to unlock
+        const pw = prompt('TFID sa egziste deja lokalman. Antre modpas pou kont sa:');
+        if(!pw){ alert('Modpas obligatwa pou kont sa.'); return; }
+        const has = await hashPasswordHex(pw);
+        if(has !== existingHash){ alert('Modpas pa kòrèk.'); return; }
+        // ok, user unlocked
+      } else {
+        // If account exists but has no pw, we will show banner urging to set pw
+      }
+
       me.name = nameVal || me.name || 'Utilisateur';
-      me.short = short.slice(-7);
+      me.short = tfShort;
       me.tf17 = to17(me.short);
       saveState();
       settingsModal.style.display = 'none';
       cleanup();
+      // ensure frontend registered and connect ws
       registerFrontendIfNeeded().then(()=>{ if(ws && ws.readyState === WebSocket.OPEN){ try{ ws.send(JSON.stringify({ type:'subscribe', tfid: me.tf17 })); }catch(e){} } else connectWS(); });
+      // if no password set for this tfid, show banner & start 2min timer
+      triggerPwBannerIfNeeded();
       resolve(true);
     }
     function onCancel(){ settingsModal.style.display = 'none'; cleanup(); resolve(false); }
@@ -430,7 +552,30 @@ function promptForMeModal(){
   });
 }
 
-/* WEBSOCKET (same as white) */
+/* trigger PW banner and timers */
+function triggerPwBannerIfNeeded(){
+  if(!me.tf17) return;
+  if(hasPasswordFor(me.tf17)) { hidePwBanner(); return; }
+  // show banner
+  pwBanner.style.display = 'block';
+  // clear previous timers
+  if(pwWarningTimer) clearTimeout(pwWarningTimer);
+  if(pwForceReloadTimer) clearTimeout(pwForceReloadTimer);
+  // after 2 minutes force modal (or refresh)
+  pwWarningTimer = setTimeout(()=> {
+    // escalate: show modal immediately
+    settingsModal.style.display = 'flex';
+    // prefill tfid
+    updateSettingsUI();
+  }, 60 * 1000); // show modal in 1 minute as warning (first escalation)
+  pwForceReloadTimer = setTimeout(()=> {
+    // refresh page to force login flow (user asked for refresh)
+    location.reload();
+  }, 2 * 60 * 1000); // 2 minutes
+}
+function hidePwBanner(){ pwBanner.style.display = 'none'; if(pwWarningTimer) { clearTimeout(pwWarningTimer); pwWarningTimer=null; } if(pwForceReloadTimer){ clearTimeout(pwForceReloadTimer); pwForceReloadTimer=null; } }
+
+/* WEBSOCKET */
 function connectWS(){
   if(!me.tf17){ wsStatusEl.textContent = 'WS: non connecté (pas de TFID)'; return; }
   try {
@@ -456,8 +601,19 @@ function connectWS(){
         const created = parsed.time || payload.created_at || nowISO();
         const msgObj = { id: payload.id || null, cid: parsed.cid || null, from, text: parsed.text || parsed.message || '', parsed_time: parsed.time || null, _db_created_at: payload.created_at || null, created_at: created };
         addOrUpdateMessageToCache(me.tf17, other, msgObj);
-        if(currentPartner && currentPartner.tf17 === other){ renderConversation(me.tf17, other); } else if(recipient === me.tf17){
-          const c = ensureContactInList(other, null);
+
+        // if message contains contact name, update contact display
+        if(parsed.name){
+          const c = ensureContactInList(other, parsed.name);
+          c.name = parsed.name;
+          c.lastMsg = msgObj.text;
+          c.lastTs = Date.now();
+          saveState(); renderContacts();
+        }
+
+        if(currentPartner && currentPartner.tf17 === other){ renderConversation(me.tf17, other); }
+        else if(recipient === me.tf17){
+          const c = ensureContactInList(other, parsed && parsed.name ? parsed.name : null);
           c.unread = (c.unread||0) + 1;
           c.lastMsg = msgObj.text;
           c.lastTs = Date.now();
@@ -472,7 +628,7 @@ function connectWS(){
 }
 function scheduleReconnect(){ if(reconnectTimer) return; reconnectTimer = setTimeout(()=>{ reconnectTimer=null; connectWS(); }, 3000); }
 
-/* SEARCH handling (Enter + button) */
+/* SEARCH handling (+button) */
 async function performSearchQuery(raw){
   if(!raw) return;
   const digits = normalizeInputToDigits(raw);
@@ -488,16 +644,48 @@ async function performSearchQuery(raw){
       const last = rows[rows.length-1] || rows[0];
       let lastMsg = '';
       try{ const p = JSON.parse(last.content); lastMsg = p.text || p.message || last.content; } catch(e){ lastMsg = last.content || ''; }
-      const c = { tf17, name: formatTFShort(short7), lastMsg, lastTs: Date.now(), unread: 0 };
+      const nameFromServer = (() => { try { const p = JSON.parse(last.content); return p.name || null } catch(_) { return null } })();
+      const c = { tf17, name: nameFromServer || formatTFShort(short7), lastMsg, lastTs: Date.now(), unread: 0, blocked:false };
       contacts.unshift(c); saveState(); renderContacts(); openChat(c.tf17, c); return;
     } else {
       if(confirm('Pa jwenn done sou servèr. Kreye kontak lokal pou TFID sa a?')){
-        const c = { tf17, name: formatTFShort(short7), lastMsg: '', lastTs: Date.now(), unread:0 };
+        const c = { tf17, name: formatTFShort(short7), lastMsg: '', lastTs: Date.now(), unread:0, blocked:false };
         contacts.unshift(c); saveState(); renderContacts(); openChat(c.tf17, c);
       }
     }
   } catch(err){ alert('Erè lè w ap chèche sou servèr: ' + (err.message||err)); }
 }
+
+/* PROFILE modal behavior */
+let profileCurrent = null;
+chatTitleEl?.addEventListener('click', ()=>{
+  if(!currentPartner) return;
+  openProfileModal(currentPartner.tf17);
+});
+function openProfileModal(tf17){
+  profileCurrent = tf17;
+  const c = contacts.find(x=>x.tf17===tf17) || { tf17, name: formatTFShort(tf17), blocked:false };
+  profileAvatar.textContent = initials(c.name || c.tf17);
+  profileName.textContent = c.name || formatTFShort(tf17);
+  profileTfid.textContent = c.tf17;
+  blockBtn.textContent = c.blocked ? 'Débloquer' : 'Bloquer';
+  profileModal.style.display = 'flex';
+}
+addContactBtn?.addEventListener('click', ()=>{
+  if(!profileCurrent) return;
+  const c = ensureContactInList(profileCurrent, null);
+  alert('Contact ajouté : ' + (c.name || c.tf17));
+  profileModal.style.display = 'none';
+});
+blockBtn?.addEventListener('click', ()=>{
+  if(!profileCurrent) return;
+  const c = ensureContactInList(profileCurrent, null);
+  c.blocked = !c.blocked;
+  saveState();
+  renderContacts();
+  openProfileModal(profileCurrent);
+});
+closeProfileBtn?.addEventListener('click', ()=>{ profileModal.style.display = 'none'; });
 
 /* UI events */
 document.getElementById('chatBack')?.addEventListener('click', ()=> hideChatModal());
@@ -506,29 +694,54 @@ chatTextEl?.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDef
 searchInput?.addEventListener('keydown', async (e)=>{ if(e.key==='Enter'){ e.preventDefault(); await performSearchQuery(searchInput.value.trim()); } });
 searchBtn?.addEventListener('click', async ()=>{ await performSearchQuery(searchInput.value.trim()); });
 document.getElementById('settingsBtn')?.addEventListener('click', ()=> { updateSettingsUI(); settingsModal.style.display = 'flex'; });
+
+/* profileSave: supports password setting - new behavior */
 profileSaveBtn?.addEventListener('click', async ()=>{
   const newName = profileNameInput.value.trim();
   const short = normalizeInputToDigits(profileTfidInput.value.trim());
   if(!short || short.length < 7){ alert('TFID pa valab — antre 7 chif.'); return; }
+  const tfShort = short.slice(-7);
+  const tf17 = to17(tfShort);
+
+  // If tf17 exists and has a stored password, confirm before switching to it
+  const existingHash = getPasswordHash(tf17);
+  if(existingHash && (!me.tf17 || me.tf17 !== tf17)) {
+    // require current user to enter password for that account
+    const pw = prompt('Kont sa deja egziste lokalman. Antre modpas li pou itilize li:');
+    if(!pw) { alert('Modpas obligatwa.'); return; }
+    const has = await hashPasswordHex(pw);
+    if(has !== existingHash){ alert('Modpas pa kòrèk.'); return; }
+  }
+
+  // If a new password provided, hash and store
+  const newPw = profilePwInput.value || '';
+  if(newPw){
+    const hex = await hashPasswordHex(newPw);
+    storePasswordHash(tf17, hex);
+  }
+
   me.name = newName || me.name;
-  me.short = short.slice(-7);
-  me.tf17 = to17(me.short);
+  me.short = tfShort;
+  me.tf17 = tf17;
   saveState();
   settingsModal.style.display = 'none';
   await registerFrontendIfNeeded();
   if(ws && ws.readyState === WebSocket.OPEN){
     try{ ws.send(JSON.stringify({ type:'subscribe', tfid: me.tf17 })); }catch(e){}
   } else connectWS();
+  triggerPwBannerIfNeeded();
 });
+
+/* Cancel settings */
 settingsCancelBtn?.addEventListener('click', ()=> settingsModal.style.display = 'none');
 
 /* BOOT */
 renderContacts();
-if(me.tf17){ connectWS(); } else { setTimeout(()=> { promptForMeModal(); }, 250); }
+if(me.tf17){ connectWS(); triggerPwBannerIfNeeded(); } else { setTimeout(()=> { promptForMeModal(); }, 250); }
 
 /* expose debug */
 window._tf_contacts = contacts;
 window._tf_me = me;
 </script>
 </body>
-      </html>
+  </html>
