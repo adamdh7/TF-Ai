@@ -35,7 +35,11 @@
       <input id="searchInput" placeholder="Recherche (TFID)" aria-label="Recherche" />
       <button id="clearSearch" style="display:none;background:transparent;border:0;color:var(--muted);cursor:pointer">✖</button>
     </div>
-
+<!-- Profil.vue oswa seksyon Profil la -->
+<div class="profile-info">
+  <h2>{{ profile.name || 'Utilisateur' }}</h2>
+  <p class="tfid-display">TF-{{ profile.tfid }}</p>
+</div>
     <section class="list" id="contactsList" aria-live="polite"></section>
   </main>
 
