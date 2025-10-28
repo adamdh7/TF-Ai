@@ -1,60 +1,17 @@
 <!doctype html>
-
 <html lang="ht">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 <title>TF-Chat</title>
-  <link rel="manifest" href="manifest.json" />
-  <link rel="icon" type="image/jpeg" href="https://files.catbox.moe/ixgmht.jpg" />
-  <link rel="apple-touch-icon" href="https://files.catbox.moe/ixgmht.jpg" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet" />
-
+<link rel="manifest" href="manifest.json" />
+<link rel="icon" type="image/jpeg" href="https://files.catbox.moe/ixgmht.jpg" />
+<link rel="apple-touch-icon" href="https://files.catbox.moe/ixgmht.jpg" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet" />
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;600;700&display=swap" rel="stylesheet">
-<script>
-(function(){
-  document.addEventListener('touchstart', function(e){
-    if (e.touches && e.touches.length > 1) {
-      e.preventDefault();
-    }
-  }, { passive: false });
-  var lastTouchEnd = 0;
-  document.addEventListener('touchend', function(e){
-    var now = Date.now();
-    if (now - lastTouchEnd <= 300) {
-      e.preventDefault();
-    }
-    lastTouchEnd = now;
-  }, { passive: false });
-  document.addEventListener('gesturestart', function(e){ e.preventDefault(); }, false);
-  document.addEventListener('gesturechange', function(e){ e.preventDefault(); }, false);
-  document.addEventListener('gestureend', function(e){ e.preventDefault(); }, false);
-  window.addEventListener('wheel', function(e){
-    if (e.ctrlKey || e.metaKey) {
-      e.preventDefault();
-    }
-  }, { passive: false });
-  window.addEventListener('keydown', function(e){
-    if (e.ctrlKey || e.metaKey) {
-      var k = e.key;
-      if (k === '+' || k === '-' || k === '=' || k === '0' || k === '±') {
-        e.preventDefault();
-      }
-      if (e.code === 'NumpadAdd' || e.code === 'NumpadSubtract' || e.code === 'Numpad0') {
-        e.preventDefault();
-      }
-    }
-  }, false);
-  try {
-    var style = document.createElement('style');
-    style.innerHTML = 'html,body{ touch-action: pan-x pan-y; -ms-touch-action: pan-x pan-y; }';
-    document.head.appendChild(style);
-  } catch (err) {}
-})();
-</script>
 <style>
 :root{ --bg:#000000; --panel:#000000; --text:#e6eefb; --muted:#9aa6bf; --card:#0b0b0b; --accent:#0b81ff; --header-h:56px; --tab-h:62px; }
 *{box-sizing:border-box}
@@ -115,13 +72,68 @@ main{position:fixed;left:0;right:0;top:var(--header-h);bottom:var(--tab-h);overf
 .group-members{max-height:240px;overflow:auto;border:1px solid #eef2ff;padding:8px;border-radius:8px;margin-bottom:12px}
 .member-row{display:flex;justify-content:space-between;align-items:center;padding:6px 8px;border-radius:8px;margin-bottom:6px;background:#f8fafc}
 @media (max-width:640px){
-.avatar{width:48px;height:48px}
-.profile-avatar{width:56px;height:56px}
-.create-panel{width:92%}
-.group-panel{width:92%}
-main{padding:10px}
+  .avatar{width:48px;height:48px}
+  .profile-avatar{width:56px;height:56px}
+  .create-panel{width:92%}
+  .group-panel{width:92%}
+  main{padding:10px}
 }
 </style>
+<script>
+(function(){
+  document.addEventListener('touchstart', function(e){
+    if (e.touches && e.touches.length > 1) {
+      e.preventDefault();
+    }
+  }, { passive: false });
+  var lastTouchEnd = 0;
+  document.addEventListener('touchend', function(e){
+    var now = Date.now();
+    if (now - lastTouchEnd <= 300) {
+      e.preventDefault();
+    }
+    lastTouchEnd = now;
+  }, { passive: false });
+  document.addEventListener('gesturestart', function(e){ e.preventDefault(); }, false);
+  document.addEventListener('gesturechange', function(e){ e.preventDefault(); }, false);
+  document.addEventListener('gestureend', function(e){ e.preventDefault(); }, false);
+  window.addEventListener('wheel', function(e){
+    if (e.ctrlKey || e.metaKey) {
+      e.preventDefault();
+    }
+  }, { passive: false });
+  window.addEventListener('keydown', function(e){
+    if (e.ctrlKey || e.metaKey) {
+      var k = e.key;
+      if (k === '+' || k === '-' || k === '=' || k === '0' || k === '±') {
+        e.preventDefault();
+      }
+      if (e.code === 'NumpadAdd' || e.code === 'NumpadSubtract' || e.code === 'Numpad0') {
+        e.preventDefault();
+      }
+    }
+  }, false);
+  try {
+    var style = document.createElement('style');
+    style.innerHTML = 'html,body{ touch-action: pan-x pan-y; -ms-touch-action: pan-x pan-y; }';
+    document.head.appendChild(style);
+  } catch (err) {}
+})();
+window.addEventListener('load', () => {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js', { scope: '/' })
+        .then(reg => {
+          navigator.serviceWorker.ready.then(regReady => {
+            if (regReady.active && regReady.active.postMessage) {
+              regReady.active.postMessage({ type: 'LIST_CACHES' });
+            }
+          });
+        })
+        .catch(()=>{});
+      navigator.serviceWorker.addEventListener('message', ()=>{});
+    }
+  });
+</script>
 </head>
 <body>
 <div class="app-bg" aria-hidden="true"></div>
@@ -226,7 +238,7 @@ main{padding:10px}
 </div>
 <div style="display:flex;gap:8px;justify-content:flex-end">
 <button id="addContactBtn" style="padding:8px 12px;border-radius:8px;border:1px solid #e6edf3;background:white;cursor:pointer">Ajouter</button>
-<button id="blockBtn" style="padding:8px 12px;border-radius:8px;border:1px solid #e6edf3;background:white;cursor:pointer">Bloquer</button>
+<button id="blockBtn" style="padding:8px 12px;border-radius:8px;background:#ef4444;color:white;border:none;cursor:pointer">Bloquer</button>
 <button id="closeProfileBtn" style="padding:8px 12px;border-radius:8px;border:1px solid #e6edf3;background:white;cursor:pointer">Fermer</button>
 </div>
 </div>
@@ -340,7 +352,7 @@ async function adminCreateGroup({ name, owner_name, bio, avatar_url }){ const ur
 async function adminAddMember({ group_name, tfid }){ const url=`${API_BASE}/admin/groups/add`; const r=await callJSON(url,{ method:'POST', headers:{ 'Content-Type':'application/json', 'x-api-token':ADMIN_API_TOKEN }, body:JSON.stringify({ group_name, tfid }) }); if(!r.ok) throw new Error(r.json?.error||r.text||`HTTP ${r.status}`); return r.json; }
 async function adminGetMembers(group_name){ try{ const url=`${API_BASE}/admin/groups/members?group_name=${encodeURIComponent(group_name)}`; const resp=await fetch(url,{ method:'GET', headers:{ 'Accept':'application/json', 'x-api-token':ADMIN_API_TOKEN } }); const txt=await resp.text(); let json=null; try{ json=JSON.parse(txt); }catch(e){ json=null; } if(!resp.ok) throw new Error(json?.error||txt||`HTTP ${resp.status}`); return json.members||[]; }catch(e){ throw e; } }
 async function fetchGroupsForMe(){ if(!me.tf17){ groups=JSON.parse(localStorage.getItem('tfchat.groups')||'[]'); renderGroups(); return groups; } try{ const url=`${API_BASE}/api/groups?tfid=${encodeURIComponent(me.tf17)}`; const r=await callJSON(url); if(!r.ok) throw new Error(r.json?.error||r.text||`HTTP ${r.status}`); groups=r.json.groups||[]; saveState(); renderGroups(); return groups; }catch(e){ groups=JSON.parse(localStorage.getItem('tfchat.groups')||'[]'); renderGroups(); return groups; } }
-async function uploadFileToProfile(file){ const fd=new FormData(); fd.append('file', file); const resp=await fetch(PROFILE_UPLOAD_URL,{ method:'POST', body:fd }); const text=await resp.text().catch(()=>null); let json=null; try{ json=JSON.parse(text); }catch(e){} if(!resp.ok || !json || !(json.ok||json.success) || !(json.url||json.path)){ const msg=json?.error||text||`status ${resp.status}`; throw new Error('Upload failed: '+msg); } return json.url||json.path; }
+async function uploadFileToProfile(file){ const fd=new FormData(); fd.append('file', file); const resp=await fetch(PROFILE_UPLOAD_URL,{ method:'POST', body:fd }); const text=await resp.text().catch(()=>null); let json=null; try{ json=JSON.parse(text); }catch(e){} if(!resp.ok||!json||!(json.ok||json.success)||!(json.url||json.path)){ const msg=json?.error||text||`status ${resp.status}`; throw new Error('Upload failed: '+msg); } return json.url||json.path; }
 function convKey(a,b){ return `${a}|${b}`; }
 function messageUniqueKey(m){ if(m.cid) return "cid:"+m.cid; if(m.id) return "id:"+m.id; return "temp:"+ (m._tempKey || (m._tempKey = Math.random().toString(36).slice(2))); }
 function compareMessagesAsc(a,b){ const ta=parseDatePrefer(a._db_created_at, a.parsed_time); const tb=parseDatePrefer(b._db_created_at, b.parsed_time); if(ta!==tb) return ta-tb; if(a.id && b.id && a.id!==b.id) return Number(a.id)-Number(b.id); if(a.cid && b.cid && a.cid!==b.cid) return a.cid<b.cid?-1:1; return 0; }
@@ -353,119 +365,17 @@ async function loadConversation(me17, other17){ const key=convKey(me17, other17)
 function ensureMessagesPadding(){ const wrap=document.querySelector('#chatModal .messages-wrap'); if(!wrap) return; const inputRow=document.getElementById('chatInputRow'); const h=inputRow?inputRow.getBoundingClientRect().height:80; wrap.style.paddingBottom=(h+16)+'px'; }
 window.addEventListener('resize', ensureMessagesPadding);
 function renderConversation(me17, other17){ ensureMessagesPadding(); const key=convKey(me17, other17); const arr=conversationCache[key]?[...conversationCache[key]]:[]; messagesEl.innerHTML=''; if(arr.length===0){ messagesEl.innerHTML=`<div class="muted">Pa gen mesaj ankò.</div>`; } else { arr.sort(compareMessagesAsc); for(const m of arr){ const d=document.createElement('div'); d.className='msg '+(m.from===me17?'user':'bot'); const ts=m.created_at?(new Date(m.created_at)).toLocaleString():''; let checksHtml=''; if(m.from===me17){ if(m.id) checksHtml='<span class="checks">✓✓</span>'; else checksHtml='<span class="checks">✓</span>'; } d.innerHTML=`<div>${escapeHtml(m.text)}</div><div style="font-size:11px;color:var(--muted);margin-top:6px">${formatTFShort(m.from||'')} • ${ts} ${checksHtml}</div>`; messagesEl.appendChild(d); } } setTimeout(()=>{ messagesEl.parentElement.scrollTop=messagesEl.parentElement.scrollHeight; },50); }
-async function openChat(other17, contactObj=null, pushHistory=true){
-  currentPartner={ tf17:other17, name:(contactObj&&contactObj.name)||null };
-  chatTitleEl.textContent=(currentPartner.name||formatTFShort(currentPartner.tf17));
-  const c=contacts.find(x=>x.tf17===other17);
-  if(c){ c.unread=0; saveState(); renderContacts(); }
-  messagesEl.innerHTML='<div class="muted">Chaje mesaj...</div>';
-  try{ await loadConversation(me.tf17||null, other17); }catch(e){ messagesEl.innerHTML=`<div class="muted">Pa kapab chaje mesaj: ${escapeHtml(e.message||e)}</div>`; }
-  showChatModal();
-  try{ const slug=encodeURIComponent(other17); if(pushHistory){ if(!history.state||!history.state._tfchat_init){ history.replaceState(Object.assign({},history.state||{},{_tfchat_init:true}),'',location.pathname); } history.pushState({tfchat:other17},'', '/'+slug); } }catch(e){}
-}
-function openGroupChat(groupName){
-  currentGroup=groupName; currentPartner=null; chatTitleEl.textContent=`# ${groupName}`; messagesEl.innerHTML='<div class="muted">Chaje mesaj gwoup...</div>';
-  (async()=>{
-    try{
-      const r=await callJSON(`${API_BASE}/api/group/messages?group_name=${encodeURIComponent(groupName)}&tfid=${encodeURIComponent(me.tf17||'')}&name=${encodeURIComponent(FRONTEND_NAME)}`);
-      if(!r.ok) throw new Error(r.json?.error||r.text||`HTTP ${r.status}`);
-      const rows=r.json.rows||[];
-      const key=convKey(me.tf17||'anon',`GROUP:${groupName}`);
-      conversationCache[key]=[];
-      for(const row of rows.reverse()){
-        let parsed=null; try{ parsed=JSON.parse(row.content); }catch(e){ parsed=null; }
-        const from=parsed?.from||null;
-        const text=parsed?.text||parsed?.message||(row.content||'');
-        const created_at=parsed?.time||row.created_at||nowISO();
-        if(!from) continue;
-        addOrUpdateMessageToCache(me.tf17||'anon',`GROUP:${groupName}`,{ id:row.id, from, text, created_at });
-      }
-      renderConversation(me.tf17||'anon',`GROUP:${groupName}`,true);
-      showChatModal();
-      try{ history.pushState({ group: groupName }, '', '/groupe/'+encodeURIComponent(groupName)); }catch(e){}
-    }catch(e){
-      messagesEl.innerHTML=`<div class="muted">Pa kapab chaje mesaj gwoup: ${escapeHtml(e.message||e)}</div>`;
-      showChatModal();
-    }
-  })();
-}
-  window.addEventListener('load', () => {
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js', { scope: '/' })
-        .then(reg => {
-          navigator.serviceWorker.ready.then(regReady => {
-            if (regReady.active && regReady.active.postMessage) {
-              regReady.active.postMessage({ type: 'LIST_CACHES' });
-            }
-          });
-        })
-        .catch(()=>{/* silent */});
-      navigator.serviceWorker.addEventListener('message', ()=>{/* silent */});
-    }
-  });
-
+async function openChat(other17, contactObj=null, pushHistory=true){ currentPartner={ tf17:other17, name:(contactObj&&contactObj.name)||null }; chatTitleEl.textContent=(currentPartner.name||formatTFShort(currentPartner.tf17)); const c=contacts.find(x=>x.tf17===other17); if(c){ c.unread=0; saveState(); renderContacts(); } messagesEl.innerHTML='<div class="muted">Chaje mesaj...</div>'; try{ await loadConversation(me.tf17||null, other17); }catch(e){ messagesEl.innerHTML=`<div class="muted">Pa kapab chaje mesaj: ${escapeHtml(e.message||e)}</div>`; } showChatModal(); try{ const slug=encodeURIComponent(other17); if(pushHistory){ if(!history.state||!history.state._tfchat_init){ history.replaceState(Object.assign({},history.state||{},{_tfchat_init:true}),'',location.pathname); } history.pushState({tfchat:other17},'', '/'+slug); } }catch(e){} }
+function openGroupChat(groupName){ currentGroup=groupName; currentPartner=null; chatTitleEl.textContent=`# ${groupName}`; messagesEl.innerHTML='<div class="muted">Chaje mesaj gwoup...</div>'; (async()=>{ try{ const r=await callJSON(`${API_BASE}/api/group/messages?group_name=${encodeURIComponent(groupName)}&tfid=${encodeURIComponent(me.tf17||'')}&name=${encodeURIComponent(FRONTEND_NAME)}`); if(!r.ok) throw new Error(r.json?.error||r.text||`HTTP ${r.status}`); const rows=r.json.rows||[]; const key=convKey(me.tf17||'anon',`GROUP:${groupName}`); conversationCache[key]=[]; for(const row of rows.reverse()){ let parsed=null; try{ parsed=JSON.parse(row.content); }catch(e){ parsed=null; } const from=parsed?.from||null; const text=parsed?.text||parsed?.message||(row.content||''); const created_at=parsed?.time||row.created_at||nowISO(); if(!from) continue; addOrUpdateMessageToCache(me.tf17||'anon',`GROUP:${groupName}`,{ id:row.id, from, text, created_at }); } renderConversation(me.tf17||'anon',`GROUP:${groupName}`,true); showChatModal(); try{ history.pushState({ group: groupName }, '', '/groupe/'+encodeURIComponent(groupName)); }catch(e){} }catch(e){ messagesEl.innerHTML=`<div class="muted">Pa kapab chaje mesaj gwoup: ${escapeHtml(e.message||e)}</div>`; showChatModal(); } })(); }
 function showChatModal(){ chatModalEl.style.display='block'; ensureMessagesPadding(); setTimeout(()=>chatTextEl?.focus(),150); }
 function hideChatModal(){ chatModalEl.style.display='none'; currentPartner=null; currentGroup=null; }
-async function sendMessageFromModal(){ const txt=(chatTextEl?.value||'').trim(); if(!txt) return; if(!me.tf17){ alert('Ou dwe mete TFID nan Paramètres avan ou voye mesaj. Klike sou TF-Chat anlè a pou mete li.'); return; } if(currentGroup){
-    const payload={ type:'text', group:currentGroup, from:me.tf17, text:txt, time:nowISO(), cid:makeCid(), name:me.name||null };
-    addOrUpdateMessageToCache(me.tf17, `GROUP:${currentGroup}`, { id:null, cid:payload.cid, from:me.tf17, text:txt, created_at:payload.time });
-    renderConversation(me.tf17, `GROUP:${currentGroup}`, true);
-    chatTextEl.value='';
-    try{ const body={ group_name:currentGroup, name:FRONTEND_NAME, content:JSON.stringify(payload), content_type:'group' }; const r=await callJSON(`${API_BASE}/api/add`,{ method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) }); if(!r.ok) throw new Error(r.json?.error||r.text||`HTTP ${r.status}`); }catch(e){ alert('Envoi gwoup echwe: '+(e.message||e)); }
-    return;
-  }
-  if(!currentPartner){ alert('Pa gen konvèsasyon chwazi.'); return; }
-  const recipient17=currentPartner.tf17;
-  const c=contacts.find(x=>x.tf17===recipient17);
-  if(c&&c.blocked){ alert('Ou bloke kontak sa — ou pa ka voye mesaj.'); return; }
-  const cid=makeCid();
-  const payload={ type:'text', from:me.tf17, text:txt, time:nowISO(), cid, name:me.name||null };
-  addOrUpdateMessageToCache(me.tf17, recipient17, { id:null, cid, from:me.tf17, text:txt, created_at:payload.time, _optimistic:true });
-  renderConversation(me.tf17, recipient17);
-  chatTextEl.value='';
-  if(c){ c.lastMsg=txt; c.lastTs=Date.now(); saveState(); renderContacts(); }
-  try{ await apiAdd(recipient17, payload); startShortPollForMessage(recipient17, cid); }catch(e){ alert('Envoi echwe: '+(e.message||e)); }
-}
+async function sendMessageFromModal(){ const txt=(chatTextEl?.value||'').trim(); if(!txt) return; if(!me.tf17){ alert('Ou dwe mete TFID nan Paramètres avan ou voye mesaj. Klike sou TF-Chat anlè a pou mete li.'); return; } if(currentGroup){ const payload={ type:'text', group:currentGroup, from:me.tf17, text:txt, time:nowISO(), cid:makeCid(), name:me.name||null }; addOrUpdateMessageToCache(me.tf17, `GROUP:${currentGroup}`, { id:null, cid:payload.cid, from:me.tf17, text:txt, created_at:payload.time }); renderConversation(me.tf17, `GROUP:${currentGroup}`, true); chatTextEl.value=''; try{ const body={ group_name:currentGroup, name:FRONTEND_NAME, content:JSON.stringify(payload), content_type:'group' }; const r=await callJSON(`${API_BASE}/api/add`,{ method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) }); if(!r.ok) throw new Error(r.json?.error||r.text||`HTTP ${r.status}`); }catch(e){ alert('Envoi gwoup echwe: '+(e.message||e)); } return; } if(!currentPartner){ alert('Pa gen konvèsasyon chwazi.'); return; } const recipient17=currentPartner.tf17; const c=contacts.find(x=>x.tf17===recipient17); if(c&&c.blocked){ alert('Ou bloke kontak sa — ou pa ka voye mesaj.'); return; } const cid=makeCid(); const payload={ type:'text', from:me.tf17, text:txt, time:nowISO(), cid, name:me.name||null }; addOrUpdateMessageToCache(me.tf17, recipient17, { id:null, cid, from:me.tf17, text:txt, created_at:payload.time, _optimistic:true }); renderConversation(me.tf17, recipient17); chatTextEl.value=''; if(c){ c.lastMsg=txt; c.lastTs=Date.now(); saveState(); renderContacts(); } try{ await apiAdd(recipient17, payload); startShortPollForMessage(recipient17, cid); }catch(e){ alert('Envoi echwe: '+(e.message||e)); } }
 function startShortPollForMessage(target17, cid){ let tries=0; const maxTries=6; const interval=1200; const attempt=async()=>{ tries++; try{ const rows=await apiList(target17); const found=rows.find(r=>{ try{ const p=JSON.parse(r.content); return p&&p.cid===cid; }catch(e){ return false; } }); if(found){ await loadConversation(me.tf17, target17); return true; } }catch(e){} if(tries<maxTries) setTimeout(attempt, interval); }; attempt(); }
 function ensureContactInList(tf17, name){ let c=contacts.find(x=>x.tf17===tf17); if(!c){ c={ tf17, short: formatTFShort(tf17), name: name||null, unread:0, blocked:false, avatar:null }; contacts.unshift(c); saveState(); renderContacts(); } return c; }
-function promptForMeModal(){
-  updateSettingsUI();
-  settingsModal.style.display='flex';
-  profileNameInput.focus();
-  return new Promise(resolve=>{
-    async function onSave(){
-      const nameVal=profileNameInput.value.trim();
-      const short=normalizeInputToDigits(profileTfidInput.value.trim());
-      if(!short||short.length<7){ alert('TFID invalide — antre 7 chif.'); return; }
-      const tfShort=short.slice(-7);
-      const tf17c=to17(tfShort);
-      const existingHash=getPasswordHash(tf17c);
-      if(existingHash){
-        const pw=prompt('TFID sa egziste deja lokalman. Antre modpas pou kont sa:');
-        if(!pw){ alert('Modpas obligatwa pou kont sa.'); return; }
-        const has=await hashPasswordHex(pw);
-        if(has!==existingHash){ alert('Modpas pa kòrèk.'); return; }
-      }
-      me.name=nameVal||me.name||'Utilisateur';
-      me.short=tfShort;
-      me.tf17=to17(me.short);
-      saveState();
-      settingsModal.style.display='none';
-      cleanup();
-      registerFrontendIfNeeded().then(()=>{ if(ws&&ws.readyState===WebSocket.OPEN){ try{ ws.send(JSON.stringify({ type:'subscribe', tfid:me.tf17 })); }catch(e){} } else connectWS(); });
-      try{ await fetchGroupsForMe(); }catch(e){}
-      resolve(true);
-    }
-    function onCancel(){ settingsModal.style.display='none'; cleanup(); resolve(false); }
-    function cleanup(){ profileSaveBtn.removeEventListener('click', onSave); settingsCancelBtn.removeEventListener('click', onCancel); }
-    profileSaveBtn.addEventListener('click', onSave);
-    settingsCancelBtn.addEventListener('click', onCancel);
-  });
-}
+function promptForMeModal(){ updateSettingsUI(); settingsModal.style.display='flex'; profileNameInput.focus(); return new Promise(resolve=>{ async function onSave(){ const nameVal=profileNameInput.value.trim(); const short=normalizeInputToDigits(profileTfidInput.value.trim()); if(!short||short.length<7){ alert('TFID invalide — antre 7 chif.'); return; } const tfShort=short.slice(-7); const tf17c=to17(tfShort); const existingHash=getPasswordHash(tf17c); if(existingHash){ const pw=prompt('TFID sa egziste deja lokalman. Antre modpas pou kont sa:'); if(!pw){ alert('Modpas obligatwa pou kont sa.'); return; } const has=await hashPasswordHex(pw); if(has!==existingHash){ alert('Modpas pa kòrèk.'); return; } } me.name=nameVal||me.name||'Utilisateur'; me.short=tfShort; me.tf17=to17(me.short); saveState(); settingsModal.style.display='none'; cleanup(); registerFrontendIfNeeded().then(()=>{ if(ws&&ws.readyState===WebSocket.OPEN){ try{ ws.send(JSON.stringify({ type:'subscribe', tfid:me.tf17 })); }catch(e){} } else connectWS(); }); try{ await fetchGroupsForMe(); }catch(e){} resolve(true); } function onCancel(){ settingsModal.style.display='none'; cleanup(); resolve(false); } function cleanup(){ profileSaveBtn.removeEventListener('click', onSave); settingsCancelBtn.removeEventListener('click', onCancel); } profileSaveBtn.addEventListener('click', onSave); settingsCancelBtn.addEventListener('click', onCancel); }); }
 function triggerPwBannerIfNeeded(){ if(!me.tf17) return; if(hasPasswordFor(me.tf17)){ hidePwBanner(); return; } pwBanner.style.display='block'; if(pwWarningTimer) clearTimeout(pwWarningTimer); if(pwForceReloadTimer) clearTimeout(pwForceReloadTimer); pwWarningTimer=setTimeout(()=>{ settingsModal.style.display='flex'; updateSettingsUI(); },60*1000); pwForceReloadTimer=setTimeout(()=>{ location.reload(); },2*60*1000); }
 function hidePwBanner(){ pwBanner.style.display='none'; if(pwWarningTimer){ clearTimeout(pwWarningTimer); pwWarningTimer=null; } if(pwForceReloadTimer){ clearTimeout(pwForceReloadTimer); pwForceReloadTimer=null; } }
-function connectWS(){ if(!me.tf17){ if(wsStatusEl) wsStatusEl.textContent=''; return; } try{ ws=new WebSocket(WS_URL); }catch(e){ scheduleReconnect(); return; } ws.onopen=()=>{ if(wsStatusEl) wsStatusEl.textContent=''; try{ ws.send(JSON.stringify({ type:'subscribe', tfid:me.tf17 })); }catch(e){} }; ws.onmessage=(ev)=>{ try{ const data=JSON.parse(ev.data); if(data.type==='subscribed') return; if(data.type==='message'){ const payload=data; let parsed=null; try{ parsed=JSON.parse(payload.content); }catch(e){ parsed=null; } if(!parsed||!parsed.from) return; const recipient=payload.tfid||null; const from=parsed.from; const other=(recipient===me.tf17)?from:recipient; if(!other) return; const created=parsed.time||payload.created_at||nowISO(); const msgObj={ id:payload.id||null, cid:parsed.cid||null, from, text:parsed.text||parsed.message||'', parsed_time:parsed.time||null, _db_created_at:payload.created_at||null, created_at:created }; addOrUpdateMessageToCache(me.tf17, other, msgObj); if(parsed.name){ const c=ensureContactInList(other, parsed.name); c.name=parsed.name; c.lastMsg=msgObj.text; c.lastTs=Date.now(); saveState(); renderContacts(); } if(parsed.type==='profile'&&parsed.photo){ const c=ensureContactInList(other, parsed.name||null); c.avatar=parsed.photo; c.name=parsed.name||c.name; c.lastTs=Date.now(); saveState(); renderContacts(); } if(currentPartner&&currentPartner.tf17===other){ renderConversation(me.tf17, other); } else if(recipient===me.tf17){ const c=ensureContactInList(other, parsed&&parsed.name?parsed.name:null); c.unread=(c.unread||0)+1; c.lastMsg=msgObj.text; c.lastTs=Date.now(); saveState(); renderContacts(); } } }catch(err){} }; ws.onclose=()=>{ if(wsStatusEl) wsStatusEl.textContent=''; scheduleReconnect(); }; ws.onerror=(e)=>{ try{ ws.close(); }catch(e){} };
-}
+function connectWS(){ if(!me.tf17){ if(wsStatusEl) wsStatusEl.textContent=''; return; } try{ ws=new WebSocket(WS_URL); }catch(e){ scheduleReconnect(); return; } ws.onopen=()=>{ if(wsStatusEl) wsStatusEl.textContent=''; try{ ws.send(JSON.stringify({ type:'subscribe', tfid:me.tf17 })); }catch(e){} }; ws.onmessage=(ev)=>{ try{ const data=JSON.parse(ev.data); if(data.type==='subscribed') return; if(data.type==='message'){ const payload=data; let parsed=null; try{ parsed=JSON.parse(payload.content); }catch(e){ parsed=null; } if(!parsed||!parsed.from) return; const recipient=payload.tfid||null; const from=parsed.from; const other=(recipient===me.tf17)?from:recipient; if(!other) return; const created=parsed.time||payload.created_at||nowISO(); const msgObj={ id:payload.id||null, cid:parsed.cid||null, from, text:parsed.text||parsed.message||'', parsed_time:parsed.time||null, _db_created_at:payload.created_at||null, created_at:created }; addOrUpdateMessageToCache(me.tf17, other, msgObj); if(parsed.name){ const c=ensureContactInList(other, parsed.name); c.name=parsed.name; c.lastMsg=msgObj.text; c.lastTs=Date.now(); saveState(); renderContacts(); } if(parsed.type==='profile'&&parsed.photo){ const c=ensureContactInList(other, parsed.name||null); c.avatar=parsed.photo; c.name=parsed.name||c.name; c.lastTs=Date.now(); saveState(); renderContacts(); } if(currentPartner&&currentPartner.tf17===other){ renderConversation(me.tf17, other); } else if(recipient===me.tf17){ const c=ensureContactInList(other, parsed&&parsed.name?parsed.name:null); c.unread=(c.unread||0)+1; c.lastMsg=msgObj.text; c.lastTs=Date.now(); saveState(); renderContacts(); } } }catch(err){} }; ws.onclose=()=>{ if(wsStatusEl) wsStatusEl.textContent=''; scheduleReconnect(); }; ws.onerror=(e)=>{ try{ ws.close(); }catch(e){} }; }
 function scheduleReconnect(){ if(reconnectTimer) return; reconnectTimer=setTimeout(()=>{ reconnectTimer=null; connectWS(); },3000); }
 async function performSearchQuery(raw){ if(!raw) return; const digits=normalizeInputToDigits(raw); if(!digits){ renderContacts(raw); return; } if(digits.length<7){ alert('TFID dwe gen omwen 7 chif.'); return; } const short7=digits.slice(-7); const tf17=to17(short7); let local=contacts.find(c=>c.tf17===tf17); if(local){ openChat(local.tf17, local, true); return; } try{ const rows=await apiList(tf17); if(rows&&rows.length>0){ const last=rows[rows.length-1]||rows[0]; let lastMsg=''; try{ const p=JSON.parse(last.content); lastMsg=p.text||p.message||last.content; }catch(e){ lastMsg=last.content||''; } const nameFromServer=( ()=>{ try{ const p=JSON.parse(last.content); return p.name||null }catch(_){ return null } })(); const c={ tf17, name:nameFromServer||formatTFShort(short7), lastMsg, lastTs:Date.now(), unread:0, blocked:false, avatar:null }; contacts.unshift(c); saveState(); renderContacts(); openChat(c.tf17,c,true); return; } else { if(confirm('Pa jwenn done sou servèr. Kreye kontak lokal pou TFID sa a?')){ const c={ tf17, name:formatTFShort(short7), lastMsg:'', lastTs:Date.now(), unread:0, blocked:false, avatar:null }; contacts.unshift(c); saveState(); renderContacts(); openChat(c.tf17,c,true); } } }catch(err){ alert('Erè lè w ap chèche sou servèr: '+(err.message||err)); } }
 let profileCurrent=null;
@@ -476,20 +386,7 @@ blockBtn?.addEventListener('click',async()=>{ if(!profileCurrent) return; const 
 closeProfileBtn?.addEventListener('click',()=>{ profileModal.style.display='none'; });
 profileAvatar?.addEventListener('click',()=>{ if(fileInput) fileInput.click(); });
 window.addEventListener('paste',(ev)=>{ const items=ev.clipboardData&&ev.clipboardData.items; if(!items) return; for(const it of items){ if(it.kind==='file'&&it.type&&it.type.startsWith('image/')){ const f=it.getAsFile(); if(f){ autoUploadProfileFile(f); ev.preventDefault(); break; } } } }, false);
-async function autoUploadProfileFile(file){ if(!file) return; if(!file.type||!file.type.startsWith('image/')) { alert('Se sèlman imaj ki aksepte (jpg/png...).'); return; }
-  const input=fileInput; if(input) input.disabled=true;
-  try{
-    const url=await uploadFileToProfile(file);
-    me.avatarDataUrl=url; saveState();
-    contacts.forEach(c=>{ if(c.tf17===me.tf17) c.avatar=url; });
-    document.querySelectorAll('.avatar').forEach(el=>{ if(el.dataset&&el.dataset.tf17&&el.dataset.tf17===me.tf17){ el.innerHTML=`<img src="${url}" />`; } });
-    profileAvatar.innerHTML=`<img src="${url}" />`;
-    if(!me.tf17) return;
-    const now=(new Date()).toISOString();
-    const contactsToNotify=Array.isArray(contacts)?contacts.slice():[];
-    for(const c of contactsToNotify){ if(!c||!c.tf17||c.tf17===me.tf17) continue; const cid=makeCid(); const payload={ type:'profile', from:me.tf17, name:me.name||null, photo:url, time:now, cid }; apiAdd(c.tf17, payload).catch(err=>{}); }
-  }catch(err){ alert('Erè pandan upload: '+(err.message||err)); }finally{ if(input){ input.disabled=false; input.value=''; } }
-}
+async function autoUploadProfileFile(file){ if(!file) return; if(!file.type||!file.type.startsWith('image/')) { alert('Se sèlman imaj ki aksepte (jpg/png...).'); return; } const input=fileInput; if(input) input.disabled=true; try{ const url=await uploadFileToProfile(file); me.avatarDataUrl=url; saveState(); contacts.forEach(c=>{ if(c.tf17===me.tf17) c.avatar=url; }); document.querySelectorAll('.avatar').forEach(el=>{ if(el.dataset&&el.dataset.tf17&&el.dataset.tf17===me.tf17){ el.innerHTML=`<img src="${url}" />`; } }); profileAvatar.innerHTML=`<img src="${url}" />`; if(!me.tf17) return; const now=(new Date()).toISOString(); const contactsToNotify=Array.isArray(contacts)?contacts.slice():[]; for(const c of contactsToNotify){ if(!c||!c.tf17||c.tf17===me.tf17) continue; const cid=makeCid(); const payload={ type:'profile', from:me.tf17, name:me.name||null, photo:url, time:now, cid }; apiAdd(c.tf17, payload).catch(err=>{}); } }catch(err){ alert('Erè pandan upload: '+(err.message||err)); }finally{ if(input){ input.disabled=false; input.value=''; } } }
 groupAvatarPicker?.addEventListener('click',()=>groupAvatarFile.click());
 groupAvatarFile?.addEventListener('change',async(ev)=>{ const f=ev.target.files&&ev.target.files[0]; if(!f) return; const url=URL.createObjectURL(f); groupAvatarPreview.src=url; groupAvatarPreview.style.display=''; groupAvatarLabel.style.display='none'; groupAvatarPicker._file=f; });
 openCreateGroup?.addEventListener('click',()=>{ groupAvatarPreview.style.display='none'; groupAvatarLabel.style.display=''; groupNameInput.value=''; groupBioInput.value=''; createGroupModal.style.display='flex'; });
