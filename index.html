@@ -18,16 +18,16 @@ main{position:fixed;left:0;right:0;top:var(--header-h);bottom:var(--tab-h);overf
 .tab { flex:1; text-align:center; padding:10px 6px; cursor:pointer; font-weight:700; color:var(--muted); }
 .tab.active{ color:var(--text); border-top:3px solid var(--accent); background: linear-gradient(180deg, rgba(255,255,255,0.01), transparent); }
 
-/* rest */
+/* rest kept / adjusted */
 .search{padding:8px 12px;display:flex;justify-content:center}
 .search-box{display:flex;align-items:center;gap:8px;background:var(--card);padding:10px;border-radius:999px;border:1px solid rgba(255,255,255,0.03);width:100%;max-width:980px}
 .search-box input{flex:1;background:transparent;border:0;outline:none;color:var(--text);font-size:15px}
 .search-btn{background:var(--accent);border:none;color:white;padding:8px 12px;border-radius:10px;cursor:pointer;font-weight:600}
 .list{margin-top:12px}
-.contact{display:flex;gap:12px;align-items:center;padding:12px;border-radius:12px;cursor:pointer;width:100%;position:relative}
+.contact{display:flex;gap:12px;align-items:center;padding:12px;border-radius:12px;cursor:pointer;width:100%}
 .contact:hover{background:rgba(255,255,255,0.02)}
 .avatar{width:56px;height:56px;border-radius:50%;background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;color:var(--text);flex-shrink:0;overflow:hidden}
-.avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%;cursor:pointer}
+.avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%}
 .meta{flex:1;min-width:0}
 .meta-top{display:flex;justify-content:space-between;align-items:flex-start}
 .name{font-weight:600;font-size:16px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
@@ -47,47 +47,45 @@ main{position:fixed;left:0;right:0;top:var(--header-h);bottom:var(--tab-h);overf
 .send-btn{background:transparent;border:0;padding:8px;border-radius:10px;cursor:pointer;color:var(--accent)}
 .muted{text-align:center;color:var(--muted);padding:20px}
 .bottom-right { position: fixed; right: 16px; bottom: 16px; z-index: 1100; display:flex; gap:8px; align-items:center; }
+/* hide websocket text indicator per request; keep space available for other UI */
+.ws-indicator{display:none}
 @media (min-width:900px){main{max-width:700px;margin:0 auto}}
 
-/* modals */
-.modal-overlay{ position:fixed; inset:0; display:none; align-items:center; justify-content:center; z-index:1400; background:rgba(0,0,0,0.6); }
-.panel{ width:420px; background:#fff; color:#0b1220; padding:16px; border-radius:12px; box-shadow:0 10px 40px rgba(0,0,0,0.4); max-height:90vh; overflow:auto;}
-.panel.large{ width:92%; max-width:1000px; }
+/* white settings panel on dark backdrop */
+.settings-panel{width:420px;background:#fff;border-radius:12px;padding:18px;box-shadow:0 10px 30px rgba(11,18,32,0.2);color:#0b1220}
+.settings-label{font-size:13px;color:#374151}
+/* small banner for password warning (disabled by JS) */
+.banner { position: fixed; left: 50%; transform: translateX(-50%); top: var(--header-h); z-index:1300; background: #fffbeb; color:#92400e; border:1px solid #f59e0b; padding:10px 14px;border-radius:10px;box-shadow:0 6px 20px rgba(0,0,0,0.2);font-weight:600; display:none; }
+/* contact fullscreen profile modal */
+.profile-modal { position:fixed; inset:0; display:none; align-items:center; justify-content:center; z-index:1400; background:rgba(0,0,0,0.6); }
+.profile-card { width:320px; background:#fff; color:#0b1220; padding:18px; border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,0.3); }
+.profile-row{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.profile-avatar{width:64px;height:64px;border-radius:12px;background:#cbd5e1;display:flex;align-items:center;justify-content:center;font-weight:700;overflow:hidden}
+.profile-avatar img{width:100%;height:100%;object-fit:cover;border-radius:12px}
+.small{font-size:12px;color:var(--muted)}
+/* ensure chat modal covers full height and messages area reserves space for input */
+#chatModal .messages-wrap { height: calc(100% - 56px - 64px - 24px); }
 
-/* group info */
-.group-info-hero{ display:flex; gap:12px; align-items:center; margin-bottom:12px; }
-.group-info-avatar{ width:96px; height:96px; border-radius:999px; overflow:hidden; background:#f3f4f6; display:flex; align-items:center; justify-content:center; cursor:pointer; }
-.group-info-avatar img{ width:100%; height:100%; object-fit:cover; }
-.group-info-title{ font-weight:800; font-size:18px; }
-.group-info-bio{ color:#475569; margin-top:6px; }
+/* create group modal */
+.create-group { position:fixed; inset:0; display:none; align-items:center; justify-content:center; z-index:1500; background:rgba(0,0,0,0.6); }
+.create-panel { width:360px; background:#fff; color:#0b1220; padding:16px; border-radius:12px; box-shadow:0 10px 40px rgba(0,0,0,0.4); }
+.create-avatar { width:84px; height:84px; border-radius:999px; background:#f3f4f6; display:flex; align-items:center; justify-content:center; cursor:pointer; overflow:hidden; margin-bottom:8px }
+.create-avatar img{width:100%;height:100%;object-fit:cover}
 
-/* members list */
-.members-list{ margin-top:12px; border-top:1px solid #eef2ff; padding-top:10px; }
-.member-row{ display:flex; align-items:center; justify-content:space-between; padding:8px 6px; border-radius:8px; margin-bottom:8px; background:#fff; box-shadow: 0 1px 0 rgba(0,0,0,0.02); }
-.member-avatar{ width:40px; height:40px; border-radius:999px; overflow:hidden; background:#eef2ff; display:flex; align-items:center; justify-content:center; }
-
-/* media overlay */
-.media-overlay{ position:fixed; inset:0; display:none; z-index:1600; background:rgba(10,10,12,0.95); color:white; padding:20px; overflow:auto; }
-.media-grid{ display:grid; grid-template-columns: repeat(auto-fill,minmax(180px,1fr)); gap:12px; }
-.media-item img, .media-item video{ width:100%; height:140px; object-fit:cover; border-radius:8px; }
-
-/* group-manage modal specifics */
+/* manage group modal */
 .group-manage { position:fixed; inset:0; display:none; align-items:center; justify-content:center; z-index:1550; background:rgba(0,0,0,0.6); }
 .group-panel { width:420px; background:#fff; color:#0b1220; padding:16px; border-radius:12px; box-shadow:0 10px 40px rgba(0,0,0,0.4); }
-.group-members { max-height:320px; overflow:auto; border:1px solid #eef2ff; padding:8px; border-radius:8px; margin-bottom:12px; }
+.group-members { max-height:240px; overflow:auto; border:1px solid #eef2ff; padding:8px; border-radius:8px; margin-bottom:12px; }
 .member-row { display:flex; justify-content:space-between; align-items:center; padding:6px 8px; border-radius:8px; margin-bottom:6px; background:#f8fafc; }
 
 /* responsive tweaks */
 @media (max-width:640px){
   .avatar{width:48px;height:48px}
-  .group-info-avatar{width:68px;height:68px}
-  .panel{ width:92% }
+  .profile-avatar{width:56px;height:56px}
+  .create-panel{ width:92%; }
   .group-panel{ width:92%; }
   main{ padding:10px; }
 }
-.copy-btn{ background:#0b81ff;color:white;border:none;padding:6px 10px;border-radius:6px;cursor:pointer;}
-.badge-count{ background:#0b81ff;color:white;border-radius:999px;padding:6px 8px;font-weight:700;display:inline-block;min-width:34px;text-align:center}
-.hidden{ display:none!important; }
 </style>
 </head>
 <body>
@@ -96,7 +94,7 @@ main{position:fixed;left:0;right:0;top:var(--header-h);bottom:var(--tab-h);overf
   <div class="banner" id="pwBanner">Tanpri mete yon modpas pou sekirize sesyon ou. Ou gen 2 min pou sove li.</div>
 
   <main>
-    <!-- Accueil -->
+    <!-- Accueil (default) -->
     <section id="section-accueil">
       <section class="search">
         <div class="search-box" role="search">
@@ -105,6 +103,7 @@ main{position:fixed;left:0;right:0;top:var(--header-h);bottom:var(--tab-h);overf
           <button id="searchBtn" class="search-btn">Rechercher</button>
         </div>
       </section>
+
       <section class="list" id="contactsList" aria-live="polite"></section>
     </section>
 
@@ -125,6 +124,7 @@ main{position:fixed;left:0;right:0;top:var(--header-h);bottom:var(--tab-h);overf
 
       <section class="list" id="groupsList" aria-live="polite" style="margin-top:12px"></section>
     </section>
+
   </main>
 
   <div class="tabbar">
@@ -132,9 +132,9 @@ main{position:fixed;left:0;right:0;top:var(--header-h);bottom:var(--tab-h);overf
     <div id="tabGroupes" class="tab">Groupes</div>
   </div>
 
-  <!-- chat modal -->
-  <div id="chatModal" class="modal-overlay" style="display:none;align-items:stretch;justify-content:flex-start;padding-top:56px; background:rgba(0,0,0,0.96);">
-    <div style="flex:1;display:flex;flex-direction:column;background:transparent">
+  <!-- Chat modal -->
+  <div id="chatModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.96);z-index:1200">
+    <div style="height:100%;display:flex;flex-direction:column">
       <div style="height:56px;display:flex;align-items:center;padding:8px 12px;border-bottom:1px solid rgba(255,255,255,0.03)">
         <button id="chatBack" style="background:transparent;border:0;color:var(--text);cursor:pointer">←</button>
         <div style="flex:1;text-align:center;font-weight:700;cursor:pointer" id="chatTitle">Chat</div>
@@ -150,55 +150,38 @@ main{position:fixed;left:0;right:0;top:var(--header-h);bottom:var(--tab-h);overf
     </div>
   </div>
 
-  <!-- group info modal -->
-  <div id="groupInfoModal" class="modal-overlay">
-    <div class="panel large" role="dialog" aria-modal="true" id="groupInfoPanel">
-      <div style="display:flex;justify-content:space-between;align-items:center">
-        <h3 style="margin:0">Info gwoup</h3>
-        <button id="groupInfoClose" class="group-manage-btn">Fèmen</button>
-      </div>
-
-      <div class="group-info-hero">
-        <div class="group-info-avatar" id="groupInfoAvatar" title="Voir l'image">
-          <img id="groupInfoAvatarImg" src="" alt="avatar" />
+  <!-- Create group modal -->
+  <div class="create-group" id="createGroupModal">
+    <div class="create-panel">
+      <h3>Kreye gwoup</h3>
+      <div style="display:flex;gap:12px">
+        <div>
+          <div class="create-avatar" id="groupAvatarPicker" title="Chwazi logo/gwoup">
+            <span id="groupAvatarLabel">+</span>
+            <img id="groupAvatarPreview" style="display:none" />
+          </div>
+          <input type="file" id="groupAvatarFile" accept="image/*" style="display:none">
         </div>
         <div style="flex:1">
-          <div class="group-info-title" id="groupInfoName"># Nom du groupe</div>
-          <div class="group-info-bio" id="groupInfoBio">Bio du groupe ...</div>
-          <div style="margin-top:10px;display:flex;gap:8px">
-            <button id="groupLinkBtn" class="copy-btn">Lien du groupe</button>
-            <button id="groupAddMembersBtn" class="group-manage-btn">Ajouter des membres</button>
-            <button id="groupManageAdminsBtn" class="group-manage-btn hidden">Gérer les admin</button>
-            <button id="groupQuitBtn" class="group-manage-btn">Quitter</button>
-            <button id="groupDeleteBtn" class="group-manage-btn hidden" style="background:#ef4444;color:white">Supprimer</button>
+          <div style="margin-bottom:10px">
+            <label>Non gwoup <span style="color:#ef4444">*</span></label>
+            <input id="groupNameInput" style="width:100%;padding:8px;border-radius:8px;border:1px solid #e6eef3;margin-top:6px" />
+          </div>
+          <div style="margin-bottom:10px">
+            <label>Bio (opsyonèl)</label>
+            <textarea id="groupBioInput" rows="3" style="width:100%;padding:8px;border-radius:8px;border:1px solid #e6eef3;margin-top:6px"></textarea>
+          </div>
+          <div style="display:flex;justify-content:flex-end;gap:8px">
+            <button id="createCancel" style="padding:8px 12px;border-radius:8px;border:1px solid #e6edf3;background:white;cursor:pointer">Retour</button>
+            <button id="createConfirm" class="search-btn">Valider</button>
           </div>
         </div>
-      </div>
-
-      <div>
-        <div style="display:flex;justify-content:space-between;align-items:center">
-          <div style="font-weight:700;margin-bottom:8px">Membres</div>
-          <div class="small">Total: <span id="groupMembersCount">0</span></div>
-        </div>
-        <div class="members-list" id="groupMembersContainer"></div>
-      </div>
-
-      <div style="margin-top:12px">
-        <div style="display:flex;justify-content:space-between;align-items:center">
-          <div style="font-weight:700">Médias</div>
-          <div><button id="groupMediaVoirBtn" class="group-manage-btn">Voir plus</button></div>
-        </div>
-        <div id="groupMediaPreview" style="margin-top:8px;display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px"></div>
-      </div>
-
-      <div style="margin-top:12px;display:flex;gap:8px;justify-content:flex-end">
-        <button id="groupReportBtn" class="group-manage-btn">Signaler</button>
       </div>
     </div>
   </div>
 
-  <!-- group manage modal -->
-  <div id="groupManageModal" class="group-manage">
+  <!-- Group manage modal -->
+  <div class="group-manage" id="groupManageModal">
     <div class="group-panel" role="dialog" aria-modal="true">
       <h3 id="groupManageTitle" style="margin-top:0">Gérer gwoup</h3>
       <div class="group-members" id="groupMembersList">Chargement…</div>
@@ -207,43 +190,15 @@ main{position:fixed;left:0;right:0;top:var(--header-h);bottom:var(--tab-h);overf
         <button id="groupAddBtn" class="search-btn">Ajoute</button>
       </div>
       <div style="display:flex;justify-content:flex-end;gap:8px">
-        <button id="groupManageClose" class="group-manage-btn">Fèmen</button>
+        <button id="groupManageClose" style="padding:8px 12px;border-radius:8px;border:1px solid #e6edf3;background:white;cursor:pointer">Fèmen</button>
       </div>
     </div>
   </div>
 
-  <!-- add members modal (fullscreen) -->
-  <div id="addMembersModal" class="modal-overlay">
-    <div class="panel large">
-      <div style="display:flex;justify-content:space-between;align-items:center">
-        <h3 style="margin:0">Ajouter des membres</h3>
-        <button id="addMembersClose" class="group-manage-btn">Retour</button>
-      </div>
-      <div style="margin-top:12px">
-        <div style="font-size:13px;color:#374151;margin-bottom:8px">Choisissez des contacts à ajouter</div>
-        <div id="contactsToPick" style="max-height:55vh;overflow:auto"></div>
-        <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:10px">
-          <button id="addMembersValidate" class="search-btn">Valider</button>
-        </div>
-      </div>
-    </div>
-  </div>
+  <!-- invisible file input for avatar selection -->
+  <input type="file" id="profileFile" accept="image/*" style="display:none" />
 
-  <!-- media overlay -->
-  <div id="mediaOverlay" class="media-overlay">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-      <div style="display:flex;gap:12px">
-        <button class="group-manage-btn" data-filter="all">Tous</button>
-        <button class="group-manage-btn" data-filter="video">Vidéo</button>
-        <button class="group-manage-btn" data-filter="image">Image</button>
-        <button class="group-manage-btn" data-filter="link">Lien</button>
-      </div>
-      <div><button id="mediaClose" class="group-manage-btn">Fermer</button></div>
-    </div>
-    <div id="mediaGrid" class="media-grid"></div>
-  </div>
-
-  <!-- profile modal -->
+  <!-- Profile modal (fullscreen contact info) -->
   <div class="profile-modal" id="profileModal">
     <div class="profile-card" role="dialog" aria-modal="true">
       <div class="profile-row">
@@ -261,9 +216,9 @@ main{position:fixed;left:0;right:0;top:var(--header-h);bottom:var(--tab-h);overf
     </div>
   </div>
 
-  <!-- settings modal -->
+  <!-- Settings modal: white inner panel -->
   <div id="settingsModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:1200;align-items:center;justify-content:center;">
-    <div class="panel" role="dialog" aria-modal="true">
+    <div class="settings-panel" role="dialog" aria-modal="true">
       <h3 style="margin:0 0 12px 0">Paramètres — Identité</h3>
 
       <div style="margin-bottom:8px">
@@ -277,6 +232,7 @@ main{position:fixed;left:0;right:0;top:var(--header-h);bottom:var(--tab-h);overf
         <div style="font-size:12px;color:#6b7280;margin-top:6px">Sere TFID tankou TF-XXXXXXX. Sistèm lan konvèti pou TF-17-chif otomatikman.</div>
       </div>
 
+      <!-- PASSWORD UI -->
       <div style="margin-bottom:12px">
         <label class="settings-label">Mot de passe (créer / changer)</label>
         <input id="profilePwInput" type="password" placeholder="Nouveau mot de passe" style="width:100%;padding:10px;border-radius:8px;border:1px solid #e6eef3;margin-top:6px" />
@@ -284,33 +240,19 @@ main{position:fixed;left:0;right:0;top:var(--header-h);bottom:var(--tab-h);overf
       </div>
 
       <div style="display:flex;justify-content:flex-end;gap:8px">
-        <button id="settingsCancel" class="group-manage-btn">Annuler</button>
-        <button id="profileSave" class="search-btn">Sove</button>
+        <button id="settingsCancel" style="padding:8px 12px;border-radius:8px;border:1px solid #e6edf3;background:white;cursor:pointer">Annuler</button>
+        <button id="profileSave" style="padding:8px 12px;border-radius:8px;background:#007aff;color:white;border:none;cursor:pointer">Sove</button>
       </div>
     </div>
   </div>
 
-  <input type="file" id="profileFile" accept="image/*" style="display:none" />
-
 <script>
 /* ================== CONFIG ================== */
 const API_BASE = 'https://tf-sove.onrender.com';
-const PROFILE_UPLOAD_URL = API_BASE + '/upload';
+const PROFILE_UPLOAD_URL = API_BASE + '/upload'; // changed: upload on same API_BASE
 const FRONTEND_NAME = 'site1';
 const ADMIN_API_TOKEN = 'tfstream_45dd9c02d4e34f18a42d';
 const WS_URL = (location.protocol === "https:" ? "wss://" : "ws://") + "tf-sove.onrender.com/ws";
-/* Push / Service Worker config */
-const VAPID_PUBLIC_KEY = 'REPLACE_WITH_VAPID_PUBLIC_KEY'; // <-- replace with your VAPID public key (base64url)
-
-function urlBase64ToUint8Array(base64String) {
-  // helper for VAPID key conversion
-  const padding = '='.repeat((4 - base64String.length % 4) % 4);
-  const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
-  const rawData = atob(base64);
-  const outputArray = new Uint8Array(rawData.length);
-  for (let i = 0; i < rawData.length; ++i) outputArray[i] = rawData.charCodeAt(i);
-  return outputArray;
-}
 
 /* ================== HELPERS ================== */
 function normalizeInputToDigits(inp){ if(!inp) return null; const s=String(inp).trim().toUpperCase(); const digits=s.replace(/[^0-9]/g,''); return digits||null; }
@@ -322,15 +264,11 @@ function makeCid(){ return String(Date.now()) + '-' + Math.floor(Math.random()*1
 function parseDatePrefer(isoOrDb, parsedTime){ const t1 = parsedTime ? Date.parse(parsedTime) : NaN; if(!isNaN(t1)) return t1; const t2 = Date.parse(isoOrDb || ""); return isNaN(t2) ? 0 : t2; }
 async function hashPasswordHex(pw){ const enc = new TextEncoder(); const data = enc.encode(String(pw)); const hashBuffer = await crypto.subtle.digest('SHA-256', data); const hashArray = Array.from(new Uint8Array(hashBuffer)); return hashArray.map(b => b.toString(16).padStart(2,'0')).join(''); }
 function isValidTfid(tfid){ return typeof tfid === 'string' && /^\d{17}$/.test(tfid); }
-function parseUrls(text){ if(!text) return []; const re = /(https?:\/\/[^\s]+)/g; return text.match(re) || []; }
-function isImageUrl(u){ return /\.(jpg|jpeg|png|gif|webp)(\?.*)?$/i.test(u); }
-function isVideoUrl(u){ return /\.(mp4|webm|mov|mkv)(\?.*)?$/i.test(u); }
-function copyToClipboard(s){ navigator.clipboard?.writeText(s).catch(()=>{}); }
 
 /* ================== STATE ================== */
 let me = { short: localStorage.getItem('tfchat.me.short') || null, tf17: localStorage.getItem('tfchat.me.17') || null, name: localStorage.getItem('tfchat.me.name') || 'Utilisateur', avatarDataUrl: localStorage.getItem('tfchat.me.avatar') || null };
 let contacts = JSON.parse(localStorage.getItem('tfchat.contacts') || '[]');
-let groups = JSON.parse(localStorage.getItem('tfchat.groups') || '[]');
+let groups = [];
 let ws = null; let reconnectTimer = null; let currentPartner = null; let currentGroup = null; const conversationCache = {}; let pwWarningTimer = null; let pwForceReloadTimer = null;
 
 /* ================== DOM REFS ================== */
@@ -357,22 +295,6 @@ const groupBioInput = document.getElementById('groupBioInput');
 const createCancel = document.getElementById('createCancel');
 const createConfirm = document.getElementById('createConfirm');
 
-const groupInfoModal = document.getElementById('groupInfoModal');
-const groupInfoAvatarImg = document.getElementById('groupInfoAvatarImg');
-const groupInfoName = document.getElementById('groupInfoName');
-const groupInfoBio = document.getElementById('groupInfoBio');
-const groupMembersContainer = document.getElementById('groupMembersContainer');
-const groupMembersCount = document.getElementById('groupMembersCount');
-const groupInfoClose = document.getElementById('groupInfoClose');
-const groupMediaPreview = document.getElementById('groupMediaPreview');
-const groupMediaVoirBtn = document.getElementById('groupMediaVoirBtn');
-const groupLinkBtn = document.getElementById('groupLinkBtn');
-const groupAddMembersBtn = document.getElementById('groupAddMembersBtn');
-const groupManageAdminsBtn = document.getElementById('groupManageAdminsBtn');
-const groupQuitBtn = document.getElementById('groupQuitBtn');
-const groupDeleteBtn = document.getElementById('groupDeleteBtn');
-const groupReportBtn = document.getElementById('groupReportBtn');
-
 const groupManageModal = document.getElementById('groupManageModal');
 const groupManageTitle = document.getElementById('groupManageTitle');
 const groupMembersList = document.getElementById('groupMembersList');
@@ -380,19 +302,9 @@ const groupAddTfid = document.getElementById('groupAddTfid');
 const groupAddBtn = document.getElementById('groupAddBtn');
 const groupManageClose = document.getElementById('groupManageClose');
 
-const addMembersModal = document.getElementById('addMembersModal');
-const contactsToPick = document.getElementById('contactsToPick');
-const addMembersValidate = document.getElementById('addMembersValidate');
-const addMembersClose = document.getElementById('addMembersClose');
-
-const mediaOverlay = document.getElementById('mediaOverlay');
-const mediaGrid = document.getElementById('mediaGrid');
-const mediaClose = document.getElementById('mediaClose');
-
-const profileFile = document.getElementById('profileFile');
-
 const chatModalEl = document.getElementById('chatModal');
 const messagesEl = document.getElementById('messages');
+const chatInputRow = document.getElementById('chatInputRow');
 const chatTextEl = document.getElementById('chatText');
 const sendBtnEl = document.getElementById('sendBtn');
 
@@ -412,6 +324,7 @@ const profileTfid = document.getElementById('profileTfid');
 const addContactBtn = document.getElementById('addContactBtn');
 const blockBtn = document.getElementById('blockBtn');
 const closeProfileBtn = document.getElementById('closeProfileBtn');
+const fileInput = document.getElementById('profileFile');
 const appTitleEl = document.querySelector('.app-title');
 const chatTitleEl = document.getElementById('chatTitle');
 
@@ -422,6 +335,33 @@ function pwKeyForTf(tf17){ return `tfchat.pw.${tf17}`; }
 function hasPasswordFor(tf17){ return !!localStorage.getItem(pwKeyForTf(tf17)); }
 function storePasswordHash(tf17, hexHash){ localStorage.setItem(pwKeyForTf(tf17), hexHash); }
 function getPasswordHash(tf17){ return localStorage.getItem(pwKeyForTf(tf17)); }
+
+/* ================== RENDER ================== */
+function updateSettingsUI(){ profileNameInput.value = me.name || ''; profileTfidInput.value = (me.tf17 || '').replace(/^TF-?/i, '').slice(-7); profilePwInput.value = ''; }
+function renderContacts(filter=''){ contactsListEl.innerHTML = ''; const q = (filter||'').toLowerCase().trim(); const list = contacts.filter(c => { if(!q) return true; return (c.name||'').toLowerCase().includes(q) || (c.tf17||'').toLowerCase().includes(q); }); if(list.length === 0){ const div = document.createElement('div'); div.className = 'muted'; div.textContent = 'Pa gen kontak. Rechèch yon TFID oswa ajoute yon kontak.'; contactsListEl.appendChild(div); return; } list.forEach(c => { const el = document.createElement('div'); el.className = 'contact'; el.dataset.tf17 = c.tf17 || ''; const avatarHtml = c.logo ? `<img src="${c.logo}" style="width:100%;height:100%;border-radius:50%">` : (c.avatar ? `<img src="${c.avatar}" />` : escapeHtml((c.name||formatTFShort(c.tf17) || '').slice(0,2))); const blockedBadge = c.blocked ? ' <span style="color:#ffdcdc;font-weight:700"> (Bloqué)</span>' : ''; el.innerHTML = `<div class="avatar">${avatarHtml}</div>\n      <div class="meta">\n        <div class="meta-top">\n          <div class="name">${escapeHtml(c.name||formatTFShort(c.tf17)||'')}${blockedBadge}</div>\n          <div class="time">${c.lastTs? timeAgo(c.lastTs): ''}</div>\n        </div>\n        <div class="meta-bottom">\n          <div class="snippet">${escapeHtml(c.lastMsg||'')}</div>\n          <div>${c.unread?'<span class="badge">'+c.unread+'</span>':''}</div>\n        </div>\n      </div>`; el.addEventListener('click', ()=> { openChat(c.tf17, c, true); }); contactsListEl.appendChild(el); }); }
+
+function renderGroups(filter=''){ groupsListEl.innerHTML = ''; const q = (filter||'').toLowerCase().trim(); const list = Array.isArray(groups) ? groups.filter(g => { if(!q) return true; return (g.name||'').toLowerCase().includes(q) || (g.owner_name||'').toLowerCase().includes(q); }) : []; if(list.length === 0){ const div = document.createElement('div'); div.className = 'muted'; div.textContent = "Vous avez aucun groupe pour l'instant"; groupsListEl.appendChild(div); return; } list.forEach(g => { const el = document.createElement('div'); el.className = 'contact'; const avatarHtml = g.avatar_url ? `<img src="${g.avatar_url}" />` : escapeHtml((g.name||'G').slice(0,2)); el.innerHTML = `<div class="avatar">${avatarHtml}</div>\n      <div class="meta">\n        <div class="meta-top"><div class="name">${escapeHtml(g.name||'')}</div><div class="time">${g.created_at? new Date(g.created_at).toLocaleDateString() : ''}</div></div>\n        <div class="meta-bottom"><div class="snippet">${escapeHtml(g.bio||'')}</div><div></div></div>\n      </div>`; 
+  // click opens group chat
+  el.addEventListener('click', ()=> { openGroupChat(g.name); });
+
+  // manage button
+  const manageBtn = document.createElement('button');
+  manageBtn.className = 'group-manage-btn';
+  manageBtn.textContent = 'Gérer';
+  manageBtn.addEventListener('click', (ev)=>{ ev.stopPropagation(); openGroupManageModal(g.name); });
+  // append manage button visually
+  const meta = el.querySelector('.meta');
+  if(meta){
+    const mb = document.createElement('div');
+    mb.style.display = 'flex';
+    mb.style.alignItems = 'center';
+    mb.appendChild(manageBtn);
+    meta.appendChild(mb);
+  }
+
+  groupsListEl.appendChild(el); }); }
+
+function timeAgo(ts){ if(!ts) return ''; const diff=Math.floor((Date.now()-ts)/1000); if(diff<60) return diff+'s'; if(diff<3600) return Math.floor(diff/60)+'m'; if(diff<86400) return Math.floor(diff/3600)+'h'; return new Date(ts).toLocaleDateString(); }
 
 /* ================== NETWORK ================== */
 async function callJSON(url, opts = {}) { opts = Object.assign({}, opts); opts.headers = Object.assign({}, opts.headers || {}, { 'Accept': 'application/json' }); try { const r = await fetch(url, opts); const text = await r.text(); let json = null; try{ json = JSON.parse(text); }catch(e){} return { ok: r.ok, status: r.status, json, text }; } catch (err) { return { ok: false, error: err.message }; } }
@@ -435,16 +375,22 @@ async function registerFrontendIfNeeded(){ try { const url = `${API_BASE}/admin/
 /* Admin group helpers */
 async function adminCreateGroup({ name, owner_name, bio, avatar_url }){ const url = `${API_BASE}/admin/groups/create`; const r = await callJSON(url, { method:'POST', headers:{ 'Content-Type':'application/json', 'x-api-token': ADMIN_API_TOKEN }, body: JSON.stringify({ name, owner_name, bio, avatar_url }) }); if(!r.ok) throw new Error(r.json?.error || r.text || `HTTP ${r.status}`); return r.json; }
 async function adminAddMember({ group_name, tfid }){ const url = `${API_BASE}/admin/groups/add`; const r = await callJSON(url, { method:'POST', headers:{ 'Content-Type':'application/json', 'x-api-token': ADMIN_API_TOKEN }, body: JSON.stringify({ group_name, tfid }) }); if(!r.ok) throw new Error(r.json?.error || r.text || `HTTP ${r.status}`); return r.json; }
-async function adminGetMembers(group_name){ const url = `${API_BASE}/admin/groups/members?group_name=${encodeURIComponent(group_name)}`; const r = await fetch(url, { method:'GET', headers:{ 'Accept':'application/json', 'x-api-token': ADMIN_API_TOKEN } }); const txt = await r.text(); let json = null; try{ json = JSON.parse(txt); }catch(e){ json = null; } if(!r.ok) throw new Error(json?.error || txt || `HTTP ${r.status}`); return json.members || []; }
-async function adminRemoveMember({ group_name, tfid }){ const url = `${API_BASE}/admin/groups/remove-member`; const r = await callJSON(url, { method:'POST', headers:{ 'Content-Type':'application/json', 'x-api-token': ADMIN_API_TOKEN }, body: JSON.stringify({ group_name, tfid }) }); if(!r.ok) throw new Error(r.json?.error || r.text || `HTTP ${r.status}`); return r.json; }
-async function adminPromoteMember({ group_name, tfid }){ const url = `${API_BASE}/admin/groups/promote`; const r = await callJSON(url, { method:'POST', headers:{ 'Content-Type':'application/json', 'x-api-token': ADMIN_API_TOKEN }, body: JSON.stringify({ group_name, tfid }) }); if(!r.ok) throw new Error(r.json?.error || r.text || `HTTP ${r.status}`); return r.json; }
-async function adminDemoteMember({ group_name, tfid }){ const url = `${API_BASE}/admin/groups/demote`; const r = await callJSON(url, { method:'POST', headers:{ 'Content-Type':'application/json', 'x-api-token': ADMIN_API_TOKEN }, body: JSON.stringify({ group_name, tfid }) }); if(!r.ok) throw new Error(r.json?.error || r.text || `HTTP ${r.status}`); return r.json; }
-async function adminBanMember({ group_name, tfid }){ const url = `${API_BASE}/admin/groups/ban`; const r = await callJSON(url, { method:'POST', headers:{ 'Content-Type':'application/json', 'x-api-token': ADMIN_API_TOKEN }, body: JSON.stringify({ group_name, tfid }) }); if(!r.ok) throw new Error(r.json?.error || r.text || `HTTP ${r.status}`); return r.json; }
-async function adminRemoveGroup({ group_name }){ const url = `${API_BASE}/admin/groups/remove`; const r = await callJSON(url, { method:'POST', headers:{ 'Content-Type':'application/json', 'x-api-token': ADMIN_API_TOKEN }, body: JSON.stringify({ group_name }) }); if(!r.ok) throw new Error(r.json?.error || r.text || `HTTP ${r.status}`); return r.json; }
+async function adminGetMembers(group_name){ // GET /admin/groups/members?group_name=...
+  try {
+    const url = `${API_BASE}/admin/groups/members?group_name=${encodeURIComponent(group_name)}`;
+    const resp = await fetch(url, { method:'GET', headers: { 'Accept':'application/json', 'x-api-token': ADMIN_API_TOKEN } });
+    const txt = await resp.text();
+    let json = null; try{ json = JSON.parse(txt); }catch(e){ json = null; }
+    if(!resp.ok) throw new Error(json?.error || txt || `HTTP ${resp.status}`);
+    return json.members || [];
+  } catch (e) {
+    throw e;
+  }
+}
 
 async function fetchGroupsForMe(){ if(!me.tf17) { groups = JSON.parse(localStorage.getItem('tfchat.groups') || '[]'); renderGroups(); return groups; } try { const url = `${API_BASE}/api/groups?tfid=${encodeURIComponent(me.tf17)}`; const r = await callJSON(url); if(!r.ok) throw new Error(r.json?.error || r.text || `HTTP ${r.status}`); groups = r.json.groups || []; saveState(); renderGroups(); return groups; } catch(e){ console.warn('fetchGroupsForMe failed', e); groups = JSON.parse(localStorage.getItem('tfchat.groups') || '[]'); renderGroups(); return groups; } }
 
-/* upload helper */
+/* upload helper with error messages */
 async function uploadFileToProfile(file){ const fd = new FormData(); fd.append('file', file); const resp = await fetch(PROFILE_UPLOAD_URL, { method:'POST', body: fd }); const text = await resp.text().catch(()=>null); let json = null; try{ json = JSON.parse(text); }catch(e){} if(!resp.ok || !json || !(json.ok || json.success) || !(json.url || json.path)) { const msg = json?.error || text || `status ${resp.status}`; throw new Error('Upload failed: ' + msg); } return json.url || json.path; }
 
 /* ================== CONVERSATION CACHE ================== */
@@ -453,13 +399,16 @@ function messageUniqueKey(m){ if(m.cid) return "cid:"+m.cid; if(m.id) return "id
 function compareMessagesAsc(a,b){ const ta = parseDatePrefer(a._db_created_at, a.parsed_time); const tb = parseDatePrefer(b._db_created_at, b.parsed_time); if(ta !== tb) return ta - tb; if(a.id && b.id && a.id !== b.id) return Number(a.id) - Number(b.id); if(a.cid && b.cid && a.cid !== b.cid) return a.cid < b.cid ? -1 : 1; return 0; }
 function addOrUpdateMessageToCache(me17, other17, msg){ const key = convKey(me17, other17); if(!conversationCache[key]) conversationCache[key] = []; const list = conversationCache[key]; const findIndex = msg.cid ? list.findIndex(x => x.cid && x.cid === msg.cid) : (msg.id ? list.findIndex(x => x.id && String(x.id) === String(msg.id)) : -1); if(findIndex !== -1){ list[findIndex] = Object.assign({}, list[findIndex], msg); } else { list.push(msg); } list.sort(compareMessagesAsc); }
 
-/* ================== LOAD & RENDER CONVERSATION ================== */
 async function loadConversation(me17, other17){ const key = convKey(me17, other17); conversationCache[key] = conversationCache[key] || []; const seen = new Set(); function pushRow(r, expectedFrom){ let parsed = null; try { parsed = JSON.parse(r.content); } catch(e){ parsed = null; } const parsedFrom = parsed && parsed.from ? parsed.from : null; const parsedTime = parsed && parsed.time ? parsed.time : null; const parsedCid = parsed && parsed.cid ? parsed.cid : null; const parsedText = parsed && (parsed.text || parsed.message) ? (parsed.text || parsed.message) : (r.content || ""); if(!parsedFrom || parsedFrom !== expectedFrom) return; const m = { id: r.id || null, cid: parsedCid || null, from: parsedFrom, text: parsedText, parsed_time: parsedTime || null, _db_created_at: r.created_at || null, created_at: parsedTime || r.created_at || nowISO() }; const keyu = messageUniqueKey(m); if(seen.has(keyu)) return; seen.add(keyu); addOrUpdateMessageToCache(me17, other17, m); }
 
+  // always try to read messages WHERE recipient == other17 (outgoing)
   try {
     const outRows = await apiList(other17);
-    for(const r of outRows) pushRow(r, me17);
-  } catch(e){ console.warn("LIST outgoing failed for", other17, e.message || e); }
+    for(const r of outRows) pushRow(r, me17); // pushRow will ignore if parsed.from !== me17
+  } catch(e){
+    console.warn("LIST outgoing failed for", other17, e.message || e);
+  }
+  // load incoming only if we have a valid me17
   if(isValidTfid(me17)){
     try {
       const inRows = await apiList(me17);
@@ -478,13 +427,20 @@ function renderConversation(me17, other17){ ensureMessagesPadding(); const key =
 
 /* ================== CHAT OPEN/SEND ================== */
 async function openChat(other17, contactObj=null, pushHistory=true){
+  // allow opening even if user didn't configure me.tf17 yet (read-only)
   currentPartner = { tf17: other17, name: (contactObj && contactObj.name) || null };
   chatTitleEl.textContent = (currentPartner.name || formatTFShort(currentPartner.tf17));
   const c = contacts.find(x => x.tf17 === other17);
   if(c){ c.unread = 0; saveState(); renderContacts(); }
   messagesEl.innerHTML = '<div class="muted">Chaje mesaj...</div>';
-  try { await loadConversation(me.tf17 || null, other17); } catch(e){ messagesEl.innerHTML = `<div class="muted">Pa kapab chaje mesaj: ${escapeHtml(e.message||e)}</div>`; }
+
+  try {
+    await loadConversation(me.tf17 || null, other17);
+  } catch(e){
+    messagesEl.innerHTML = `<div class="muted">Pa kapab chaje mesaj: ${escapeHtml(e.message||e)}</div>`;
+  }
   showChatModal();
+
   try {
     const slug = encodeURIComponent(other17);
     if(pushHistory){
@@ -503,6 +459,7 @@ function openGroupChat(groupName){
     try {
       const r = await callJSON(`${API_BASE}/api/group/messages?group_name=${encodeURIComponent(groupName)}&tfid=${encodeURIComponent(me.tf17||'')}&name=${encodeURIComponent(FRONTEND_NAME)}`);
       if(!r.ok) throw new Error(r.json?.error || r.text || `HTTP ${r.status}`);
+      // clear and display rows
       const rows = r.json.rows || [];
       const key = convKey(me.tf17 || 'anon', `GROUP:${groupName}`);
       conversationCache[key] = [];
@@ -524,10 +481,21 @@ function openGroupChat(groupName){
   })();
 }
 
-function showChatModal(){ chatModalEl.style.display = 'flex'; ensureMessagesPadding(); setTimeout(()=> chatTextEl?.focus(), 150); }
+function showChatModal(){ chatModalEl.style.display = 'block'; ensureMessagesPadding(); setTimeout(()=> chatTextEl?.focus(), 150); }
 function hideChatModal(){ chatModalEl.style.display = 'none'; currentPartner = null; currentGroup = null; }
 
-async function sendMessageFromModal(){ const txt = (chatTextEl?.value || '').trim(); if(!txt) return; if(!me.tf17){ alert('Ou dwe mete TFID nan Paramètres avan ou voye mesaj.'); return; } if(currentGroup){ const payload = { type:'text', group: currentGroup, from: me.tf17, text: txt, time: nowISO(), cid: makeCid(), name: me.name || null }; addOrUpdateMessageToCache(me.tf17, `GROUP:${currentGroup}`, { id:null, cid: payload.cid, from: me.tf17, text: txt, created_at: payload.time }); renderConversation(me.tf17, `GROUP:${currentGroup}`, true); chatTextEl.value = ''; try { const body = { group_name: currentGroup, name: FRONTEND_NAME, content: JSON.stringify(payload), content_type: 'group' }; const r = await callJSON(`${API_BASE}/api/add`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) }); if(!r.ok) throw new Error(r.json?.error || r.text || `HTTP ${r.status}`); notifyLocal('Nouveau message', `#${currentGroup}: ${txt}`); } catch(e){ alert('Envoi gwoup echwe: ' + (e.message||e)); } return; }
+async function sendMessageFromModal(){ const txt = (chatTextEl?.value || '').trim(); if(!txt) return; if(!me.tf17){ alert('Ou dwe mete TFID nan Paramètres avan ou voye mesaj. Klike sou TF-Chat anlè a pou mete li.'); return; } if(currentGroup){ // send to group via api.add with group_name
+    const payload = { type:'text', group: currentGroup, from: me.tf17, text: txt, time: nowISO(), cid: makeCid(), name: me.name || null };
+    addOrUpdateMessageToCache(me.tf17, `GROUP:${currentGroup}`, { id:null, cid: payload.cid, from: me.tf17, text: txt, created_at: payload.time });
+    renderConversation(me.tf17, `GROUP:${currentGroup}`, true);
+    chatTextEl.value = '';
+    try {
+      const body = { group_name: currentGroup, name: FRONTEND_NAME, content: JSON.stringify(payload), content_type: 'group' };
+      const r = await callJSON(`${API_BASE}/api/add`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+      if(!r.ok) throw new Error(r.json?.error || r.text || `HTTP ${r.status}`);
+    } catch(e){ alert('Envoi gwoup echwe: ' + (e.message||e)); }
+    return;
+  }
 
   if(!currentPartner){ alert('Pa gen konvèsasyon chwazi.'); return; }
   const recipient17 = currentPartner.tf17;
@@ -542,345 +510,17 @@ async function sendMessageFromModal(){ const txt = (chatTextEl?.value || '').tri
   try {
     await apiAdd(recipient17, payload);
     startShortPollForMessage(recipient17, cid);
-  } catch(e){ alert('Envoi echwe: ' + (e.message||e)); }
+  } catch(e){
+    alert('Envoi echwe: ' + (e.message||e));
+  }
 }
 
 function startShortPollForMessage(target17, cid){ let tries = 0; const maxTries = 6; const interval = 1200; const attempt = async ()=>{ tries++; try { const rows = await apiList(target17); const found = rows.find(r => { try { const p = JSON.parse(r.content); return p && p.cid === cid; } catch(e){ return false; } }); if(found){ await loadConversation(me.tf17, target17); return true; } } catch(e){} if(tries < maxTries) setTimeout(attempt, interval); }; attempt(); }
 
-/* ================== CONTACTS & GROUPS RENDER ================== */
-function renderContacts(filter=''){ contactsListEl.innerHTML = ''; const q = (filter||'').toLowerCase().trim(); const list = contacts.filter(c => { if(!q) return true; return (c.name||'').toLowerCase().includes(q) || (c.tf17||'').toLowerCase().includes(q); }); if(list.length === 0){ const div = document.createElement('div'); div.className = 'muted'; div.textContent = 'Pa gen kontak. Rechèch yon TFID oswa ajoute yon kontak.'; contactsListEl.appendChild(div); return; } list.forEach(c => { const el = document.createElement('div'); el.className = 'contact'; el.dataset.tf17 = c.tf17 || ''; const avatarHtml = c.logo ? `<img src="${c.logo}" style="width:100%;height:100%;border-radius:50%">` : (c.avatar ? `<img src="${c.avatar}" />` : escapeHtml((c.name||formatTFShort(c.tf17) || '').slice(0,2))); const blockedBadge = c.blocked ? ' <span style="color:#ffdcdc;font-weight:700"> (Bloqué)</span>' : ''; el.innerHTML = `<div class="avatar">${avatarHtml}</div>\n      <div class="meta">\n        <div class="meta-top">\n          <div class="name">${escapeHtml(c.name||formatTFShort(c.tf17)||'')}${blockedBadge}</div>\n          <div class="time">${c.lastTs? timeAgo(c.lastTs): ''}</div>\n        </div>\n        <div class="meta-bottom">\n          <div class="snippet">${escapeHtml(c.lastMsg||'')}</div>\n          <div>${c.unread?'<span class="badge">'+(c.unread>777?'+777':c.unread)+'</span>':''}</div>\n        </div>\n      </div>`; el.addEventListener('click', ()=> { openChat(c.tf17, c, true); }); contactsListEl.appendChild(el); }); }
+/* ================== CONTACTS HELPERS ================== */
+function ensureContactInList(tf17, name){ let c = contacts.find(x=>x.tf17===tf17); if(!c){ c = { tf17, short: formatTFShort(tf17), name: name||null, unread:0, blocked:false, avatar:null }; contacts.unshift(c); saveState(); renderContacts(); } return c; }
 
-function renderGroups(filter=''){ groupsListEl.innerHTML = ''; const q = (filter||'').toLowerCase().trim(); const list = Array.isArray(groups) ? groups.filter(g => { if(!q) return true; return (g.name||'').toLowerCase().includes(q) || (g.owner_name||'').toLowerCase().includes(q); }) : []; if(list.length === 0){ const div = document.createElement('div'); div.className = 'muted'; div.textContent = "Vous avez aucun groupe pour l'instant"; groupsListEl.appendChild(div); return; } list.forEach(g => { const el = document.createElement('div'); el.className = 'contact'; el.dataset.group = g.name; const avatarHtml = g.avatar_url ? `<img src="${g.avatar_url}" />` : escapeHtml((g.name||'G').slice(0,2)); el.innerHTML = `<div class="avatar">${avatarHtml}</div>\n      <div class="meta">\n        <div class="meta-top"><div class="name">${escapeHtml(g.name||'')}</div><div class="time">${g.created_at? new Date(g.created_at).toLocaleDateString() : ''}</div></div>\n        <div class="meta-bottom"><div class="snippet">${escapeHtml(g.bio||'')}</div><div></div></div>\n      </div>`; 
-  el.addEventListener('click', ()=> { openGroupChat(g.name); });
-
-  const manageBtn = document.createElement('button');
-  manageBtn.className = 'group-manage-btn';
-  manageBtn.textContent = 'Gérer';
-  manageBtn.addEventListener('click', (ev)=>{ ev.stopPropagation(); openGroupManageModal(g.name); });
-  const meta = el.querySelector('.meta');
-  if(meta){
-    const mb = document.createElement('div');
-    mb.style.display = 'flex';
-    mb.style.alignItems = 'center';
-    mb.appendChild(manageBtn);
-    meta.appendChild(mb);
-  }
-  groupsListEl.appendChild(el); }); }
-
-/* ================== GROUP INFO / MEDIA / MEMBERS ================== */
-async function openGroupInfo(groupName){
-  currentGroup = groupName;
-  const g = groups.find(x=>x.name===groupName) || { name: groupName, avatar_url:null, bio:'', owner_name:'' };
-  groupInfoName.textContent = g.name || groupName;
-  groupInfoBio.textContent = g.bio || '';
-  groupInfoAvatarImg.src = g.avatar_url || '';
-  groupMembersContainer.innerHTML = '<div class="muted">Chargement...</div>';
-  const iAmOwner = (me.name && g.owner_name && me.name === g.owner_name) || (me.tf17 && g.owner_tf17 && me.tf17 === g.owner_tf17);
-  if(iAmOwner) { groupManageAdminsBtn.classList.remove('hidden'); groupDeleteBtn.classList.remove('hidden'); } else { groupManageAdminsBtn.classList.add('hidden'); groupDeleteBtn.classList.add('hidden'); }
-  try{
-    const members = await adminGetMembers(groupName);
-    renderGroupMembersList(members);
-  }catch(e){
-    groupMembersContainer.innerHTML = `<div class="muted">Manm pa disponib: ${escapeHtml(e.message||e)}</div>`;
-  }
-  renderGroupMediaPreview(groupName, 4);
-  groupInfoModal.style.display = 'flex';
-}
-
-function renderGroupMembersList(members){
-  groupMembersContainer.innerHTML = '';
-  groupMembersCount.textContent = (members && members.length) ? members.length : 0;
-  if(!members || members.length===0){ groupMembersContainer.innerHTML = `<div class="muted">Pa gen manm.</div>`; return; }
-  members.forEach(m=>{
-    const row = document.createElement('div'); row.className='member-row';
-    const left = document.createElement('div'); left.style.display='flex'; left.style.gap='8px'; left.style.alignItems='center';
-    const av = document.createElement('div'); av.className='member-avatar'; av.innerHTML = `<div style="padding:8px">${escapeHtml((m.name||m.tfid||'U').slice(0,2))}</div>`; av.onclick = ()=> openUserMiniModal(m);
-    left.appendChild(av);
-    const txt = document.createElement('div'); txt.innerHTML = `<div style="font-weight:700">${escapeHtml(m.name||m.tfid||'Utilisateur')}</div><div class="small">${escapeHtml(m.tfid||'')}</div>`;
-    left.appendChild(txt);
-    row.appendChild(left);
-    const right = document.createElement('div');
-    const role = document.createElement('div'); role.className='small'; role.style.marginBottom='6px'; role.textContent = (m.admin ? 'Admin' : (m.owner ? 'Creator' : 'Member'));
-    right.appendChild(role);
-    const more = document.createElement('div');
-    const btnChat = document.createElement('button'); btnChat.className='group-manage-btn'; btnChat.textContent='Chat'; btnChat.onclick = (e)=>{ e.stopPropagation(); if(m.tfid) openChat(m.tfid, contacts.find(c=>c.tf17===m.tfid)||null, true); };
-    const btnInfo = document.createElement('button'); btnInfo.className='group-manage-btn'; btnInfo.textContent='Info'; btnInfo.onclick = (e)=>{ e.stopPropagation(); alert(JSON.stringify(m)); };
-    more.appendChild(btnChat); more.appendChild(btnInfo);
-    right.appendChild(more);
-    row.appendChild(right);
-    groupMembersContainer.appendChild(row);
-  });
-}
-
-function openUserMiniModal(member){
-  // simple action prompt
-  const isOwner = (groups.find(g=>g.name===currentGroup)?.owner_name === me.name) || false;
-  const isAdmin = !!member.admin;
-  let options = `User: ${member.name||member.tfid||''}\nTFID: ${member.tfid||''}\n\nChoisissez une action:\n1: Chat\n2: Info\n3: ${isAdmin ? 'Retirer admin' : 'Ajouter admin'}${isOwner ? '\n4: Supprimer du groupe\n5: Bannir' : ''}`;
-  const choice = prompt(options + '\n(Entrer le numéro de l action)');
-  if(!choice) return;
-  if(choice.trim() === '1'){ if(member.tfid) { openChat(member.tfid, contacts.find(c=>c.tf17===member.tfid)||null, true); groupInfoModal.style.display='none'; } return; }
-  if(choice.trim() === '2'){ alert(`Info: ${JSON.stringify(member)}`); return; }
-  if(choice.trim() === '3'){ // promote/demote
-    (async ()=>{
-      try{
-        if(isAdmin){ await adminDemoteMember({ group_name: currentGroup, tfid: member.tfid }); alert('Admin retire'); } else { await adminPromoteMember({ group_name: currentGroup, tfid: member.tfid }); alert('Admin ajoute'); }
-        const members = await adminGetMembers(currentGroup); renderGroupMembersList(members);
-      }catch(e){ alert('Action echwe: ' + (e.message||e)); }
-    })();
-    return;
-  }
-  if(choice.trim() === '4' && isOwner){ if(!confirm('Vre ou vle retire manm sa?')) return; (async ()=>{ try{ await adminRemoveMember({ group_name: currentGroup, tfid: member.tfid }); alert('Manm retire'); const members = await adminGetMembers(currentGroup); renderGroupMembersList(members); }catch(e){ alert('Echwe: ' + (e.message||e)); }})(); return; }
-  if(choice.trim() === '5' && isOwner){ if(!confirm('Vre ou vle bann manm sa?')) return; (async ()=>{ try{ await adminBanMember({ group_name: currentGroup, tfid: member.tfid }); alert('Manm bann'); const members = await adminGetMembers(currentGroup); renderGroupMembersList(members); }catch(e){ alert('Echwe: ' + (e.message||e)); }})(); return; }
-}
-
-/* avatar click open original */
-document.getElementById('groupInfoAvatar')?.addEventListener('click', ()=>{
-  const src = groupInfoAvatarImg.src;
-  if(!src) return;
-  window.open(src, '_blank');
-});
-
-/* group info actions */
-groupInfoClose.addEventListener('click', ()=> groupInfoModal.style.display='none');
-groupMediaVoirBtn.addEventListener('click', ()=> openMediaOverlay(currentGroup));
-groupLinkBtn.addEventListener('click', ()=>{
-  // generate token and copy link; store token locally inside groups object
-  const token = Math.random().toString(36).slice(2,10);
-  const url = `${location.origin}/groupe/${encodeURIComponent(currentGroup)}?invite=${token}`;
-  // store link in groups list locally
-  const g = groups.find(x=>x.name===currentGroup) || null;
-  if(g){ g.invite = url; saveState(); }
-  copyToClipboard(url);
-  alert('Lien copié: ' + url);
-});
-groupAddMembersBtn.addEventListener('click', ()=> openAddMembersModal());
-groupManageAdminsBtn.addEventListener('click', ()=> openGroupManageModal(currentGroup));
-groupQuitBtn.addEventListener('click', ()=> {
-  if(!confirm('Ou vle kite gwoup la?')) return;
-  alert('Ou kite gwoup (frontend only).');
-  groupInfoModal.style.display='none';
-});
-groupDeleteBtn.addEventListener('click', async ()=>{
-  if(!confirm('Vre ou vle siprime gwoup sa? Aksyon sa pa ka retabli.')) return;
-  try{
-    await adminRemoveGroup({ group_name: currentGroup });
-    alert('Gwoup siprime sou servèr (si api disponib).');
-    groups = groups.filter(g=>g.name!==currentGroup);
-    saveState();
-    renderGroups();
-    groupInfoModal.style.display='none';
-  }catch(e){ alert('Echwe siprime: ' + (e.message||e)); }
-});
-groupReportBtn.addEventListener('click', ()=> { if(confirm('Rapòte gwoup sa?')) alert('Gwoup rapòte.'); });
-
-/* media preview/collect */
-function collectGroupMedia(groupName){
-  const key = convKey(me.tf17||'anon', `GROUP:${groupName}`);
-  const arr = conversationCache[key] || [];
-  const media = [];
-  for(const m of arr){
-    const text = m.text || '';
-    const urls = parseUrls(text);
-    for(const u of urls){
-      if(isImageUrl(u)) media.push({ type:'image', url:u, text, from:m.from, time:m.created_at });
-      else if(isVideoUrl(u)) media.push({ type:'video', url:u, text, from:m.from, time:m.created_at });
-      else media.push({ type:'link', url:u, text, from:m.from, time:m.created_at });
-    }
-  }
-  return media.reverse();
-}
-
-function renderGroupMediaPreview(groupName, limit=4){
-  groupMediaPreview.innerHTML = '';
-  const media = collectGroupMedia(groupName);
-  const preview = media.slice(0,limit);
-  preview.forEach(m=>{
-    const el = document.createElement('div'); el.style.width='100%'; el.style.cursor='pointer';
-    if(m.type==='image'){ el.innerHTML = `<img src="${m.url}" style="width:100%;height:80px;object-fit:cover;border-radius:8px">`; }
-    else if(m.type==='video'){ el.innerHTML = `<video src="${m.url}" style="width:100%;height:80px;object-fit:cover;border-radius:8px" muted></video>`; }
-    else { el.innerHTML = `<div style="background:#0b0f14;padding:10px;border-radius:8px">${escapeHtml(m.url)}</div>`; }
-    el.onclick = ()=> openMediaOverlay(groupName, m.type);
-    groupMediaPreview.appendChild(el);
-  });
-}
-
-function openMediaOverlay(groupName, initialFilter='all'){
-  mediaGrid.innerHTML = '';
-  const media = collectGroupMedia(groupName);
-  if(media.length===0){ mediaGrid.innerHTML = '<div class="muted">No media</div>'; mediaOverlay.style.display='block'; return; }
-  const render = (filter)=>{
-    mediaGrid.innerHTML = '';
-    const sel = filter==='all' ? media : media.filter(x=>x.type===filter);
-    sel.forEach(m=>{
-      const it = document.createElement('div'); it.className='media-item';
-      if(m.type==='image'){ it.innerHTML = `<img src="${m.url}" />`; it.onclick = ()=> window.open(m.url, '_blank'); }
-      else if(m.type==='video'){ it.innerHTML = `<video controls src="${m.url}"></video>`; }
-      else { it.innerHTML = `<div style="padding:12px;background:#111;border-radius:8px">${escapeHtml(m.url)}</div>`; it.onclick = ()=> window.open(m.url, '_blank'); }
-      mediaGrid.appendChild(it);
-    });
-  };
-  mediaOverlay.style.display = 'block';
-  render(initialFilter==='all'? 'all': initialFilter);
-  document.querySelectorAll('#mediaOverlay [data-filter]').forEach(b=> b.addEventListener('click', ()=> render(b.dataset.filter)));
-}
-document.getElementById('mediaClose').addEventListener('click', ()=> mediaOverlay.style.display='none');
-
-/* ================== CREATE GROUP ================== */
-groupAvatarPicker?.addEventListener('click', ()=> groupAvatarFile.click());
-groupAvatarFile?.addEventListener('change', async (ev)=> {
-  const f = ev.target.files && ev.target.files[0]; if(!f) return;
-  const url = URL.createObjectURL(f);
-  groupAvatarPreview.src = url; groupAvatarPreview.style.display = ''; groupAvatarLabel.style.display = 'none';
-  groupAvatarPicker._file = f;
-});
-
-openCreateGroup?.addEventListener('click', ()=> {
-  groupAvatarPreview.style.display = 'none'; groupAvatarLabel.style.display = ''; groupNameInput.value=''; groupBioInput.value=''; createGroupModal.style.display = 'flex';
-});
-createCancel?.addEventListener('click', ()=> createGroupModal.style.display = 'none');
-
-createConfirm?.addEventListener('click', async ()=> {
-  const name = (groupNameInput.value || '').trim();
-  const bio = (groupBioInput.value || '').trim();
-  if(!name){ alert('Nom obligatoire'); return; }
-  createConfirm.disabled = true;
-  try {
-    let avatar_url = null;
-    if(groupAvatarPicker._file){ avatar_url = await uploadFileToProfile(groupAvatarPicker._file); }
-    const resp = await adminCreateGroup({ name, owner_name: me.name || null, bio: bio || null, avatar_url: avatar_url || null });
-    if(me.tf17) { try { await adminAddMember({ group_name: name, tfid: me.tf17 }); } catch(e){ console.warn('add self to group failed', e); } }
-    await fetchGroupsForMe();
-    createGroupModal.style.display = 'none';
-    alert('Gwoup kreye avèk siksè.');
-  } catch(e){
-    console.error('create group error', e);
-    alert('Kreye gwoup echwe: ' + (e.message || String(e)));
-  } finally { createConfirm.disabled = false; }
-});
-
-/* ================== GROUP MANAGE UI ================== */
-async function openGroupManageModal(groupName){
-  groupManageTitle.textContent = `Gérer: ${groupName}`;
-  groupMembersList.innerHTML = 'Chargement…';
-  groupAddTfid.value = '';
-  groupManageModal.style.display = 'flex';
-  try {
-    const members = await adminGetMembers(groupName);
-    renderGroupMembersManage(groupName, members);
-  } catch(err){
-    groupMembersList.innerHTML = `<div class="muted">Erè lè w ap chaje manm: ${escapeHtml(err.message||err)}</div>`;
-  }
-}
-function closeGroupManageModal(){ groupManageModal.style.display = 'none'; groupMembersList.innerHTML = ''; }
-groupManageClose?.addEventListener('click', closeGroupManageModal);
-
-function renderGroupMembersManage(groupName, members){
-  groupMembersList.innerHTML = '';
-  if(!members || members.length===0){ groupMembersList.innerHTML = '<div class="muted">Pa gen manm</div>'; return; }
-  members.forEach(m=>{
-    const row = document.createElement('div'); row.className='member-row';
-    const left = document.createElement('div'); left.innerHTML = `<div style="font-weight:700">${escapeHtml(m.name||m.tfid||m)}</div><div class="small">${escapeHtml(m.tfid||'')}</div>`;
-    const right = document.createElement('div');
-    const btnProm = document.createElement('button'); btnProm.className='group-manage-btn'; btnProm.textContent = m.admin ? 'Retirer admin' : 'Promouvoir admin';
-    btnProm.addEventListener('click', async ()=> {
-      try{ if(m.admin){ await adminDemoteMember({ group_name: groupName, tfid: m.tfid }); alert('Admin retire'); } else { await adminPromoteMember({ group_name: groupName, tfid: m.tfid }); alert('Admin ajoute'); } const refreshed = await adminGetMembers(groupName); renderGroupMembersManage(groupName, refreshed); }catch(e){ alert('Echwe: ' + (e.message||e)); }
-    });
-    const btnRemove = document.createElement('button'); btnRemove.className='group-manage-btn'; btnRemove.textContent='Supprimer';
-    btnRemove.addEventListener('click', async ()=> {
-      if(!confirm('Supprimer manm?')) return;
-      try{ await adminRemoveMember({ group_name: groupName, tfid: m.tfid }); alert('Manm retire'); const refreshed = await adminGetMembers(groupName); renderGroupMembersManage(groupName, refreshed); }catch(e){ alert('Echwe: ' + (e.message||e)); }
-    });
-    const btnBan = document.createElement('button'); btnBan.className='group-manage-btn'; btnBan.textContent='Bannir';
-    btnBan.addEventListener('click', async ()=> {
-      if(!confirm('Bannir manm?')) return;
-      try{ await adminBanMember({ group_name: groupName, tfid: m.tfid }); alert('Manm bann'); const refreshed = await adminGetMembers(groupName); renderGroupMembersManage(groupName, refreshed); }catch(e){ alert('Echwe: ' + (e.message||e)); }
-    });
-    right.appendChild(btnProm); right.appendChild(btnRemove); right.appendChild(btnBan);
-    row.appendChild(left); row.appendChild(right); groupMembersList.appendChild(row);
-  });
-}
-
-groupAddBtn?.addEventListener('click', async ()=>{
-  const val = (groupAddTfid.value||'').trim();
-  if(!val){ alert('Antre TFID pou ajoute.'); return; }
-  const digits = normalizeInputToDigits(val);
-  if(!digits || (digits.length !==7 && digits.length !==17 && digits.length < 7)){ alert('TFID invalide — antre 7 oswa 17 chif.'); return; }
-  const tf17 = digits.length===17 ? digits : to17(digits.slice(-7));
-  const groupName = groupManageTitle.textContent.replace(/^Gérer:\s*/,'').trim();
-  if(!groupName){ alert('Gwoup invalid.'); return; }
-  groupAddBtn.disabled = true;
-  try {
-    await adminAddMember({ group_name: groupName, tfid: tf17 });
-    const members = await adminGetMembers(groupName);
-    renderGroupMembersManage(groupName, members);
-    alert(`Ajoute ${tf17} nan gwoup ${groupName} avèk siksè.`);
-  } catch(e){
-    console.error('add member error', e);
-    alert('Echwe ajoute manm: ' + (e.message||e));
-  } finally { groupAddBtn.disabled = false; groupAddTfid.value = ''; }
-});
-
-/* ================== ADD MEMBERS FULLSCREEN ================== */
-function openAddMembersModal(){
-  contactsToPick.innerHTML = '';
-  contacts.forEach(c=>{
-    const row = document.createElement('div'); row.style.display='flex'; row.style.justifyContent='space-between'; row.style.padding='6px'; row.style.alignItems='center';
-    row.innerHTML = `<div><strong>${escapeHtml(c.name||formatTFShort(c.tf17))}</strong><div class="small">${escapeHtml(c.tf17||'')}</div></div>`;
-    const chk = document.createElement('input'); chk.type='checkbox'; chk.dataset.tfid = c.tf17; row.appendChild(chk);
-    contactsToPick.appendChild(row);
-  });
-  addMembersModal.style.display='flex';
-}
-addMembersClose.addEventListener('click', ()=> addMembersModal.style.display='none');
-addMembersValidate.addEventListener('click', async ()=>{
-  const checked = Array.from(contactsToPick.querySelectorAll('input[type=checkbox]:checked')).map(i=>i.dataset.tfid);
-  if(checked.length===0){ alert('Pa gen kontak seleksyone'); return; }
-  if(!confirm(`Ajoute ${checked.length} manm nan ${currentGroup}?`)) return;
-  for(const tf of checked){ try{ await adminAddMember({ group_name: currentGroup, tfid: tf }); } catch(e){ console.warn('add member failed',e); } }
-  alert('Ajout fini (si api disponib).'); addMembersModal.style.display='none';
-  try{ const members = await adminGetMembers(currentGroup); renderGroupMembersList(members); }catch(e){}
-});
-
-/* ================== PROFILE AVATAR UPLOAD ================== */
-profileFile.addEventListener('change', async (ev)=>{
-  const f = ev.target.files && ev.target.files[0];
-  if(!f) return;
-  try{
-    const url = URL.createObjectURL(f);
-    me.avatarDataUrl = url; saveState();
-    const uploaded = await uploadFileToProfile(f).catch(()=>null);
-    if(uploaded) me.avatarDataUrl = uploaded; saveState();
-    document.querySelectorAll('.avatar img').forEach(img=> img.src = me.avatarDataUrl);
-    alert('Avatar updated (local).');
-    // push profile update to contacts and groups (best-effort)
-    notifyProfileUpdate(me.avatarDataUrl);
-  }catch(e){ console.warn(e); alert('Upload fail'); }
-});
-
-/* push profile update to contacts (best-effort) */
-async function notifyProfileUpdate(url){
-  if(!me.tf17) return;
-  const payload = { type:'profile', from: me.tf17, name: me.name, photo: url, time: nowISO(), cid: makeCid() };
-  for(const c of contacts){ if(!c.tf17 || c.tf17 === me.tf17) continue; try{ await apiAdd(c.tf17, payload); }catch(e){ console.warn('push profile failed', e); } }
-}
-
-/* ================== WEBSOCKET ================== */
-function connectWS(){ if(!me.tf17){ return; } try { ws = new WebSocket(WS_URL); } catch(e){ scheduleReconnect(); return; } ws.onopen = ()=>{ try{ ws.send(JSON.stringify({ type:'subscribe', tfid: me.tf17 })); } catch(e){} }; ws.onmessage = (ev)=>{ try { const data = JSON.parse(ev.data); if(data.type === 'subscribed') return; if(data.type === 'message'){ const payload = data; let parsed = null; try{ parsed = JSON.parse(payload.content); } catch(e){ parsed = null; } if(!parsed || !parsed.from) return; const recipient = payload.tfid || null; const from = parsed.from; const other = (recipient === me.tf17) ? from : recipient; if(!other) return; const created = parsed.time || payload.created_at || nowISO(); const msgObj = { id: payload.id || null, cid: parsed.cid || null, from, text: parsed.text || parsed.message || '', parsed_time: parsed.time || null, _db_created_at: payload.created_at || null, created_at: created }; addOrUpdateMessageToCache(me.tf17, other, msgObj);
-            if(parsed.name){ const c = ensureContactInList(other, parsed.name); c.name = parsed.name; c.lastMsg = msgObj.text; c.lastTs = Date.now(); saveState(); renderContacts(); }
-            if(parsed.type === 'profile' && parsed.photo){ const c = ensureContactInList(other, parsed.name || null); c.avatar = parsed.photo; c.name = parsed.name || c.name; c.lastTs = Date.now(); saveState(); renderContacts(); }
-            if(currentPartner && currentPartner.tf17 === other){ renderConversation(me.tf17, other); }
-            else if(recipient === me.tf17){ const c = ensureContactInList(other, parsed && parsed.name ? parsed.name : null); c.unread = (c.unread||0) + 1; if(c.unread>777) c.unread = 1000; c.lastMsg = msgObj.text; c.lastTs = Date.now(); saveState(); renderContacts(); notifyLocal('Nouveau message', `${c.name||formatTFShort(other)}: ${msgObj.text}`); }
-        }
-    } catch(err){ console.warn('WS parse err', err); } };
-  ws.onclose = ()=>{ scheduleReconnect(); };
-  ws.onerror = (e)=>{ console.warn('WS error', e); try{ ws.close(); }catch(e){} };
-}
-function scheduleReconnect(){ if(reconnectTimer) return; reconnectTimer = setTimeout(()=>{ reconnectTimer=null; connectWS(); }, 3000); }
-
-/* ================== SEARCH / PROMPT UI ================== */
-async function performSearchQuery(raw){ if(!raw) return; const digits = normalizeInputToDigits(raw); if(!digits){ renderContacts(raw); return; } if(digits.length < 7){ alert('TFID dwe gen omwen 7 chif.'); return; } const short7 = digits.slice(-7); const tf17 = to17(short7); let local = contacts.find(c => c.tf17 === tf17); if(local){ openChat(local.tf17, local, true); return; } try { const rows = await apiList(tf17); if(rows && rows.length > 0){ const last = rows[rows.length-1] || rows[0]; let lastMsg = ''; try{ const p = JSON.parse(last.content); lastMsg = p.text || p.message || last.content; } catch(e){ lastMsg = last.content || ''; } const nameFromServer = (() => { try { const p = JSON.parse(last.content); return p.name || null } catch(_) { return null } })(); const c = { tf17, name: nameFromServer || formatTFShort(short7), lastMsg, lastTs: Date.now(), unread: 0, blocked:false, avatar:null }; contacts.unshift(c); saveState(); renderContacts(); openChat(c.tf17, c, true); return; } else { if(confirm('Pa jwenn done sou servèr. Kreye kontak lokal pou TFID sa a?')){ const c = { tf17, name: formatTFShort(short7), lastMsg: '', lastTs: Date.now(), unread:0, blocked:false, avatar:null }; contacts.unshift(c); saveState(); renderContacts(); openChat(c.tf17, c, true); } } } catch(err){ alert('Erè lè w ap chèche sou servèr: ' + (err.message||err)); } }
-
+/* ================== PROMPT FOR ME (settings modal) ================== */
 function promptForMeModal(){
   updateSettingsUI();
   settingsModal.style.display = 'flex';
@@ -907,7 +547,6 @@ function promptForMeModal(){
       cleanup();
       registerFrontendIfNeeded().then(()=>{ if(ws && ws.readyState === WebSocket.OPEN){ try{ ws.send(JSON.stringify({ type:'subscribe', tfid: me.tf17 })); }catch(e){} } else connectWS(); });
       try{ await fetchGroupsForMe(); }catch(e){}
-      await tryRegisterServiceWorkerAndSubscribe();
       resolve(true);
     }
     function onCancel(){ settingsModal.style.display = 'none'; cleanup(); resolve(false); }
@@ -917,139 +556,204 @@ function promptForMeModal(){
   });
 }
 
-/* ================== PW BANNER ================== */
+/* ================== PW BANNER/TIMERS ================== */
 function triggerPwBannerIfNeeded(){ if(!me.tf17) return; if(hasPasswordFor(me.tf17)) { hidePwBanner(); return; } pwBanner.style.display = 'block'; if(pwWarningTimer) clearTimeout(pwWarningTimer); if(pwForceReloadTimer) clearTimeout(pwForceReloadTimer); pwWarningTimer = setTimeout(()=> { settingsModal.style.display = 'flex'; updateSettingsUI(); }, 60 * 1000); pwForceReloadTimer = setTimeout(()=> { location.reload(); }, 2 * 60 * 1000); }
 function hidePwBanner(){ pwBanner.style.display = 'none'; if(pwWarningTimer) { clearTimeout(pwWarningTimer); pwWarningTimer=null; } if(pwForceReloadTimer){ clearTimeout(pwForceReloadTimer); pwForceReloadTimer=null; } }
 
-/* ================== PUSH / SERVICE WORKER ================== */
-async function tryRegisterServiceWorkerAndSubscribe(){
-  if(!('serviceWorker' in navigator)) return;
-  try {
-    // try to register /sw.js first (if you serve one)
-    let reg = null;
-    try {
-      reg = await navigator.serviceWorker.register('/sw.js');
-    } catch(err) {
-      // fallback to inline blob service worker
-      const swCode = `
-        self.addEventListener('push', function(event){ 
-          const data = event.data ? event.data.json() : { title: 'TF-Chat', body: 'New message' };
-          const opts = { body: data.body || '', icon: data.icon || '', data: data };
-          event.waitUntil(self.registration.showNotification(data.title || 'TF-Chat', opts));
-        });
-        self.addEventListener('notificationclick', function(event){
-          event.notification.close();
-          event.waitUntil(clients.openWindow('/'));
-        });
-      `;
-      const swBlob = new Blob([swCode], {type:'application/javascript'});
-      const swUrl = URL.createObjectURL(swBlob);
-      reg = await navigator.serviceWorker.register(swUrl);
-    }
-    // subscribe push
-    if(!reg) return;
-    if(!('PushManager' in window)) return;
-    const permission = await Notification.requestPermission();
-    if(permission !== 'granted') return;
-    let sub = await reg.pushManager.getSubscription();
-    if(!sub){
-      if(!VAPID_PUBLIC_KEY || VAPID_PUBLIC_KEY.includes('REPLACE_WITH')) {
-        console.warn('VAPID public key not set — cannot subscribe to push. Replace VAPID_PUBLIC_KEY.');
-      } else {
-        sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY) });
-      }
-    }
-    if(sub){
-      // send subscription to server (assumes endpoint exists)
-      await fetch(`${API_BASE}/api/push/subscribe`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ subscription: sub, tfid: me.tf17 }) }).catch(()=>{});
-      console.log('Push subscribed');
-    }
-  } catch(e){ console.warn('sw/register error', e); }
+/* ================== WEBSOCKET ================== */
+function connectWS(){ if(!me.tf17){ wsStatusEl.textContent = ''; return; } try { ws = new WebSocket(WS_URL); } catch(e){ scheduleReconnect(); return; } ws.onopen = ()=>{ wsStatusEl.textContent = ''; try{ ws.send(JSON.stringify({ type:'subscribe', tfid: me.tf17 })); } catch(e){} }; ws.onmessage = (ev)=>{ try { const data = JSON.parse(ev.data); if(data.type === 'subscribed') return; if(data.type === 'message'){ const payload = data; let parsed = null; try{ parsed = JSON.parse(payload.content); } catch(e){ parsed = null; } if(!parsed || !parsed.from) return; const recipient = payload.tfid || null; const from = parsed.from; const other = (recipient === me.tf17) ? from : recipient; if(!other) return; const created = parsed.time || payload.created_at || nowISO(); const msgObj = { id: payload.id || null, cid: parsed.cid || null, from, text: parsed.text || parsed.message || '', parsed_time: parsed.time || null, _db_created_at: payload.created_at || null, created_at: created }; addOrUpdateMessageToCache(me.tf17, other, msgObj);
+            if(parsed.name){ const c = ensureContactInList(other, parsed.name); c.name = parsed.name; c.lastMsg = msgObj.text; c.lastTs = Date.now(); saveState(); renderContacts(); }
+            if(parsed.type === 'profile' && parsed.photo){ const c = ensureContactInList(other, parsed.name || null); c.avatar = parsed.photo; c.name = parsed.name || c.name; c.lastTs = Date.now(); saveState(); renderContacts(); }
+            if(currentPartner && currentPartner.tf17 === other){ renderConversation(me.tf17, other); }
+            else if(recipient === me.tf17){ const c = ensureContactInList(other, parsed && parsed.name ? parsed.name : null); c.unread = (c.unread||0) + 1; c.lastMsg = msgObj.text; c.lastTs = Date.now(); saveState(); renderContacts(); }
+        }
+    } catch(err){ console.warn('WS parse err', err); } };
+  ws.onclose = ()=>{ wsStatusEl.textContent = ''; scheduleReconnect(); };
+  ws.onerror = (e)=>{ console.warn('WS error', e); wsStatusEl.textContent = ''; try{ ws.close(); }catch(e){} };
 }
+function scheduleReconnect(){ if(reconnectTimer) return; reconnectTimer = setTimeout(()=>{ reconnectTimer=null; connectWS(); }, 3000); }
 
-/* ================== LOCAL NOTIFICATIONS ================== */
-function notifyLocal(title, body){
-  try{
-    if("Notification" in window && Notification.permission === "granted"){
-      new Notification(title, { body });
-    } else if("Notification" in window && Notification.permission !== "denied"){
-      Notification.requestPermission().then(p=>{
-        if(p === 'granted') new Notification(title, { body });
-      });
-    } else {
-      console.log('Notify:', title, body);
-    }
-  }catch(e){ console.warn('notify err',e); }
-}
+/* ================== SEARCH ================== */
+async function performSearchQuery(raw){ if(!raw) return; const digits = normalizeInputToDigits(raw); if(!digits){ renderContacts(raw); return; } if(digits.length < 7){ alert('TFID dwe gen omwen 7 chif.'); return; } const short7 = digits.slice(-7); const tf17 = to17(short7); let local = contacts.find(c => c.tf17 === tf17); if(local){ openChat(local.tf17, local, true); return; } try { const rows = await apiList(tf17); if(rows && rows.length > 0){ const last = rows[rows.length-1] || rows[0]; let lastMsg = ''; try{ const p = JSON.parse(last.content); lastMsg = p.text || p.message || last.content; } catch(e){ lastMsg = last.content || ''; } const nameFromServer = (() => { try { const p = JSON.parse(last.content); return p.name || null } catch(_) { return null } })(); const c = { tf17, name: nameFromServer || formatTFShort(short7), lastMsg, lastTs: Date.now(), unread: 0, blocked:false, avatar:null }; contacts.unshift(c); saveState(); renderContacts(); openChat(c.tf17, c, true); return; } else { if(confirm('Pa jwenn done sou servèr. Kreye kontak lokal pou TFID sa a?')){ const c = { tf17, name: formatTFShort(short7), lastMsg: '', lastTs: Date.now(), unread:0, blocked:false, avatar:null }; contacts.unshift(c); saveState(); renderContacts(); openChat(c.tf17, c, true); } } } catch(err){ alert('Erè lè w ap chèche sou servèr: ' + (err.message||err)); } }
 
 /* ================== PROFILE MODAL ================== */
 let profileCurrent = null;
-chatTitleEl?.addEventListener('click', ()=>{ if(!currentPartner && !currentGroup) return; if(currentPartner) openProfileModal(currentPartner.tf17); else if(currentGroup) openGroupInfo(currentGroup); });
+chatTitleEl?.addEventListener('click', ()=>{ if(!currentPartner && !currentGroup) return; if(currentPartner) openProfileModal(currentPartner.tf17); else if(currentGroup) alert('Groupe info: ' + currentGroup); });
 function openProfileModal(tf17){ profileCurrent = tf17; const c = contacts.find(x=>x.tf17===tf17) || { tf17, name: formatTFShort(tf17), blocked:false, avatar:null }; if(c.avatar) { profileAvatar.innerHTML = `<img src="${c.avatar}" />`; } else { profileAvatar.textContent = initials(c.name || c.tf17); } profileName.textContent = c.name || formatTFShort(tf17); profileTfid.textContent = c.tf17; blockBtn.textContent = c.blocked ? 'Débloquer' : 'Bloquer'; profileModal.style.display = 'flex'; }
 addContactBtn?.addEventListener('click', ()=>{ if(!profileCurrent) return; const c = ensureContactInList(profileCurrent, null); alert('Contact ajouté : ' + (c.name || c.tf17)); profileModal.style.display = 'none'; });
 blockBtn?.addEventListener('click', async ()=>{ if(!profileCurrent) return; const c = ensureContactInList(profileCurrent, null); c.blocked = !c.blocked; saveState(); renderContacts(); try{ const payload = { type: c.blocked ? 'block' : 'unblock', from: me.tf17, time: nowISO(), name: me.name || null }; await apiAdd(profileCurrent, payload); }catch(e){ console.warn('notify block failed', e); } openProfileModal(profileCurrent); });
 closeProfileBtn?.addEventListener('click', ()=>{ profileModal.style.display = 'none'; });
-profileAvatar?.addEventListener('click', ()=> { if(profileFile) profileFile.click(); });
+profileAvatar?.addEventListener('click', ()=> { if(fileInput) fileInput.click(); });
 
 window.addEventListener('paste', (ev)=>{ const items = ev.clipboardData && ev.clipboardData.items; if(!items) return; for(const it of items){ if(it.kind === 'file' && it.type && it.type.startsWith('image/')){ const f = it.getAsFile(); if(f) { autoUploadProfileFile(f); ev.preventDefault(); break; } } } }, false);
 
 async function autoUploadProfileFile(file){ if(!file) return; if(!file.type || !file.type.startsWith('image/')) { alert('Se sèlman imaj ki aksepte (jpg/png...).'); return; }
-  const input = profileFile; if(input) input.disabled = true; try { const url = await uploadFileToProfile(file); me.avatarDataUrl = url; saveState(); contacts.forEach(c => { if(c.tf17 === me.tf17) c.avatar = url; }); document.querySelectorAll('.avatar img').forEach(img=> img.src = url); profileAvatar.innerHTML = `<img src="${url}" />`; if(!me.tf17) { console.warn('No me.tf17 — profile update saved locally but not pushed'); return; } const contactsToNotify = Array.isArray(contacts) ? contacts.slice() : []; for(const c of contactsToNotify){ if(!c || !c.tf17 || c.tf17 === me.tf17) continue; const cid = makeCid(); const payload = { type: 'profile', from: me.tf17, name: me.name || null, photo: url, time: nowISO(), cid }; apiAdd(c.tf17, payload).catch(err => { console.warn('Push profile update failed for', c.tf17, err); }); }
+  const input = fileInput; if(input) input.disabled = true; try { const url = await uploadFileToProfile(file); me.avatarDataUrl = url; saveState(); contacts.forEach(c => { if(c.tf17 === me.tf17) c.avatar = url; }); document.querySelectorAll('.avatar').forEach(el=>{ if(el.dataset && el.dataset.tf17 && el.dataset.tf17 === me.tf17){ el.innerHTML = `<img src="${url}" />`; } }); profileAvatar.innerHTML = `<img src="${url}" />`; if(!me.tf17) { console.warn('No me.tf17 — profile update saved locally but not pushed'); return; } const now = (new Date()).toISOString(); const contactsToNotify = Array.isArray(contacts) ? contacts.slice() : []; for(const c of contactsToNotify){ if(!c || !c.tf17 || c.tf17 === me.tf17) continue; const cid = makeCid(); const payload = { type: 'profile', from: me.tf17, name: me.name || null, photo: url, time: now, cid }; apiAdd(c.tf17, payload).catch(err => { console.warn('Push profile update failed for', c.tf17, err); }); }
   } catch(err){ console.error('autoUploadProfileFile error', err); alert('Erè pandan upload: ' + (err.message || err)); } finally { if(input) { input.disabled = false; input.value = ''; } }
 }
 
-/* ================== INIT / UI HOOKS ================== */
-document.getElementById('chatBack').addEventListener('click', ()=> { const path = location.pathname || '/'; if(path && path.replace(/^\//, '') !== '' ){ history.back(); } else { hideChatModal(); }});
-sendBtnEl.addEventListener('click', sendMessageFromModal);
-chatTextEl.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); sendMessageFromModal(); }});
-searchInput.addEventListener('keydown', async (e)=>{ if(e.key==='Enter'){ e.preventDefault(); await performSearchQuery(searchInput.value.trim()); }});
-searchBtn.addEventListener('click', async ()=> await performSearchQuery(searchInput.value.trim()));
-groupSearchInput.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); renderGroups(groupSearchInput.value.trim()); }});
-groupSearchBtn.addEventListener('click', ()=> renderGroups(groupSearchInput.value.trim()));
+/* ================== CREATE GROUP FLOW ================== */
+groupAvatarPicker?.addEventListener('click', ()=> groupAvatarFile.click());
+groupAvatarFile?.addEventListener('change', async (ev)=> {
+  const f = ev.target.files && ev.target.files[0]; if(!f) return;
+  const url = URL.createObjectURL(f);
+  groupAvatarPreview.src = url; groupAvatarPreview.style.display = ''; groupAvatarLabel.style.display = 'none';
+  groupAvatarPicker._file = f;
+});
 
-tabAccueil.addEventListener('click', ()=> { tabAccueil.classList.add('active'); tabGroupes.classList.remove('active'); sectionAccueil.style.display='block'; sectionGroupes.style.display='none'; });
-tabGroupes.addEventListener('click', ()=> { tabGroupes.classList.add('active'); tabAccueil.classList.remove('active'); sectionGroupes.style.display='block'; sectionAccueil.style.display='none'; fetchGroupsForMe(); });
+openCreateGroup?.addEventListener('click', ()=> {
+  groupAvatarPreview.style.display = 'none'; groupAvatarLabel.style.display = ''; groupNameInput.value=''; groupBioInput.value=''; createGroupModal.style.display = 'flex';
+});
 
-openCreateGroup.addEventListener('click', ()=> { createGroupModal.style.display = 'flex'; });
+createCancel?.addEventListener('click', ()=> createGroupModal.style.display = 'none');
+
+createConfirm?.addEventListener('click', async ()=> {
+  const name = (groupNameInput.value || '').trim();
+  const bio = (groupBioInput.value || '').trim();
+  if(!name){ alert('Nom obligatoire'); return; }
+  createConfirm.disabled = true;
+  try {
+    let avatar_url = null;
+    if(groupAvatarPicker._file){ avatar_url = await uploadFileToProfile(groupAvatarPicker._file); }
+    const resp = await adminCreateGroup({ name, owner_name: me.name || null, bio: bio || null, avatar_url: avatar_url || null });
+    // add current user as member (if me.tf17)
+    if(me.tf17) {
+      try { await adminAddMember({ group_name: name, tfid: me.tf17 }); } catch(e){ console.warn('add self to group failed', e); }
+    }
+    await fetchGroupsForMe();
+    createGroupModal.style.display = 'none';
+    alert('Gwoup kreye avèk siksè.');
+  } catch(e){
+    console.error('create group error', e);
+    alert('Kreye gwoup echwe: ' + (e.message || String(e)));
+  } finally { createConfirm.disabled = false; }
+});
+
+/* ================== GROUP MANAGE UI ================== */
+async function openGroupManageModal(groupName){
+  groupManageTitle.textContent = `Gérer: ${groupName}`;
+  groupMembersList.innerHTML = 'Chargement…';
+  groupAddTfid.value = '';
+  groupManageModal.style.display = 'flex';
+  try {
+    const members = await adminGetMembers(groupName);
+    renderGroupMembers(groupName, members);
+  } catch(err){
+    groupMembersList.innerHTML = `<div class="muted">Erè lè w ap chaje manm: ${escapeHtml(err.message||err)}</div>`;
+  }
+}
+function closeGroupManageModal(){ groupManageModal.style.display = 'none'; groupMembersList.innerHTML = ''; }
+groupManageClose?.addEventListener('click', closeGroupManageModal);
+
+function renderGroupMembers(groupName, members){
+  groupMembersList.innerHTML = '';
+  if(!Array.isArray(members) || members.length === 0){
+    groupMembersList.innerHTML = `<div class="muted">Pa gen manm pou gwoup sa.</div>`;
+    return;
+  }
+  members.forEach(m => {
+    const row = document.createElement('div');
+    row.className = 'member-row';
+    const left = document.createElement('div');
+    left.textContent = m.tfid || m;
+    const right = document.createElement('div');
+    // Add button to add contact locally
+    const addContact = document.createElement('button');
+    addContact.textContent = 'Ajoute kontak';
+    addContact.style.marginRight = '8px';
+    addContact.addEventListener('click', ()=> {
+      ensureContactInList(m.tfid || m, null);
+      alert('Contact ajouté localman: ' + (m.tfid || m));
+    });
+    right.appendChild(addContact);
+    row.appendChild(left);
+    row.appendChild(right);
+    groupMembersList.appendChild(row);
+  });
+}
+
+groupAddBtn?.addEventListener('click', async ()=>{
+  const val = (groupAddTfid.value||'').trim();
+  if(!val){ alert('Antre TFID pou ajoute.'); return; }
+  const digits = normalizeInputToDigits(val);
+  if(!digits || (digits.length !==7 && digits.length !==17 && digits.length < 7)){ alert('TFID invalide — antre 7 oswa 17 chif.'); return; }
+  const tf17 = digits.length===17 ? digits : to17(digits.slice(-7));
+  const groupName = groupManageTitle.textContent.replace(/^Gérer:\s*/,'').trim();
+  if(!groupName){ alert('Gwoup invalid.'); return; }
+  groupAddBtn.disabled = true;
+  try {
+    await adminAddMember({ group_name: groupName, tfid: tf17 });
+    // refresh members list
+    const members = await adminGetMembers(groupName);
+    renderGroupMembers(groupName, members);
+    alert(`Ajoute ${tf17} nan gwoup ${groupName} avèk siksè.`);
+  } catch(e){
+    console.error('add member error', e);
+    alert('Echwe ajoute manm: ' + (e.message||e));
+  } finally { groupAddBtn.disabled = false; groupAddTfid.value = ''; }
+});
+
+/* ================== UI EVENTS ================== */
+document.getElementById('chatBack')?.addEventListener('click', ()=>{
+  const path = location.pathname || '/';
+  if(path && path.replace(/^\//, '') !== '' ){
+    history.back();
+  } else {
+    hideChatModal();
+  }
+});
+sendBtnEl?.addEventListener('click', sendMessageFromModal);
+chatTextEl?.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); sendMessageFromModal(); } });
+searchInput?.addEventListener('keydown', async (e)=>{ if(e.key==='Enter'){ e.preventDefault(); await performSearchQuery(searchInput.value.trim()); } });
+searchBtn?.addEventListener('click', async ()=>{ await performSearchQuery(searchInput.value.trim()); });
+groupSearchInput?.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); renderGroups(groupSearchInput.value.trim()); }});
+groupSearchBtn?.addEventListener('click', ()=> renderGroups(groupSearchInput.value.trim()));
+
+tabAccueil?.addEventListener('click', ()=> { tabAccueil.classList.add('active'); tabGroupes.classList.remove('active'); sectionAccueil.style.display='block'; sectionGroupes.style.display='none'; });
+tabGroupes?.addEventListener('click', ()=> { tabGroupes.classList.add('active'); tabAccueil.classList.remove('active'); sectionGroupes.style.display='block'; sectionAccueil.style.display='none'; fetchGroupsForMe(); });
+
+// open settings modal when user clicks the TF-Chat title
 appTitleEl?.addEventListener('click', ()=> { updateSettingsUI(); settingsModal.style.display = 'flex'; });
 
-profileSaveBtn?.addEventListener('click', async ()=>{ const newName = profileNameInput.value.trim(); const short = normalizeInputToDigits(profileTfidInput.value.trim()); if(!short || short.length < 7){ alert('TFID pa valab — antre 7 chif.'); return; } const tfShort = short.slice(-7); const tf17 = to17(tfShort); const existingHash = getPasswordHash(tf17); if(existingHash && (!me.tf17 || me.tf17 !== tf17)) { const pw = prompt('Kont sa deja egziste lokalman. Antre modpas li pou itilize li:'); if(!pw) { alert('Modpas obligatwa.'); return; } const has = await hashPasswordHex(pw); if(has !== existingHash){ alert('Modpas pa kòrèk.'); return; } } const newPw = profilePwInput.value || ''; if(newPw){ const hex = await hashPasswordHex(newPw); storePasswordHash(tf17, hex); } me.name = newName || me.name; me.short = tfShort; me.tf17 = tf17; saveState(); settingsModal.style.display = 'none'; await registerFrontendIfNeeded(); if(ws && ws.readyState === WebSocket.OPEN){ try{ ws.send(JSON.stringify({ type:'subscribe', tfid: me.tf17 })); }catch(e){} } else connectWS(); triggerPwBannerIfNeeded(); try{ await fetchGroupsForMe(); }catch(e){} await tryRegisterServiceWorkerAndSubscribe(); });
+/* profileSave logic */
+profileSaveBtn?.addEventListener('click', async ()=>{ const newName = profileNameInput.value.trim(); const short = normalizeInputToDigits(profileTfidInput.value.trim()); if(!short || short.length < 7){ alert('TFID pa valab — antre 7 chif.'); return; } const tfShort = short.slice(-7); const tf17 = to17(tfShort); const existingHash = getPasswordHash(tf17); if(existingHash && (!me.tf17 || me.tf17 !== tf17)) { const pw = prompt('Kont sa deja egziste lokalman. Antre modpas li pou itilize li:'); if(!pw) { alert('Modpas obligatwa.'); return; } const has = await hashPasswordHex(pw); if(has !== existingHash){ alert('Modpas pa kòrèk.'); return; } } const newPw = profilePwInput.value || ''; if(newPw){ const hex = await hashPasswordHex(newPw); storePasswordHash(tf17, hex); } me.name = newName || me.name; me.short = tfShort; me.tf17 = tf17; saveState(); settingsModal.style.display = 'none'; await registerFrontendIfNeeded(); if(ws && ws.readyState === WebSocket.OPEN){ try{ ws.send(JSON.stringify({ type:'subscribe', tfid: me.tf17 })); }catch(e){} } else connectWS(); triggerPwBannerIfNeeded(); try{ await fetchGroupsForMe(); }catch(e){} });
 settingsCancelBtn?.addEventListener('click', ()=> settingsModal.style.display = 'none');
 
-/* popstate handling */
+/* ================== POPSTATE / URL SLUG HANDLING ================== */
 window.addEventListener('popstate', (ev)=>{
   const s = ev.state;
   if(s && s.tfchat){ openChat(s.tfchat, contacts.find(c=>c.tf17===s.tfchat)||null, false); } else if(s && s.group){ openGroupChat(s.group); } else { hideChatModal(); }
 });
 
-/* initial path */
+/* if page loaded with a slug, try open chat or group */
 (function handleInitialPath(){ const raw = location.pathname.replace(/^\/+/, ''); if(!raw) return; try {
       if(raw.startsWith('groupe/')){ const name = decodeURIComponent(raw.replace(/^groupe\//,'')); (async ()=>{ await fetchGroupsForMe(); const g = groups.find(x=>x.name===name); if(g){ openGroupChat(name); } else { groups.unshift({ name, owner_name:'', bio:'', avatar_url:null, created_at:null}); renderGroups(); openGroupChat(name); } })();
-      } else if(/^TF-?\d{7,}$/.test(raw) || /^\d{7,}$/.test(raw) || /^\d{17,}$/.test(raw)){ const tf17 = raw.startsWith('TF-') ? raw : to17(raw); let c = contacts.find(x=>x.tf17===tf17); if(!c){ c = { tf17, name: formatTFShort(tf17), lastMsg:'', lastTs: Date.now(), unread:0, blocked:false, avatar:null }; contacts.unshift(c); saveState(); renderContacts(); } openChat(tf17, c, false); }
+      } else if(/^TF-?\d{7,}$/.test(raw) || /^\d{7,}$/.test(raw) || /^\d{17,}$/.test(raw)){ const tf17 = raw.startsWith('TF-') ? raw : to17(raw); let c = contacts.find(x=>x.tf17===tf17); if(!c){ c = { tf17, name: formatTFShort(tf17), lastMsg:'', lastTs: Date.now(), unread:0, blocked:false, avatar:null }; contacts.unshift(c); saveState(); renderContacts(); } if(me.tf17){ openChat(tf17, c, false); } else { openChat(tf17, c, false); } }
     } catch(e){ console.warn('initial path parse failed', e); }
 })();
 
-/* boot */
+/* ================== BOOT ================== */
 renderContacts();
 renderGroups();
-if(me.avatarDataUrl){ document.querySelectorAll('.avatar img').forEach(img=> img.src = me.avatarDataUrl); }
-if(me.tf17){ connectWS(); fetchGroupsForMe(); tryRegisterServiceWorkerAndSubscribe(); } else { const shownOnce = localStorage.getItem('tfchat.settings_shown_once'); if(!shownOnce){ localStorage.setItem('tfchat.settings_shown_once', '1'); } }
+if(me.avatarDataUrl){ document.querySelectorAll('.avatar').forEach(el => { if(!el.querySelector('img')) el.innerHTML = `<img src="${me.avatarDataUrl}" />`; }); }
+
+if(me.tf17){
+  connectWS();
+  fetchGroupsForMe();
+} else {
+  const shownOnce = localStorage.getItem('tfchat.settings_shown_once');
+  if(!shownOnce){
+    // do NOT auto-open settings modal — user asked settings appear on header click only
+    // but show prompt once to set identity:
+    // we will NOT open it automatically; only record that we showed once
+    localStorage.setItem('tfchat.settings_shown_once', '1');
+  }
+}
 
 /* expose debug */
 window._tf_contacts = contacts;
 window._tf_me = me;
 window._tf_groups = groups;
-
-/* ================== NOTES ==================
-- You MUST replace VAPID_PUBLIC_KEY with your real base64url VAPID public key to make Push subscriptions work.
-- Endpoints used for admin actions must exist on your server:
-  /admin/groups/create, /admin/groups/add, /admin/groups/members,
-  /admin/groups/remove-member, /admin/groups/promote, /admin/groups/demote,
-  /admin/groups/ban, /admin/groups/remove
-  All admin endpoints are called with header "x-api-token": ADMIN_API_TOKEN.
-- Push subscription is sent to POST /api/push/subscribe (you need to implement server-side storage and push).
-- Browser notifications + service worker are implemented best-effort here; mobile native push requires server + FCM/APNs.
-============================================ */
 </script>
 </body>
-            </html>
+        </html>
