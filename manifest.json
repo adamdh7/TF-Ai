@@ -1,0 +1,71 @@
+{
+  "name": "TF-Stream",
+  "short_name": "TF-Stream",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "icons": [
+    {
+      "src": "https://pub-46b5efc7a2f74e6797b554c867465fc0.r2.dev/1761363481529-ixgmht.jpg",
+      "sizes": "72x72",
+      "purpose": "any maskable",
+      "type": "image/jpeg"
+    },
+    {
+      "src": "https://pub-46b5efc7a2f74e6797b554c867465fc0.r2.dev/1761363481529-ixgmht.jpg",
+      "sizes": "96x96",
+      "purpose": "maskable",
+      "type": "image/jpeg"
+    },
+    {
+      "src": "https://pub-46b5efc7a2f74e6797b554c867465fc0.r2.dev/1761363481529-ixgmht.jpg",
+      "sizes": "128x128",
+      "purpose": "maskable",
+      "type": "image/jpeg"
+    },
+    {
+      "src": "https://pub-46b5efc7a2f74e6797b554c867465fc0.r2.dev/1761363481529-ixgmht.jpg",
+      "sizes": "144x144",
+      "purpose": "maskable",
+      "type": "image/jpeg"
+    },
+    {
+      "src": "https://pub-46b5efc7a2f74e6797b554c867465fc0.r2.dev/1761363481529-ixgmht.jpg",
+      "sizes": "152x152",
+      "purpose": "maskable",
+      "type": "image/jpeg"
+    },
+    {
+      "src": "https://pub-46b5efc7a2f74e6797b554c867465fc0.r2.dev/1761363481529-ixgmht.jpg",
+      "sizes": "192x192",
+      "purpose": "maskable",
+      "type": "image/jpeg"
+    },
+    {
+      "src": "https://pub-46b5efc7a2f74e6797b554c867465fc0.r2.dev/1761363481529-ixgmht.jpg",
+      "sizes": "256x256",
+      "purpose": "maskable",
+      "type": "image/jpeg"
+    },
+    {
+      "src": "https://pub-46b5efc7a2f74e6797b554c867465fc0.r2.dev/1761363481529-ixgmht.jpg",
+      "sizes": "384x384",
+      "purpose": "maskable",
+      "type": "image/jpeg"
+    },
+    {
+      "src": "https://pub-46b5efc7a2f74e6797b554c867465fc0.r2.dev/1761363481529-ixgmht.jpg",
+      "sizes": "512x512",
+      "purpose": "maskable",
+      "type": "image/jpeg"
+    },
+    {
+      "src": "https://pub-46b5efc7a2f74e6797b554c867465fc0.r2.dev/1761363481529-ixgmht.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "maskable"
+    }
+  ]
+}
