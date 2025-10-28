@@ -1,5 +1,4 @@
 <!doctype html>
-
 <html lang="ht">
 <head>
 <meta charset="utf-8" />
@@ -13,7 +12,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
-:root{ --bg:#000000; --panel:#000000; --text:#e6eefb; --muted:#9aa6bf; --card:#0b0b0b; --accent:#0b81ff; --header-h:56px; --tab-h:62px; --gutter:12px; }
+:root{ --bg:#000000; --panel:#000000; --text:#e6eefb; --muted:#9aa6bf; --card:#0b0b0b; --accent:#0b81ff; --header-h:56px; --tab-h:62px; --gutter:12px; --msg-line-height:1.4rem; --msg-max-lines:5; }
 *{box-sizing:border-box}
 html,body{height:100%;margin:0;padding:0;background:var(--bg);color:var(--text);font-family:Roboto,system-ui,Arial,sans-serif;-webkit-font-smoothing:antialiased}
 .app-bg{position:fixed;inset:0;z-index:0;pointer-events:none;background:linear-gradient(180deg,var(--bg) 0%,#050505 100%)}
@@ -38,15 +37,34 @@ main{position:fixed;left:0;right:0;top:var(--header-h);bottom:var(--tab-h);overf
 .name{font-weight:600;font-size:16px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
 .time{font-size:12px;color:var(--muted)}
 .meta-bottom{display:flex;justify-content:space-between;margin-top:6px;align-items:center}
-.snippet{font-size:13px;color:var(--muted);overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.snippet{font-size:13px;color:var(--muted);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;max-width:60%}
 .badge{background:var(--accent);color:white;padding:4px 8px;border-radius:999px;font-weight:600;font-size:13px}
 .group-manage-btn{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--text);padding:6px 8px;border-radius:8px;cursor:pointer;font-weight:600;margin-left:8px}
+
+/* messages */
 .messages-wrap{padding:12px;height:calc(100% - 56px - 84px);overflow:auto;display:flex;flex-direction:column;gap:8px}
 .messages{display:flex;flex-direction:column;gap:8px}
-.msg{max-width:74%;padding:10px;border-radius:12px;margin-bottom:4px}
+.msg{max-width:74%;padding:10px;border-radius:12px;margin-bottom:4px;word-break:break-word;overflow:hidden}
 .msg.bot{background:#121212;color:var(--text);align-self:flex-start}
 .msg.user{background:linear-gradient(180deg,var(--accent),#0563c9);color:white;align-self:flex-end}
 .msg .checks{font-size:11px;margin-left:8px;opacity:0.9}
+
+/* text clamp + wrapping to avoid breaking UI on long urls */
+.msg-text{
+  white-space:pre-wrap;
+  word-break:break-word;
+  overflow-wrap:anywhere;
+  display:-webkit-box;
+  -webkit-box-orient:vertical;
+  -webkit-line-clamp: var(--msg-max-lines);
+  line-height: var(--msg-line-height);
+  max-height: calc(var(--msg-line-height) * var(--msg-max-lines));
+}
+
+/* small meta row under message */
+.msg-meta{font-size:11px;color:var(--muted);margin-top:6px;display:flex;gap:8px;align-items:center}
+
+/* input */
 .chat-input{display:flex;gap:8px;align-items:center;padding:12px;border-top:1px solid rgba(255,255,255,0.03);background:transparent}
 .input{flex:1;padding:12px;border-radius:999px;border:1px solid rgba(255,255,255,0.03);background:var(--card);color:var(--text);outline:none}
 .send-btn{background:transparent;border:0;padding:8px;border-radius:10px;cursor:pointer;color:var(--accent)}
@@ -72,190 +90,68 @@ main{position:fixed;left:0;right:0;top:var(--header-h);bottom:var(--tab-h);overf
 }
 </style>
 <script>
-(function(){
-  document.addEventListener('touchstart', function(e){
-    if (e.touches && e.touches.length > 1) {
-      e.preventDefault();
-    }
-  }, { passive: false });
-  var lastTouchEnd = 0;
-  document.addEventListener('touchend', function(e){
-    var now = Date.now();
-    if (now - lastTouchEnd <= 300) {
-      e.preventDefault();
-    }
-    lastTouchEnd = now;
-  }, { passive: false });
-  document.addEventListener('gesturestart', function(e){ e.preventDefault(); }, false);
-  document.addEventListener('gesturechange', function(e){ e.preventDefault(); }, false);
-  document.addEventListener('gestureend', function(e){ e.preventDefault(); }, false);
-  window.addEventListener('wheel', function(e){
-    if (e.ctrlKey || e.metaKey) {
-      e.preventDefault();
-    }
-  }, { passive: false });
-  window.addEventListener('keydown', function(e){
-    if (e.ctrlKey || e.metaKey) {
-      var k = e.key;
-      if (k === '+' || k === '-' || k === '=' || k === '0' || k === '±') {
-        e.preventDefault();
-      }
-      if (e.code === 'NumpadAdd' || e.code === 'NumpadSubtract' || e.code === 'Numpad0') {
-        e.preventDefault();
-      }
-    }
-  }, false);
-  try {
-    var style = document.createElement('style');
-    style.innerHTML = 'html,body{ touch-action: pan-x pan-y; -ms-touch-action: pan-x pan-y; }';
-    document.head.appendChild(style);
-  } catch (err) {}
-})();
-window.addEventListener('load', () => {
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js', { scope: '/' })
-        .then(reg => {
-          navigator.serviceWorker.ready.then(regReady => {
-            if (regReady.active && regReady.active.postMessage) {
-              regReady.active.postMessage({ type: 'LIST_CACHES' });
-            }
-          });
-        })
-        .catch(()=>{});
-      navigator.serviceWorker.addEventListener('message', ()=>{});
-    }
-  });
-</script>
-</head>
-<body>
-<div class="app-bg" aria-hidden="true"></div>
-<header><div class="app-title">TF-Chat</div></header>
-<div class="banner" id="pwBanner">Tanpri mete yon modpas pou sekirize sesyon ou. Ou gen 2 min pou sove li.</div>
-<main>
-  <section id="section-accueil">
-    <section class="search">
-      <div class="search-box" role="search">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none"><path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="1.6"/><circle cx="11" cy="11" r="6" stroke="currentColor" stroke-width="1.6"/></svg>
-        <input id="searchInput" placeholder="Recherche (TFID ou 7 chif)" aria-label="Recherche" />
-        <button id="searchBtn" class="search-btn">Rechercher</button>
-      </div>
-    </section>
-    <section class="list" id="contactsList" aria-live="polite"></section>
-  </section>  <section id="section-groupes" style="display:none">
-    <section class="search">
-      <div class="search-box" role="search">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none"><path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="1.6"/><circle cx="11" cy="11" r="6" stroke="currentColor" stroke-width="1.6"/></svg>
-        <input id="groupSearchInput" placeholder="Chercher un groupe…" aria-label="Recherche groupe" />
-        <button id="groupSearchBtn" class="search-btn">Recherche</button>
-      </div>
-    </section>
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px">
-      <div style="font-weight:700">Mes groupes</div>
-      <button id="openCreateGroup" class="search-btn" style="background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--text);padding:8px 12px;border-radius:10px">Créer</button>
-    </div>
-    <section class="list" id="groupsList" aria-live="polite" style="margin-top:12px"></section>
-  </section>
-</main><div class="tabbar">
-  <div id="tabAccueil" class="tab active">Accueil</div>
-  <div id="tabGroupes" class="tab">Groupes</div>
-</div><div id="chatModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.96);z-index:1200">
-  <div style="height:100%;display:flex;flex-direction:column">
-    <div style="height:56px;display:flex;align-items:center;padding:8px 12px;border-bottom:1px solid rgba(255,255,255,0.03)">
-      <button id="chatBack" style="background:transparent;border:0;color:var(--text);cursor:pointer">←</button>
-      <div style="flex:1;text-align:center;font-weight:700;cursor:pointer" id="chatTitle">Chat</div>
-      <div style="width:44px"></div>
-    </div>
-    <div class="messages-wrap">
-      <div class="messages" id="messages"></div>
-    </div>
-    <div class="chat-input" id="chatInputRow">
-      <input id="chatText" class="input" placeholder="Ekri mesaj..." autocomplete="off" />
-      <button id="sendBtn" class="send-btn">Envoyer</button>
-    </div>
-  </div>
-</div><div class="create-group" id="createGroupModal">
-  <div class="create-panel">
-    <h3>Kreye gwoup</h3>
-    <div style="display:flex;gap:12px">
-      <div>
-        <div class="create-avatar" id="groupAvatarPicker" title="Chwazi logo/gwoup">
-          <span id="groupAvatarLabel">+</span>
-          <img id="groupAvatarPreview" style="display:none" />
-        </div>
-        <input type="file" id="groupAvatarFile" accept="image/*" style="display:none">
-      </div>
-      <div style="flex:1">
-        <div style="margin-bottom:10px">
-          <label>Non gwoup <span style="color:#ef4444">*</span></label>
-          <input id="groupNameInput" style="width:100%;padding:8px;border-radius:8px;border:1px solid #e6eef3;margin-top:6px" />
-        </div>
-        <div style="margin-bottom:10px">
-          <label>Bio (opsyonèl)</label>
-          <textarea id="groupBioInput" rows="3" style="width:100%;padding:8px;border-radius:8px;border:1px solid #e6eef3;margin-top:6px"></textarea>
-        </div>
-        <div style="display:flex;justify-content:flex-end;gap:8px">
-          <button id="createCancel" style="padding:8px 12px;border-radius:8px;border:1px solid #e6edf3;background:white;cursor:pointer">Retour</button>
-          <button id="createConfirm" class="search-btn">Valider</button>
-        </div>
-      </div>
-    </div>
-  </div>
-</div><div class="group-manage" id="groupManageModal">
-  <div class="group-panel" role="dialog" aria-modal="true">
-    <h3 id="groupManageTitle" style="margin-top:0">Gérer gwoup</h3>
-    <div class="group-members" id="groupMembersList">Chargement…</div>
-    <div style="display:flex;gap:8px;margin-bottom:10px">
-      <input id="groupAddTfid" placeholder="Antre TFID (7 oswa 17 chif)" style="flex:1;padding:8px;border-radius:8px;border:1px solid #e6eef3" />
-      <button id="groupAddBtn" class="search-btn">Ajoute</button>
-    </div>
-    <div style="display:flex;justify-content:flex-end;gap:8px">
-      <button id="groupManageClose" style="padding:8px 12px;border-radius:8px;border:1px solid #e6edf3;background:white;cursor:pointer">Fèmen</button>
-    </div>
-  </div>
-</div><input type="file" id="profileFile" accept="image/*" style="display:none" /><div class="profile-modal" id="profileModal">
-  <div class="profile-card" role="dialog" aria-modal="true">
-    <div class="profile-row">
-      <div class="profile-avatar" id="profileAvatar">U</div>
-      <div>
-        <div id="profileName" style="font-weight:800">Utilisateur</div>
-        <div id="profileTfid" class="small">TF-0000000</div>
-      </div>
-    </div>
-    <div style="display:flex;gap:8px;justify-content:flex-end">
-      <button id="addContactBtn" style="padding:8px 12px;border-radius:8px;border:1px solid #e6edf3;background:white;cursor:pointer">Ajouter</button>
-      <button id="blockBtn" style="padding:8px 12px;border-radius:8px;background:#ef4444;color:white;border:none;cursor:pointer">Bloquer</button>
-      <button id="closeProfileBtn" style="padding:8px 12px;border-radius:8px;border:1px solid #e6edf3;background:white;cursor:pointer">Fermer</button>
-    </div>
-  </div>
-</div><div id="settingsModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:1200;align-items:center;justify-content:center;">
-  <div class="settings-panel" role="dialog" aria-modal="true">
-    <h3 style="margin:0 0 12px 0">Paramètres — Identité</h3>
-    <div style="margin-bottom:8px">
-      <label class="settings-label">Pseudo affiché</label>
-      <input id="profileNameInput" style="width:100%;padding:10px;border-radius:8px;border:1px solid #e6eef3;margin-top:6px" />
-    </div>
-    <div style="margin-bottom:12px">
-      <label class="settings-label">TFID (7 chif) — ex: 0204143</label>
-      <input id="profileTfidInput" style="width:100%;padding:10px;border-radius:8px;border:1px solid #e6eef3;margin-top:6px" />
-      <div style="font-size:12px;color:#6b7280;margin-top:6px">Sere TFID tankou TF-XXXXXXX. Sistèm lan konvèti pou TF-17-chif otomatikman.</div>
-    </div>
-    <div style="margin-bottom:12px">
-      <label class="settings-label">Mot de passe (créer / changer)</label>
-      <input id="profilePwInput" type="password" placeholder="Nouveau mot de passe" style="width:100%;padding:10px;border-radius:8px;border:1px solid #e6eef3;margin-top:6px" />
-      <div style="font-size:12px;color:#6b7280;margin-top:6px">Le mot de passe est haché côté client et stocké localement. Ne partagez pas ce mot de passe.</div>
-    </div>
-    <div style="display:flex;justify-content:flex-end;gap:8px">
-      <button id="settingsCancel" style="padding:8px 12px;border-radius:8px;border:1px solid #e6edf3;background:white;cursor:pointer">Annuler</button>
-      <button id="profileSave" style="padding:8px 12px;border-radius:8px;background:#007aff;color:white;border:none;cursor:pointer">Sove</button>
-    </div>
-  </div>
-</div><script>
+/* -------------- CONFIG -------------- */
 const API_BASE = 'https://tf-sove.onrender.com';
 const PROFILE_UPLOAD_URL = API_BASE + '/upload';
 const FRONTEND_NAME = 'site1';
 const ADMIN_API_TOKEN = 'tfstream_45dd9c02d4e34f18a42d';
 const WS_URL = (location.protocol === "https:" ? "wss://" : "ws://") + "tf-sove.onrender.com/ws";
 
+/* -------------- CACHE / PERSISTENCE -------------- */
+const CACHE_KEY_PREFIX = 'tfchat.cache.';    // per conversation key
+const MAX_SAVE_MESSAGES = 200;               // keep last N messages per convo
+const MAX_MSG_LEN = 2000;                    // limit client-side message length
+
+function saveConversationCacheForKey(key){
+  try{
+    const arr = conversationCache[key] || [];
+    const toSave = arr.slice(-MAX_SAVE_MESSAGES).map(m => ({
+      id: m.id||null, cid: m.cid||null, from: m.from||null,
+      text: m.text||'', parsed_time: m.parsed_time||null,
+      _db_created_at: m._db_created_at||null, created_at: m.created_at||null
+    }));
+    localStorage.setItem(CACHE_KEY_PREFIX + key, JSON.stringify(toSave));
+  }catch(e){ console.warn('save cache failed', e); }
+}
+function loadConversationCacheForKey(key){
+  try{
+    const raw = localStorage.getItem(CACHE_KEY_PREFIX + key);
+    if(!raw) return;
+    const arr = JSON.parse(raw);
+    if(!Array.isArray(arr)) return;
+    conversationCache[key] = conversationCache[key] || [];
+    // merge but avoid duplicates
+    const seen = new Set((conversationCache[key]||[]).map(messageUniqueKey));
+    for(const r of arr){
+      const m = Object.assign({}, r);
+      const uq = messageUniqueKey(m);
+      if(!seen.has(uq)){
+        conversationCache[key].push(m);
+        seen.add(uq);
+      }
+    }
+    conversationCache[key].sort(compareMessagesAsc);
+  }catch(e){ console.warn('load cache failed', e); }
+}
+function loadAllCachedConversations(){
+  try{
+    for(const k in localStorage){
+      if(!Object.prototype.hasOwnProperty.call(localStorage,k)) continue;
+      if(!k.startsWith(CACHE_KEY_PREFIX)) continue;
+      try{
+        const key = k.substring(CACHE_KEY_PREFIX.length);
+        const raw = localStorage.getItem(k);
+        if(!raw) continue;
+        const arr = JSON.parse(raw);
+        if(Array.isArray(arr)){
+          conversationCache[key] = (arr.slice(-MAX_SAVE_MESSAGES) || []).map(m=>m);
+        }
+      }catch(e){}
+    }
+  }catch(e){ console.warn('loadAllCachedConversations error', e); }
+}
+
+/* -------------- UTIL / HELPERS -------------- */
 function normalizeInputToDigits(inp){ if(!inp) return null; const s=String(inp).trim().toUpperCase(); const digits=s.replace(/[^0-9]/g,''); return digits||null; }
 function to17(shortOrDigits){ if(!shortOrDigits) return null; const ds=String(shortOrDigits).replace(/[^0-9]/g,''); if(ds.length>17) return ds.slice(-17); return ds.padStart(17,'0'); }
 function formatTFShort(digitsString){ if(!digitsString) return ''; const s=String(digitsString).replace(/[^0-9]/g,''); const last7 = s.slice(-7); return 'TF-'+ last7.padStart(7,'0'); }
@@ -266,11 +162,13 @@ function parseDatePrefer(isoOrDb, parsedTime){ const t1 = parsedTime ? Date.pars
 async function hashPasswordHex(pw){ const enc = new TextEncoder(); const data = enc.encode(String(pw)); const hashBuffer = await crypto.subtle.digest('SHA-256', data); const hashArray = Array.from(new Uint8Array(hashBuffer)); return hashArray.map(b => b.toString(16).padStart(2,'0')).join(''); }
 function isValidTfid(tfid){ return typeof tfid === 'string' && /^\d{17}$/.test(tfid); }
 
+/* -------------- STATE -------------- */
 let me = { short: localStorage.getItem('tfchat.me.short') || null, tf17: localStorage.getItem('tfchat.me.17') || null, name: localStorage.getItem('tfchat.me.name') || 'Utilisateur', avatarDataUrl: localStorage.getItem('tfchat.me.avatar') || null };
 let contacts = JSON.parse(localStorage.getItem('tfchat.contacts') || '[]');
 let groups = [];
 let ws = null; let reconnectTimer = null; let currentPartner = null; let currentGroup = null; const conversationCache = {}; let pwWarningTimer = null; let pwForceReloadTimer = null;
 
+/* -------------- DOM REFS -------------- */
 const tabAccueil = document.getElementById('tabAccueil');
 const tabGroupes = document.getElementById('tabGroupes');
 const sectionAccueil = document.getElementById('section-accueil');
@@ -327,6 +225,7 @@ const fileInput = document.getElementById('profileFile');
 const appTitleEl = document.querySelector('.app-title');
 const chatTitleEl = document.getElementById('chatTitle');
 
+/* -------------- STORAGE HELPERS -------------- */
 function saveState(){ localStorage.setItem('tfchat.me.short', me.short || ''); localStorage.setItem('tfchat.me.17', me.tf17 || ''); localStorage.setItem('tfchat.me.name', me.name || ''); if(me.avatarDataUrl) localStorage.setItem('tfchat.me.avatar', me.avatarDataUrl); localStorage.setItem('tfchat.contacts', JSON.stringify(contacts || [])); localStorage.setItem('tfchat.groups', JSON.stringify(groups || [])); }
 function initials(name){ if(!name) return 'U'; return name.split(' ').map(p=>p[0]).slice(0,2).join('').toUpperCase(); }
 function pwKeyForTf(tf17){ return `tfchat.pw.${tf17}`; }
@@ -334,13 +233,15 @@ function hasPasswordFor(tf17){ return !!localStorage.getItem(pwKeyForTf(tf17)); 
 function storePasswordHash(tf17, hexHash){ localStorage.setItem(pwKeyForTf(tf17), hexHash); }
 function getPasswordHash(tf17){ return localStorage.getItem(pwKeyForTf(tf17)); }
 
+/* -------------- RENDER -------------- */
 function updateSettingsUI(){ profileNameInput.value = me.name || ''; profileTfidInput.value = (me.tf17 || '').replace(/^TF-?/i, '').slice(-7); profilePwInput.value = ''; }
-function renderContacts(filter=''){ contactsListEl.innerHTML = ''; const q = (filter||'').toLowerCase().trim(); const list = contacts.filter(c => { if(!q) return true; return (c.name||'').toLowerCase().includes(q) || (c.tf17||'').toLowerCase().includes(q); }); if(list.length === 0){ const div = document.createElement('div'); div.className = 'muted'; div.textContent = 'Pa gen kontak. Rechèch yon TFID oswa ajoute yon kontak.'; contactsListEl.appendChild(div); return; } list.forEach(c => { const el = document.createElement('div'); el.className = 'contact'; el.dataset.tf17 = c.tf17 || ''; const avatarHtml = c.logo ? `<img src="${c.logo}" style="width:100%;height:100%;border-radius:50%">` : (c.avatar ? `<img src="${c.avatar}" />` : escapeHtml((c.name||formatTFShort(c.tf17) || '').slice(0,2))); const blockedBadge = c.blocked ? ' <span style="color:#ffdcdc;font-weight:700"> (Bloqué)</span>' : ''; el.innerHTML = `<div class="avatar">${avatarHtml}</div><div class="meta"><div class="meta-top"><div class="name">${escapeHtml(c.name||formatTFShort(c.tf17)||'')}${blockedBadge}</div><div class="time">${c.lastTs? timeAgo(c.lastTs): ''}</div></div><div class="meta-bottom"><div class="snippet">${escapeHtml(c.lastMsg||'')}</div><div>${c.unread?'<span class="badge">'+c.unread+'</span>':''}</div></div></div>`; el.addEventListener('click', ()=> { openChat(c.tf17, c, true); }); contactsListEl.appendChild(el); }); }
+function renderContacts(filter=''){ contactsListEl.innerHTML = ''; const q = (filter||'').toLowerCase().trim(); const list = contacts.filter(c => { if(!q) return true; return (c.name||'').toLowerCase().includes(q) || (c.tf17||'').toLowerCase().includes(q); }); if(list.length === 0){ const div = document.createElement('div'); div.className = 'muted'; div.textContent = 'Pa gen kontak. Rechèch yon TFID oswa ajoute yon kontak.'; contactsListEl.appendChild(div); return; } list.forEach(c => { const el = document.createElement('div'); el.className = 'contact'; el.dataset.tf17 = c.tf17 || ''; const avatarHtml = c.logo ? `<img src="${c.logo}" style="width:100%;height:100%;border-radius:50%">` : (c.avatar ? `<img src="${c.avatar}" />` : escapeHtml((c.name||formatTFShort(c.tf17) || '').slice(0,2))); const blockedBadge = c.blocked ? ' <span style="color:#ffdcdc;font-weight:700"> (Bloqué)</span>' : ''; const lastTs = c.lastTs? timeAgo(c.lastTs): ''; const snippet = escapeHtml(c.lastMsg||''); el.innerHTML = `<div class="avatar">${avatarHtml}</div><div class="meta"><div class="meta-top"><div class="name">${escapeHtml(c.name||formatTFShort(c.tf17)||'')}${blockedBadge}</div><div class="time">${lastTs}</div></div><div class="meta-bottom"><div class="snippet">${snippet}</div><div>${c.unread?'<span class="badge">'+c.unread+'</span>':''}</div></div></div>`; el.addEventListener('click', ()=> { openChat(c.tf17, c, true); }); contactsListEl.appendChild(el); }); }
 
 function renderGroups(filter=''){ groupsListEl.innerHTML = ''; const q = (filter||'').toLowerCase().trim(); const list = Array.isArray(groups) ? groups.filter(g => { if(!q) return true; return (g.name||'').toLowerCase().includes(q) || (g.owner_name||'').toLowerCase().includes(q); }) : []; if(list.length === 0){ const div = document.createElement('div'); div.className = 'muted'; div.textContent = "Vous avez aucun groupe pour l'instant"; groupsListEl.appendChild(div); return; } list.forEach(g => { const el = document.createElement('div'); el.className = 'contact'; const avatarHtml = g.avatar_url ? `<img src="${g.avatar_url}" />` : escapeHtml((g.name||'G').slice(0,2)); el.innerHTML = `<div class="avatar">${avatarHtml}</div><div class="meta"><div class="meta-top"><div class="name">${escapeHtml(g.name||'')}</div><div class="time">${g.created_at? new Date(g.created_at).toLocaleDateString() : ''}</div></div><div class="meta-bottom"><div class="snippet">${escapeHtml(g.bio||'')}</div><div></div></div></div>`; el.addEventListener('click', ()=> { openGroupChat(g.name); }); const manageBtn = document.createElement('button'); manageBtn.className = 'group-manage-btn'; manageBtn.textContent = 'Gérer'; manageBtn.addEventListener('click', (ev)=>{ ev.stopPropagation(); openGroupManageModal(g.name); }); const meta = el.querySelector('.meta'); if(meta){ const mb = document.createElement('div'); mb.style.display = 'flex'; mb.style.alignItems = 'center'; mb.appendChild(manageBtn); meta.appendChild(mb); } groupsListEl.appendChild(el); }); }
 
 function timeAgo(ts){ if(!ts) return ''; const diff=Math.floor((Date.now()-ts)/1000); if(diff<60) return diff+'s'; if(diff<3600) return Math.floor(diff/60)+'m'; if(diff<86400) return Math.floor(diff/3600)+'h'; return new Date(ts).toLocaleDateString(); }
 
+/* -------------- NETWORK HELPERS -------------- */
 async function callJSON(url, opts = {}) { opts = Object.assign({}, opts); opts.headers = Object.assign({}, opts.headers || {}, { 'Accept': 'application/json' }); try { const r = await fetch(url, opts); const text = await r.text(); let json = null; try{ json = JSON.parse(text); }catch(e){} return { ok: r.ok, status: r.status, json, text }; } catch (err) { return { ok: false, error: err.message }; } }
 
 async function apiList(tf17){ const url = `${API_BASE}/api/list?tfid=${encodeURIComponent(tf17)}&name=${encodeURIComponent(FRONTEND_NAME)}`; const r = await callJSON(url); if(!r.ok) throw new Error(r.json?.error || r.text || `HTTP ${r.status}`); return r.json.rows || []; }
@@ -349,6 +250,7 @@ async function apiAdd(recipient17, contentObj){ const body = { tfid: recipient17
 
 async function registerFrontendIfNeeded(){ try { const url = `${API_BASE}/admin/register-frontend`; const payload = { name: FRONTEND_NAME, callback_url: location.origin }; const r = await callJSON(url, { method:"POST", headers:{"Content-Type":"application/json","x-api-token": ADMIN_API_TOKEN}, body: JSON.stringify(payload) }); return r.ok; } catch(e){ return false; } }
 
+/* Admin group helpers */
 async function adminCreateGroup({ name, owner_name, bio, avatar_url }){ const url = `${API_BASE}/admin/groups/create`; const r = await callJSON(url, { method:'POST', headers:{ 'Content-Type':'application/json', 'x-api-token': ADMIN_API_TOKEN }, body: JSON.stringify({ name, owner_name, bio, avatar_url }) }); if(!r.ok) throw new Error(r.json?.error || r.text || `HTTP ${r.status}`); return r.json; }
 async function adminAddMember({ group_name, tfid }){ const url = `${API_BASE}/admin/groups/add`; const r = await callJSON(url, { method:'POST', headers:{ 'Content-Type':'application/json', 'x-api-token': ADMIN_API_TOKEN }, body: JSON.stringify({ group_name, tfid }) }); if(!r.ok) throw new Error(r.json?.error || r.text || `HTTP ${r.status}`); return r.json; }
 async function adminGetMembers(group_name){ try { const url = `${API_BASE}/admin/groups/members?group_name=${encodeURIComponent(group_name)}`; const resp = await fetch(url, { method:'GET', headers: { 'Accept':'application/json', 'x-api-token': ADMIN_API_TOKEN } }); const txt = await resp.text(); let json = null; try{ json = JSON.parse(txt); }catch(e){ json = null; } if(!resp.ok) throw new Error(json?.error || txt || `HTTP ${resp.status}`); return json.members || []; } catch (e) { throw e; } }
@@ -357,12 +259,73 @@ async function fetchGroupsForMe(){ if(!me.tf17) { groups = JSON.parse(localStora
 
 async function uploadFileToProfile(file){ const fd = new FormData(); fd.append('file', file); const resp = await fetch(PROFILE_UPLOAD_URL, { method:'POST', body: fd }); const text = await resp.text().catch(()=>null); let json = null; try{ json = JSON.parse(text); }catch(e){} if(!resp.ok || !json || !(json.ok || json.success) || !(json.url || json.path)) { const msg = json?.error || text || `status ${resp.status}`; throw new Error('Upload failed: ' + msg); } return json.url || json.path; }
 
+/* -------------- CONVERSATION CACHE LOGIC -------------- */
 function convKey(a,b){ return `${a}|${b}`; }
 function messageUniqueKey(m){ if(m.cid) return "cid:"+m.cid; if(m.id) return "id:"+m.id; return "temp:"+ (m._tempKey || (m._tempKey = Math.random().toString(36).slice(2))); }
 function compareMessagesAsc(a,b){ const ta = parseDatePrefer(a._db_created_at, a.parsed_time); const tb = parseDatePrefer(b._db_created_at, b.parsed_time); if(ta !== tb) return ta - tb; if(a.id && b.id && a.id !== b.id) return Number(a.id) - Number(b.id); if(a.cid && b.cid && a.cid !== b.cid) return a.cid < b.cid ? -1 : 1; return 0; }
-function addOrUpdateMessageToCache(me17, other17, msg){ const key = convKey(me17, other17); if(!conversationCache[key]) conversationCache[key] = []; const list = conversationCache[key]; const findIndex = msg.cid ? list.findIndex(x => x.cid && x.cid === msg.cid) : (msg.id ? list.findIndex(x => x.id && String(x.id) === String(msg.id)) : -1); if(findIndex !== -1){ list[findIndex] = Object.assign({}, list[findIndex], msg); } else { list.push(msg); } list.sort(compareMessagesAsc); }
+function addOrUpdateMessageToCache(me17, other17, msg){
+  const key = convKey(me17, other17);
+  if(!conversationCache[key]) conversationCache[key] = [];
+  const list = conversationCache[key];
+  const findIndex = msg.cid ? list.findIndex(x => x.cid && x.cid === msg.cid) : (msg.id ? list.findIndex(x => x.id && String(x.id) === String(msg.id)) : -1);
+  if(findIndex !== -1){
+    list[findIndex] = Object.assign({}, list[findIndex], msg);
+  } else {
+    list.push(msg);
+  }
+  list.sort(compareMessagesAsc);
+  // persist
+  try { saveConversationCacheForKey(key); } catch(e){}
+}
 
-async function loadConversation(me17, other17){ const key = convKey(me17, other17); conversationCache[key] = conversationCache[key] || []; const seen = new Set(); function pushRow(r, expectedFrom){ let parsed = null; try { parsed = JSON.parse(r.content); } catch(e){ parsed = null; } const parsedFrom = parsed && parsed.from ? parsed.from : null; const parsedTime = parsed && parsed.time ? parsed.time : null; const parsedCid = parsed && parsed.cid ? parsed.cid : null; const parsedText = parsed && (parsed.text || parsed.message) ? (parsed.text || parsed.message) : (r.content || ""); if(!parsedFrom || parsedFrom !== expectedFrom) return; const m = { id: r.id || null, cid: parsedCid || null, from: parsedFrom, text: parsedText, parsed_time: parsedTime || null, _db_created_at: r.created_at || null, created_at: parsedTime || r.created_at || nowISO() }; const keyu = messageUniqueKey(m); if(seen.has(keyu)) return; seen.add(keyu); addOrUpdateMessageToCache(me17, other17, m); }
+/* Try to reconcile optimistic message with server response details (id/created_at) */
+function reconcileSentMessage(me17, other17, cid, serverResp){
+  const key = convKey(me17, other17);
+  const list = conversationCache[key] || [];
+  const idx = list.findIndex(m => m.cid && m.cid === cid);
+  if(idx !== -1){
+    const newFields = {};
+    // server may return common fields (id, created_at, inserted_id, row)
+    if(serverResp && typeof serverResp === 'object'){
+      if(serverResp.id) newFields.id = serverResp.id;
+      if(serverResp.insertedId) newFields.id = serverResp.insertedId;
+      if(serverResp.created_at) newFields.created_at = serverResp.created_at;
+      if(serverResp.createdAt) newFields.created_at = serverResp.createdAt;
+      if(serverResp.time) newFields.created_at = serverResp.time;
+      // some APIs wrap row: { id, created_at }
+      if(serverResp.row && serverResp.row.id) newFields.id = serverResp.row.id;
+    }
+    if(Object.keys(newFields).length>0){
+      list[idx] = Object.assign({}, list[idx], newFields, {_optimistic:false});
+      addOrUpdateMessageToCache(me17, other17, list[idx]);
+      // re-render if visible
+      if(currentPartner && currentPartner.tf17 === other17) renderConversation(me17, other17);
+    }
+  }
+}
+
+/* -------------- LOAD / RENDER CONVERSATION -------------- */
+async function loadConversation(me17, other17){
+  const key = convKey(me17, other17);
+  conversationCache[key] = conversationCache[key] || [];
+  // load persisted cached messages first (avoid flashing empty)
+  loadConversationCacheForKey(key);
+
+  const seen = new Set();
+  function pushRow(r, expectedFrom){
+    let parsed = null;
+    try { parsed = JSON.parse(r.content); } catch(e){ parsed = null; }
+    const parsedFrom = parsed && parsed.from ? parsed.from : null;
+    const parsedTime = parsed && parsed.time ? parsed.time : null;
+    const parsedCid = parsed && parsed.cid ? parsed.cid : null;
+    const parsedText = parsed && (parsed.text || parsed.message) ? (parsed.text || parsed.message) : (r.content || "");
+    if(!parsedFrom || parsedFrom !== expectedFrom) return;
+    const m = { id: r.id || null, cid: parsedCid || null, from: parsedFrom, text: parsedText, parsed_time: parsedTime || null, _db_created_at: r.created_at || null, created_at: parsedTime || r.created_at || nowISO() };
+    const keyu = messageUniqueKey(m);
+    if(seen.has(keyu)) return;
+    seen.add(keyu);
+    addOrUpdateMessageToCache(me17, other17, m);
+  }
 
   try {
     const outRows = await apiList(other17);
@@ -381,17 +344,45 @@ async function loadConversation(me17, other17){ const key = convKey(me17, other1
   renderConversation(me17, other17);
 }
 
+/* Ensure padding bottom when input overlays messages */
 function ensureMessagesPadding(){ const wrap = document.querySelector('#chatModal .messages-wrap'); if(!wrap) return; const inputRow = document.getElementById('chatInputRow'); const h = inputRow ? inputRow.getBoundingClientRect().height : 80; wrap.style.paddingBottom = (h + 16) + 'px'; }
 window.addEventListener('resize', ensureMessagesPadding);
 
-function renderConversation(me17, other17){ ensureMessagesPadding(); const key = convKey(me17, other17); const arr = conversationCache[key] ? [...conversationCache[key]] : []; messagesEl.innerHTML = ''; if(arr.length === 0){ messagesEl.innerHTML = `<div class="muted">Pa gen mesaj ankò.</div>`; } else { arr.sort(compareMessagesAsc); for(const m of arr){ const d = document.createElement('div'); d.className = 'msg ' + (m.from === me17 ? 'user' : 'bot'); const ts = m.created_at ? (new Date(m.created_at)).toLocaleString() : ''; let checksHtml = ''; if(m.from === me17){ if(m.id) checksHtml = '<span class="checks">✓✓</span>'; else checksHtml = '<span class="checks">✓</span>'; } d.innerHTML = `<div>${escapeHtml(m.text)}</div><div style="font-size:11px;color:var(--muted);margin-top:6px">${formatTFShort(m.from||'')} • ${ts} ${checksHtml}</div>`; messagesEl.appendChild(d); } } setTimeout(()=> { messagesEl.parentElement.scrollTop = messagesEl.parentElement.scrollHeight; }, 50); }
+function renderConversation(me17, other17){
+  ensureMessagesPadding();
+  const key = convKey(me17, other17);
+  const arr = conversationCache[key] ? [...conversationCache[key]] : [];
+  messagesEl.innerHTML = '';
+  if(arr.length === 0){ messagesEl.innerHTML = `<div class="muted">Pa gen mesaj ankò.</div>`; } else {
+    arr.sort(compareMessagesAsc);
+    for(const m of arr){
+      const d = document.createElement('div');
+      d.className = 'msg ' + (m.from === me17 ? 'user' : 'bot');
+      const ts = m.created_at ? (new Date(m.created_at)).toLocaleString() : '';
+      let checksHtml = '';
+      if(m.from === me17){ if(m.id) checksHtml = '<span class="checks">✓✓</span>'; else checksHtml = '<span class="checks">✓</span>'; }
+      // message text with clamp & safe HTML
+      const safeText = escapeHtml(m.text || '');
+      d.innerHTML = `<div class="msg-text">${safeText}</div><div class="msg-meta">${formatTFShort(m.from||'')} • ${ts} ${checksHtml}</div>`;
+      messagesEl.appendChild(d);
+    }
+  }
+  setTimeout(()=> { const parent = messagesEl.parentElement; if(parent) parent.scrollTop = parent.scrollHeight; }, 50);
+}
 
+/* -------------- OPEN CHATS / SEND MESSAGES -------------- */
 async function openChat(other17, contactObj=null, pushHistory=true){
   currentPartner = { tf17: other17, name: (contactObj && contactObj.name) || null };
   chatTitleEl.textContent = (currentPartner.name || formatTFShort(currentPartner.tf17));
   const c = contacts.find(x => x.tf17 === other17);
   if(c){ c.unread = 0; saveState(); renderContacts(); }
-  messagesEl.innerHTML = '<div class="muted">Chaje mesaj...</div>';
+  // show cached messages immediately if any
+  const k = convKey(me.tf17||'anon', other17);
+  if(conversationCache[k] && conversationCache[k].length>0){
+    renderConversation(me.tf17||null, other17);
+  } else {
+    messagesEl.innerHTML = '<div class="muted">Chaje mesaj...</div>';
+  }
   try { await loadConversation(me.tf17 || null, other17); } catch(e){ messagesEl.innerHTML = `<div class="muted">Pa kapab chaje mesaj: ${escapeHtml(e.message||e)}</div>`; }
   showChatModal();
   try {
@@ -407,14 +398,20 @@ function openGroupChat(groupName){
   currentGroup = groupName;
   currentPartner = null;
   chatTitleEl.textContent = `# ${groupName}`;
-  messagesEl.innerHTML = '<div class="muted">Chaje mesaj gwoup...</div>';
+  const key = convKey(me.tf17 || 'anon', `GROUP:${groupName}`);
+  // show local cache first if exist
+  if(conversationCache[key] && conversationCache[key].length>0){
+    renderConversation(me.tf17||'anon', key.split('|')[1]);
+  } else {
+    messagesEl.innerHTML = '<div class="muted">Chaje mesaj gwoup...</div>';
+  }
   (async ()=>{
     try {
       const r = await callJSON(`${API_BASE}/api/group/messages?group_name=${encodeURIComponent(groupName)}&tfid=${encodeURIComponent(me.tf17||'')}&name=${encodeURIComponent(FRONTEND_NAME)}`);
       if(!r.ok) throw new Error(r.json?.error || r.text || `HTTP ${r.status}`);
       const rows = r.json.rows || [];
-      const key = convKey(me.tf17 || 'anon', `GROUP:${groupName}`);
-      conversationCache[key] = [];
+      const cacheKey = convKey(me.tf17 || 'anon', `GROUP:${groupName}`);
+      conversationCache[cacheKey] = [];
       for(const row of rows.reverse()){
         let parsed = null; try{ parsed = JSON.parse(row.content); }catch(e){ parsed = null; }
         const from = parsed?.from || null;
@@ -423,7 +420,7 @@ function openGroupChat(groupName){
         if(!from) continue;
         addOrUpdateMessageToCache(me.tf17 || 'anon', `GROUP:${groupName}`, { id: row.id, from, text, created_at });
       }
-      renderConversation(me.tf17 || 'anon', `GROUP:${groupName}`, true);
+      renderConversation(me.tf17 || 'anon', `GROUP:${groupName}`);
       showChatModal();
       try { history.pushState({ group: groupName }, '', '/groupe/' + encodeURIComponent(groupName)); } catch(e){}
     } catch(e){
@@ -436,7 +433,29 @@ function openGroupChat(groupName){
 function showChatModal(){ chatModalEl.style.display = 'block'; ensureMessagesPadding(); setTimeout(()=> chatTextEl?.focus(), 150); }
 function hideChatModal(){ chatModalEl.style.display = 'none'; currentPartner = null; currentGroup = null; }
 
-async function sendMessageFromModal(){ const txt = (chatTextEl?.value || '').trim(); if(!txt) return; if(!me.tf17){ alert('Ou dwe mete TFID nan Paramètres avan ou voye mesaj. Klike sou TF-Chat anlè a pou mete li.'); return; } if(currentGroup){ const payload = { type:'text', group: currentGroup, from: me.tf17, text: txt, time: nowISO(), cid: makeCid(), name: me.name || null }; addOrUpdateMessageToCache(me.tf17, `GROUP:${currentGroup}`, { id:null, cid: payload.cid, from: me.tf17, text: txt, created_at: payload.time }); renderConversation(me.tf17, `GROUP:${currentGroup}`, true); chatTextEl.value = ''; try { const body = { group_name: currentGroup, name: FRONTEND_NAME, content: JSON.stringify(payload), content_type: 'group' }; const r = await callJSON(`${API_BASE}/api/add`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) }); if(!r.ok) throw new Error(r.json?.error || r.text || `HTTP ${r.status}`); } catch(e){ alert('Envoi gwoup echwe: ' + (e.message||e)); } return; }
+async function sendMessageFromModal(){
+  let txt = (chatTextEl?.value || '').trim();
+  if(!txt) return;
+  if(txt.length > MAX_MSG_LEN){
+    if(!confirm(`Mesaj la twò long (>${MAX_MSG_LEN} karaktè). Li pral koupe. Kontinye ?`)) return;
+    txt = txt.slice(0, MAX_MSG_LEN);
+  }
+  if(!me.tf17){ alert('Ou dwe mete TFID nan Paramètres avan ou voye mesaj. Klike sou TF-Chat anlè a pou mete li.'); return; }
+  if(currentGroup){
+    const payload = { type:'text', group: currentGroup, from: me.tf17, text: txt, time: nowISO(), cid: makeCid(), name: me.name || null };
+    addOrUpdateMessageToCache(me.tf17, `GROUP:${currentGroup}`, { id:null, cid: payload.cid, from: me.tf17, text: txt, created_at: payload.time, _optimistic:true });
+    renderConversation(me.tf17, `GROUP:${currentGroup}`);
+    chatTextEl.value = '';
+    try {
+      const body = { group_name: currentGroup, name: FRONTEND_NAME, content: JSON.stringify(payload), content_type: 'group' };
+      const r = await callJSON(`${API_BASE}/api/add`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+      if(!r.ok) throw new Error(r.json?.error || r.text || `HTTP ${r.status}`);
+      // reconcile if server returns info
+      reconcileSentMessage(me.tf17, `GROUP:${currentGroup}`, payload.cid, r.json || {});
+    } catch(e){ alert('Envoi gwoup echwe: ' + (e.message||e)); }
+    return;
+  }
+
   if(!currentPartner){ alert('Pa gen konvèsasyon chwazi.'); return; }
   const recipient17 = currentPartner.tf17;
   const c = contacts.find(x=>x.tf17===recipient17);
@@ -447,12 +466,49 @@ async function sendMessageFromModal(){ const txt = (chatTextEl?.value || '').tri
   renderConversation(me.tf17, recipient17);
   chatTextEl.value = '';
   if(c){ c.lastMsg = txt; c.lastTs = Date.now(); saveState(); renderContacts(); }
-  try { await apiAdd(recipient17, payload); startShortPollForMessage(recipient17, cid); } catch(e){ alert('Envoi echwe: ' + (e.message||e)); }
+  try {
+    const resp = await apiAdd(recipient17, payload);
+    // if API returns info, try to reconcile optimistic message
+    reconcileSentMessage(me.tf17, recipient17, cid, resp || {});
+    // short poll as fallback
+    startShortPollForMessage(recipient17, cid);
+  } catch(e){
+    alert('Envoi echwe: ' + (e.message||e));
+  }
 }
 
-function startShortPollForMessage(target17, cid){ let tries = 0; const maxTries = 6; const interval = 1200; const attempt = async ()=>{ tries++; try { const rows = await apiList(target17); const found = rows.find(r => { try { const p = JSON.parse(r.content); return p && p.cid === cid; } catch(e){ return false; } }); if(found){ await loadConversation(me.tf17, target17); return true; } } catch(e){} if(tries < maxTries) setTimeout(attempt, interval); }; attempt(); }
+function startShortPollForMessage(target17, cid){
+  let tries = 0; const maxTries = 8; const interval = 1200;
+  const attempt = async ()=>{
+    tries++;
+    try{
+      // check outgoing list for target (where we wrote the message)
+      const rows = await apiList(target17);
+      const found = rows.find(r => {
+        try { const p = JSON.parse(r.content); return p && p.cid === cid; } catch(e){ return false; }
+      });
+      if(found){
+        // reload conversation to pick up server fields
+        await loadConversation(me.tf17, target17);
+        return true;
+      }
+    }catch(e){}
+    if(tries < maxTries) setTimeout(attempt, interval);
+  };
+  attempt();
+}
 
-function ensureContactInList(tf17, name){ let c = contacts.find(x=>x.tf17===tf17); if(!c){ c = { tf17, short: formatTFShort(tf17), name: name||null, unread:0, blocked:false, avatar:null }; contacts.unshift(c); saveState(); renderContacts(); } return c; }
+/* -------------- CONTACTS / PROFILE / GROUP UI -------------- */
+function ensureContactInList(tf17, name){
+  let c = contacts.find(x=>x.tf17===tf17);
+  if(!c){
+    c = { tf17, short: formatTFShort(tf17), name: name||null, lastMsg:'', lastTs:Date.now(), unread:0, blocked:false, avatar:null };
+    contacts.unshift(c);
+    saveState();
+    renderContacts();
+  }
+  return c;
+}
 
 function promptForMeModal(){
   updateSettingsUI();
@@ -489,9 +545,11 @@ function promptForMeModal(){
   });
 }
 
+/* -------------- PW BANNER -------------- */
 function triggerPwBannerIfNeeded(){ if(!me.tf17) return; if(hasPasswordFor(me.tf17)) { hidePwBanner(); return; } pwBanner.style.display = 'block'; if(pwWarningTimer) clearTimeout(pwWarningTimer); if(pwForceReloadTimer) clearTimeout(pwForceReloadTimer); pwWarningTimer = setTimeout(()=> { settingsModal.style.display = 'flex'; updateSettingsUI(); }, 60 * 1000); pwForceReloadTimer = setTimeout(()=> { location.reload(); }, 2 * 60 * 1000); }
 function hidePwBanner(){ pwBanner.style.display = 'none'; if(pwWarningTimer) { clearTimeout(pwWarningTimer); pwWarningTimer=null; } if(pwForceReloadTimer){ clearTimeout(pwForceReloadTimer); pwForceReloadTimer=null; } }
 
+/* -------------- WEBSOCKET RECEIVING (update cache + persist) -------------- */
 function connectWS(){ if(!me.tf17){ if(wsStatusEl) wsStatusEl.textContent = ''; return; } try { ws = new WebSocket(WS_URL); } catch(e){ scheduleReconnect(); return; } ws.onopen = ()=>{ if(wsStatusEl) wsStatusEl.textContent = ''; try{ ws.send(JSON.stringify({ type:'subscribe', tfid: me.tf17 })); }catch(e){} }; ws.onmessage = (ev)=>{ try { const data = JSON.parse(ev.data); if(data.type === 'subscribed') return; if(data.type === 'message'){ const payload = data; let parsed = null; try{ parsed = JSON.parse(payload.content); } catch(e){ parsed = null; } if(!parsed || !parsed.from) return; const recipient = payload.tfid || null; const from = parsed.from; const other = (recipient === me.tf17) ? from : recipient; if(!other) return; const created = parsed.time || payload.created_at || nowISO(); const msgObj = { id: payload.id || null, cid: parsed.cid || null, from, text: parsed.text || parsed.message || '', parsed_time: parsed.time || null, _db_created_at: payload.created_at || null, created_at: created }; addOrUpdateMessageToCache(me.tf17, other, msgObj);
             if(parsed.name){ const c = ensureContactInList(other, parsed.name); c.name = parsed.name; c.lastMsg = msgObj.text; c.lastTs = Date.now(); saveState(); renderContacts(); }
             if(parsed.type === 'profile' && parsed.photo){ const c = ensureContactInList(other, parsed.name || null); c.avatar = parsed.photo; c.name = parsed.name || c.name; c.lastTs = Date.now(); saveState(); renderContacts(); }
@@ -504,14 +562,20 @@ function connectWS(){ if(!me.tf17){ if(wsStatusEl) wsStatusEl.textContent = ''; 
 }
 function scheduleReconnect(){ if(reconnectTimer) return; reconnectTimer = setTimeout(()=>{ reconnectTimer=null; connectWS(); }, 3000); }
 
+/* -------------- SEARCH / UI EVENTS -------------- */
 async function performSearchQuery(raw){ if(!raw) return; const digits = normalizeInputToDigits(raw); if(!digits){ renderContacts(raw); return; } if(digits.length < 7){ alert('TFID dwe gen omwen 7 chif.'); return; } const short7 = digits.slice(-7); const tf17 = to17(short7); let local = contacts.find(c => c.tf17 === tf17); if(local){ openChat(local.tf17, local, true); return; } try { const rows = await apiList(tf17); if(rows && rows.length > 0){ const last = rows[rows.length-1] || rows[0]; let lastMsg = ''; try{ const p = JSON.parse(last.content); lastMsg = p.text || p.message || last.content; } catch(e){ lastMsg = last.content || ''; } const nameFromServer = (() => { try { const p = JSON.parse(last.content); return p.name || null } catch(_) { return null } })(); const c = { tf17, name: nameFromServer || formatTFShort(short7), lastMsg, lastTs: Date.now(), unread: 0, blocked:false, avatar:null }; contacts.unshift(c); saveState(); renderContacts(); openChat(c.tf17, c, true); return; } else { if(confirm('Pa jwenn done sou servèr. Kreye kontak lokal pou TFID sa a?')){ const c = { tf17, name: formatTFShort(short7), lastMsg: '', lastTs: Date.now(), unread:0, blocked:false, avatar:null }; contacts.unshift(c); saveState(); renderContacts(); openChat(c.tf17, c, true); } } } catch(err){ alert('Erè lè w ap chèche sou servèr: ' + (err.message||err)); } }
 
 let profileCurrent = null;
 chatTitleEl?.addEventListener('click', ()=>{ if(!currentPartner && !currentGroup) return; if(currentPartner) openProfileModal(currentPartner.tf17); else if(currentGroup) alert('Groupe info: ' + currentGroup); });
+
 function openProfileModal(tf17){ profileCurrent = tf17; const c = contacts.find(x=>x.tf17===tf17) || { tf17, name: formatTFShort(tf17), blocked:false, avatar:null }; if(c.avatar) { profileAvatar.innerHTML = `<img src="${c.avatar}" />`; } else { profileAvatar.textContent = initials(c.name || c.tf17); } profileName.textContent = c.name || formatTFShort(tf17); profileTfid.textContent = c.tf17; blockBtn.textContent = c.blocked ? 'Débloquer' : 'Bloquer'; profileModal.style.display = 'flex'; }
+
 addContactBtn?.addEventListener('click', ()=>{ if(!profileCurrent) return; const c = ensureContactInList(profileCurrent, null); alert('Contact ajouté : ' + (c.name || c.tf17)); profileModal.style.display = 'none'; });
+
 blockBtn?.addEventListener('click', async ()=>{ if(!profileCurrent) return; const c = ensureContactInList(profileCurrent, null); c.blocked = !c.blocked; saveState(); renderContacts(); try{ const payload = { type: c.blocked ? 'block' : 'unblock', from: me.tf17, time: nowISO(), name: me.name || null }; await apiAdd(profileCurrent, payload); }catch(e){} openProfileModal(profileCurrent); });
+
 closeProfileBtn?.addEventListener('click', ()=>{ profileModal.style.display = 'none'; });
+
 profileAvatar?.addEventListener('click', ()=> { if(fileInput) fileInput.click(); });
 
 window.addEventListener('paste', (ev)=>{ const items = ev.clipboardData && ev.clipboardData.items; if(!items) return; for(const it of items){ if(it.kind === 'file' && it.type && it.type.startsWith('image/')){ const f = it.getAsFile(); if(f) { autoUploadProfileFile(f); ev.preventDefault(); break; } } } }, false);
@@ -643,12 +707,15 @@ window.addEventListener('popstate', (ev)=>{
   if(s && s.tfchat){ openChat(s.tfchat, contacts.find(c=>c.tf17===s.tfchat)||null, false); } else if(s && s.group){ openGroupChat(s.group); } else { hideChatModal(); }
 });
 
+/* -------------- PATH HANDLING -------------- */
 (function handleInitialPath(){ const raw = location.pathname.replace(/^\/+/, ''); if(!raw) return; try {
       if(raw.startsWith('groupe/')){ const name = decodeURIComponent(raw.replace(/^groupe\//,'')); (async ()=>{ await fetchGroupsForMe(); const g = groups.find(x=>x.name===name); if(g){ openGroupChat(name); } else { groups.unshift({ name, owner_name:'', bio:'', avatar_url:null, created_at:null}); renderGroups(); openGroupChat(name); } })();
-      } else if(/^TF-?\d{7,}$/.test(raw) || /^\d{7,}$/.test(raw) || /^\d{17,}$/.test(raw)){ const tf17 = raw.startsWith('TF-') ? raw : to17(raw); let c = contacts.find(x=>x.tf17===tf17); if(!c){ c = { tf17, name: formatTFShort(tf17), lastMsg:'', lastTs: Date.now(), unread:0, blocked:false, avatar:null }; contacts.unshift(c); saveState(); renderContacts(); } if(me.tf17){ openChat(tf17, c, false); } else { openChat(tf17, c, false); } }
+      } else if(/^TF-?\d{7,}$/.test(raw) || /^\d{7,}$/.test(raw) || /^\d{17,}$/.test(raw)){ const tf17 = raw.startsWith('TF-') ? raw : to17(raw); let c = contacts.find(x=>x.tf17===tf17); if(!c){ c = { tf17, name: formatTFShort(tf17), lastMsg:'', lastTs: Date.now(), unread:0, blocked:false, avatar:null }; contacts.unshift(c); saveState(); renderContacts(); } openChat(tf17, c, false); }
     } catch(e){}
 })();
 
+/* -------------- BOOT -------------- */
+loadAllCachedConversations(); // restore any saved convs
 renderContacts();
 renderGroups();
 if(me.avatarDataUrl){ document.querySelectorAll('.avatar').forEach(el => { if(!el.querySelector('img')) el.innerHTML = `<img src="${me.avatarDataUrl}" />`; }); }
@@ -663,8 +730,11 @@ if(me.tf17){
   }
 }
 
+/* expose debug */
 window._tf_contacts = contacts;
 window._tf_me = me;
 window._tf_groups = groups;
-</script></body>
-      </html>
+window._tf_conv_cache = conversationCache;
+</script>
+</body>
+  </html>
