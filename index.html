@@ -389,6 +389,21 @@ function openGroupChat(groupName){
     }
   })();
 }
+  window.addEventListener('load', () => {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js', { scope: '/' })
+        .then(reg => {
+          navigator.serviceWorker.ready.then(regReady => {
+            if (regReady.active && regReady.active.postMessage) {
+              regReady.active.postMessage({ type: 'LIST_CACHES' });
+            }
+          });
+        })
+        .catch(()=>{/* silent */});
+      navigator.serviceWorker.addEventListener('message', ()=>{/* silent */});
+    }
+  });
+
 function showChatModal(){ chatModalEl.style.display='block'; ensureMessagesPadding(); setTimeout(()=>chatTextEl?.focus(),150); }
 function hideChatModal(){ chatModalEl.style.display='none'; currentPartner=null; currentGroup=null; }
 async function sendMessageFromModal(){ const txt=(chatTextEl?.value||'').trim(); if(!txt) return; if(!me.tf17){ alert('Ou dwe mete TFID nan Paramètres avan ou voye mesaj. Klike sou TF-Chat anlè a pou mete li.'); return; } if(currentGroup){
