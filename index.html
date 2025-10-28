@@ -5,8 +5,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 <title>TF-Chat</title>
-<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;600;700&display=swap" rel="stylesheet">
-<link rel="manifest" href="manifest.json" />
+  <link rel="manifest" href="manifest.json" />
   <link rel="icon" type="image/jpeg" href="https://files.catbox.moe/ixgmht.jpg" />
   <link rel="apple-touch-icon" href="https://files.catbox.moe/ixgmht.jpg" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -14,7 +13,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet" />
 
-  <script>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;600;700&display=swap" rel="stylesheet">
+<script>
 (function(){
   document.addEventListener('touchstart', function(e){
     if (e.touches && e.touches.length > 1) {
@@ -506,19 +506,6 @@ if(me.tf17){ connectWS(); fetchGroupsForMe(); } else { const shownOnce=localStor
 window._tf_contacts=contacts;
 window._tf_me=me;
 window._tf_groups=groups;
-  if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js', { scope: '/' })
-        .then(reg => {
-          navigator.serviceWorker.ready.then(regReady => {
-            if (regReady.active && regReady.active.postMessage) {
-              regReady.active.postMessage({ type: 'LIST_CACHES' });
-            }
-          });
-        })
-        .catch(()=>{/* silent */});
-      navigator.serviceWorker.addEventListener('message', ()=>{/* silent */});
-    }
-  });
 </script>
 </body>
   </html>
