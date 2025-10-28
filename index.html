@@ -135,12 +135,13 @@ function loadConversationCacheForKey(key){
 }
 function loadAllCachedConversations(){
   try{
-    for(const k in localStorage){
-      if(!Object.prototype.hasOwnProperty.call(localStorage,k)) continue;
-      if(!k.startsWith(CACHE_KEY_PREFIX)) continue;
+    // safer iteration over localStorage keys
+    const keys = Object.keys(localStorage || {});
+    for(const fullKey of keys){
+      if(!fullKey.startsWith(CACHE_KEY_PREFIX)) continue;
       try{
-        const key = k.substring(CACHE_KEY_PREFIX.length);
-        const raw = localStorage.getItem(k);
+        const key = fullKey.substring(CACHE_KEY_PREFIX.length);
+        const raw = localStorage.getItem(fullKey);
         if(!raw) continue;
         const arr = JSON.parse(raw);
         if(Array.isArray(arr)){
@@ -292,13 +293,11 @@ function reconcileSentMessage(me17, other17, cid, serverResp){
       if(serverResp.created_at) newFields.created_at = serverResp.created_at;
       if(serverResp.createdAt) newFields.created_at = serverResp.createdAt;
       if(serverResp.time) newFields.created_at = serverResp.time;
-      // some APIs wrap row: { id, created_at }
       if(serverResp.row && serverResp.row.id) newFields.id = serverResp.row.id;
     }
     if(Object.keys(newFields).length>0){
       list[idx] = Object.assign({}, list[idx], newFields, {_optimistic:false});
       addOrUpdateMessageToCache(me17, other17, list[idx]);
-      // re-render if visible
       if(currentPartner && currentPartner.tf17 === other17) renderConversation(me17, other17);
     }
   }
