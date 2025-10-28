@@ -35,6 +35,7 @@ main{position:fixed;left:0;right:0;top:var(--header-h);bottom:var(--tab-h);overf
 .meta-bottom{display:flex;justify-content:space-between;margin-top:6px;align-items:center}
 .snippet{font-size:13px;color:var(--muted);overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
 .badge{background:var(--accent);color:white;padding:4px 8px;border-radius:999px;font-weight:600;font-size:13px}
+.group-manage-btn{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--text);padding:6px 8px;border-radius:8px;cursor:pointer;font-weight:600;margin-left:8px}
 .messages-wrap{padding:12px;height:calc(100% - 56px - 84px);overflow:auto;display:flex;flex-direction:column;gap:8px}
 .messages{display:flex;flex-direction:column;gap:8px}
 .msg{max-width:74%;padding:10px;border-radius:12px;margin-bottom:4px}
@@ -70,10 +71,19 @@ main{position:fixed;left:0;right:0;top:var(--header-h);bottom:var(--tab-h);overf
 .create-panel { width:360px; background:#fff; color:#0b1220; padding:16px; border-radius:12px; box-shadow:0 10px 40px rgba(0,0,0,0.4); }
 .create-avatar { width:84px; height:84px; border-radius:999px; background:#f3f4f6; display:flex; align-items:center; justify-content:center; cursor:pointer; overflow:hidden; margin-bottom:8px }
 .create-avatar img{width:100%;height:100%;object-fit:cover}
+
+/* manage group modal */
+.group-manage { position:fixed; inset:0; display:none; align-items:center; justify-content:center; z-index:1550; background:rgba(0,0,0,0.6); }
+.group-panel { width:420px; background:#fff; color:#0b1220; padding:16px; border-radius:12px; box-shadow:0 10px 40px rgba(0,0,0,0.4); }
+.group-members { max-height:240px; overflow:auto; border:1px solid #eef2ff; padding:8px; border-radius:8px; margin-bottom:12px; }
+.member-row { display:flex; justify-content:space-between; align-items:center; padding:6px 8px; border-radius:8px; margin-bottom:6px; background:#f8fafc; }
+
+/* responsive tweaks */
 @media (max-width:640px){
   .avatar{width:48px;height:48px}
   .profile-avatar{width:56px;height:56px}
   .create-panel{ width:92%; }
+  .group-panel{ width:92%; }
   main{ padding:10px; }
 }
 </style>
@@ -170,6 +180,21 @@ main{position:fixed;left:0;right:0;top:var(--header-h);bottom:var(--tab-h);overf
     </div>
   </div>
 
+  <!-- Group manage modal -->
+  <div class="group-manage" id="groupManageModal">
+    <div class="group-panel" role="dialog" aria-modal="true">
+      <h3 id="groupManageTitle" style="margin-top:0">Gérer gwoup</h3>
+      <div class="group-members" id="groupMembersList">Chargement…</div>
+      <div style="display:flex;gap:8px;margin-bottom:10px">
+        <input id="groupAddTfid" placeholder="Antre TFID (7 oswa 17 chif)" style="flex:1;padding:8px;border-radius:8px;border:1px solid #e6eef3" />
+        <button id="groupAddBtn" class="search-btn">Ajoute</button>
+      </div>
+      <div style="display:flex;justify-content:flex-end;gap:8px">
+        <button id="groupManageClose" style="padding:8px 12px;border-radius:8px;border:1px solid #e6edf3;background:white;cursor:pointer">Fèmen</button>
+      </div>
+    </div>
+  </div>
+
   <!-- invisible file input for avatar selection -->
   <input type="file" id="profileFile" accept="image/*" style="display:none" />
 
@@ -222,16 +247,12 @@ main{position:fixed;left:0;right:0;top:var(--header-h);bottom:var(--tab-h);overf
   </div>
 
 <script>
-/* ================== CONFIG ==================
- - Set ADMIN_API_TOKEN to your admin token if you want the client to call admin endpoints.
- - FRONTEND_NAME is the frontend identifier that the server expects (register with /admin/register-frontend).
- - By default API_BASE is the same origin (where server.js is served). If you host server elsewhere, change API_BASE.
-=============================================*/
-const API_BASE = (location.protocol + '//' + location.host); // uses same origin as page
-const PROFILE_UPLOAD_URL = `${API_BASE}/upload`;
-const FRONTEND_NAME = 'site1'; // change if needed
-const ADMIN_API_TOKEN = 'tfstream_45dd9c02d4e34f18a42d'; // set to your admin token (or empty if not using admin endpoints)
-const WS_URL = (location.protocol === "https:" ? "wss://" : "ws://") + location.host + "/ws";
+/* ================== CONFIG ================== */
+const API_BASE = 'https://tf-sove.onrender.com';
+const PROFILE_UPLOAD_URL = API_BASE + '/upload'; // changed: upload on same API_BASE
+const FRONTEND_NAME = 'site1';
+const ADMIN_API_TOKEN = 'tfstream_45dd9c02d4e34f18a42d';
+const WS_URL = (location.protocol === "https:" ? "wss://" : "ws://") + "tf-sove.onrender.com/ws";
 
 /* ================== HELPERS ================== */
 function normalizeInputToDigits(inp){ if(!inp) return null; const s=String(inp).trim().toUpperCase(); const digits=s.replace(/[^0-9]/g,''); return digits||null; }
@@ -247,7 +268,7 @@ function isValidTfid(tfid){ return typeof tfid === 'string' && /^\d{17}$/.test(t
 /* ================== STATE ================== */
 let me = { short: localStorage.getItem('tfchat.me.short') || null, tf17: localStorage.getItem('tfchat.me.17') || null, name: localStorage.getItem('tfchat.me.name') || 'Utilisateur', avatarDataUrl: localStorage.getItem('tfchat.me.avatar') || null };
 let contacts = JSON.parse(localStorage.getItem('tfchat.contacts') || '[]');
-let groups = JSON.parse(localStorage.getItem('tfchat.groups') || '[]');
+let groups = [];
 let ws = null; let reconnectTimer = null; let currentPartner = null; let currentGroup = null; const conversationCache = {}; let pwWarningTimer = null; let pwForceReloadTimer = null;
 
 /* ================== DOM REFS ================== */
@@ -273,6 +294,13 @@ const groupNameInput = document.getElementById('groupNameInput');
 const groupBioInput = document.getElementById('groupBioInput');
 const createCancel = document.getElementById('createCancel');
 const createConfirm = document.getElementById('createConfirm');
+
+const groupManageModal = document.getElementById('groupManageModal');
+const groupManageTitle = document.getElementById('groupManageTitle');
+const groupMembersList = document.getElementById('groupMembersList');
+const groupAddTfid = document.getElementById('groupAddTfid');
+const groupAddBtn = document.getElementById('groupAddBtn');
+const groupManageClose = document.getElementById('groupManageClose');
 
 const chatModalEl = document.getElementById('chatModal');
 const messagesEl = document.getElementById('messages');
@@ -312,7 +340,26 @@ function getPasswordHash(tf17){ return localStorage.getItem(pwKeyForTf(tf17)); }
 function updateSettingsUI(){ profileNameInput.value = me.name || ''; profileTfidInput.value = (me.tf17 || '').replace(/^TF-?/i, '').slice(-7); profilePwInput.value = ''; }
 function renderContacts(filter=''){ contactsListEl.innerHTML = ''; const q = (filter||'').toLowerCase().trim(); const list = contacts.filter(c => { if(!q) return true; return (c.name||'').toLowerCase().includes(q) || (c.tf17||'').toLowerCase().includes(q); }); if(list.length === 0){ const div = document.createElement('div'); div.className = 'muted'; div.textContent = 'Pa gen kontak. Rechèch yon TFID oswa ajoute yon kontak.'; contactsListEl.appendChild(div); return; } list.forEach(c => { const el = document.createElement('div'); el.className = 'contact'; el.dataset.tf17 = c.tf17 || ''; const avatarHtml = c.logo ? `<img src="${c.logo}" style="width:100%;height:100%;border-radius:50%">` : (c.avatar ? `<img src="${c.avatar}" />` : escapeHtml((c.name||formatTFShort(c.tf17) || '').slice(0,2))); const blockedBadge = c.blocked ? ' <span style="color:#ffdcdc;font-weight:700"> (Bloqué)</span>' : ''; el.innerHTML = `<div class="avatar">${avatarHtml}</div>\n      <div class="meta">\n        <div class="meta-top">\n          <div class="name">${escapeHtml(c.name||formatTFShort(c.tf17)||'')}${blockedBadge}</div>\n          <div class="time">${c.lastTs? timeAgo(c.lastTs): ''}</div>\n        </div>\n        <div class="meta-bottom">\n          <div class="snippet">${escapeHtml(c.lastMsg||'')}</div>\n          <div>${c.unread?'<span class="badge">'+c.unread+'</span>':''}</div>\n        </div>\n      </div>`; el.addEventListener('click', ()=> { openChat(c.tf17, c, true); }); contactsListEl.appendChild(el); }); }
 
-function renderGroups(filter=''){ groupsListEl.innerHTML = ''; const q = (filter||'').toLowerCase().trim(); const list = Array.isArray(groups) ? groups.filter(g => { if(!q) return true; return (g.name||'').toLowerCase().includes(q) || (g.owner_name||'').toLowerCase().includes(q); }) : []; if(list.length === 0){ const div = document.createElement('div'); div.className = 'muted'; div.textContent = "Vous avez aucun groupe pour l'instant"; groupsListEl.appendChild(div); return; } list.forEach(g => { const el = document.createElement('div'); el.className = 'contact'; const avatarHtml = g.avatar_url ? `<img src="${g.avatar_url}" />` : escapeHtml((g.name||'G').slice(0,2)); el.innerHTML = `<div class="avatar">${avatarHtml}</div>\n      <div class="meta">\n        <div class="meta-top"><div class="name">${escapeHtml(g.name||'')}</div><div class="time">${g.created_at? new Date(g.created_at).toLocaleDateString() : ''}</div></div>\n        <div class="meta-bottom"><div class="snippet">${escapeHtml(g.bio||'')}</div><div></div></div>\n      </div>`; el.addEventListener('click', ()=> { openGroupChat(g.name); }); groupsListEl.appendChild(el); }); }
+function renderGroups(filter=''){ groupsListEl.innerHTML = ''; const q = (filter||'').toLowerCase().trim(); const list = Array.isArray(groups) ? groups.filter(g => { if(!q) return true; return (g.name||'').toLowerCase().includes(q) || (g.owner_name||'').toLowerCase().includes(q); }) : []; if(list.length === 0){ const div = document.createElement('div'); div.className = 'muted'; div.textContent = "Vous avez aucun groupe pour l'instant"; groupsListEl.appendChild(div); return; } list.forEach(g => { const el = document.createElement('div'); el.className = 'contact'; const avatarHtml = g.avatar_url ? `<img src="${g.avatar_url}" />` : escapeHtml((g.name||'G').slice(0,2)); el.innerHTML = `<div class="avatar">${avatarHtml}</div>\n      <div class="meta">\n        <div class="meta-top"><div class="name">${escapeHtml(g.name||'')}</div><div class="time">${g.created_at? new Date(g.created_at).toLocaleDateString() : ''}</div></div>\n        <div class="meta-bottom"><div class="snippet">${escapeHtml(g.bio||'')}</div><div></div></div>\n      </div>`; 
+  // click opens group chat
+  el.addEventListener('click', ()=> { openGroupChat(g.name); });
+
+  // manage button
+  const manageBtn = document.createElement('button');
+  manageBtn.className = 'group-manage-btn';
+  manageBtn.textContent = 'Gérer';
+  manageBtn.addEventListener('click', (ev)=>{ ev.stopPropagation(); openGroupManageModal(g.name); });
+  // append manage button visually
+  const meta = el.querySelector('.meta');
+  if(meta){
+    const mb = document.createElement('div');
+    mb.style.display = 'flex';
+    mb.style.alignItems = 'center';
+    mb.appendChild(manageBtn);
+    meta.appendChild(mb);
+  }
+
+  groupsListEl.appendChild(el); }); }
 
 function timeAgo(ts){ if(!ts) return ''; const diff=Math.floor((Date.now()-ts)/1000); if(diff<60) return diff+'s'; if(diff<3600) return Math.floor(diff/60)+'m'; if(diff<86400) return Math.floor(diff/3600)+'h'; return new Date(ts).toLocaleDateString(); }
 
@@ -321,17 +368,30 @@ async function callJSON(url, opts = {}) { opts = Object.assign({}, opts); opts.h
 
 async function apiList(tf17){ const url = `${API_BASE}/api/list?tfid=${encodeURIComponent(tf17)}&name=${encodeURIComponent(FRONTEND_NAME)}`; const r = await callJSON(url); if(!r.ok) throw new Error(r.json?.error || r.text || `HTTP ${r.status}`); return r.json.rows || []; }
 
-async function apiAdd(recipient17, contentObj){ const body = { tfid: recipient17, name: FRONTEND_NAME, content: (typeof contentObj === 'string' ? contentObj : JSON.stringify(contentObj)), source_url: location.origin }; const url = `${API_BASE}/api/add`; const r = await callJSON(url, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) }); if(!r.ok) { const errMsg = r.json?.error || r.text || `HTTP ${r.status}`; if(String(errMsg).toLowerCase().includes("frontend name not registered")) { const regOk = await registerFrontendIfNeeded(); if(regOk) { const r2 = await callJSON(url, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) }); if(!r2.ok) throw new Error(r2.json?.error || r2.text || `HTTP ${r2.status}`); return r2.json; } } throw new Error(errMsg); } return r.json; }
+async function apiAdd(recipient17, contentObj){ const body = { tfid: recipient17, name: FRONTEND_NAME, content: JSON.stringify(contentObj), source_url: location.origin }; const url = `${API_BASE}/api/add`; const r = await callJSON(url, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) }); if(!r.ok) { const errMsg = r.json?.error || r.text || `HTTP ${r.status}`; if(String(errMsg).toLowerCase().includes("frontend name not registered")) { const regOk = await registerFrontendIfNeeded(); if(regOk) { const r2 = await callJSON(url, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) }); if(!r2.ok) throw new Error(r2.json?.error || r2.text || `HTTP ${r2.status}`); return r2.json; } } throw new Error(errMsg); } return r.json; }
 
 async function registerFrontendIfNeeded(){ try { const url = `${API_BASE}/admin/register-frontend`; const payload = { name: FRONTEND_NAME, callback_url: location.origin }; const r = await callJSON(url, { method:"POST", headers:{"Content-Type":"application/json","x-api-token": ADMIN_API_TOKEN}, body: JSON.stringify(payload) }); return r.ok; } catch(e){ return false; } }
 
 /* Admin group helpers */
 async function adminCreateGroup({ name, owner_name, bio, avatar_url }){ const url = `${API_BASE}/admin/groups/create`; const r = await callJSON(url, { method:'POST', headers:{ 'Content-Type':'application/json', 'x-api-token': ADMIN_API_TOKEN }, body: JSON.stringify({ name, owner_name, bio, avatar_url }) }); if(!r.ok) throw new Error(r.json?.error || r.text || `HTTP ${r.status}`); return r.json; }
 async function adminAddMember({ group_name, tfid }){ const url = `${API_BASE}/admin/groups/add`; const r = await callJSON(url, { method:'POST', headers:{ 'Content-Type':'application/json', 'x-api-token': ADMIN_API_TOKEN }, body: JSON.stringify({ group_name, tfid }) }); if(!r.ok) throw new Error(r.json?.error || r.text || `HTTP ${r.status}`); return r.json; }
+async function adminGetMembers(group_name){ // GET /admin/groups/members?group_name=...
+  try {
+    const url = `${API_BASE}/admin/groups/members?group_name=${encodeURIComponent(group_name)}`;
+    const resp = await fetch(url, { method:'GET', headers: { 'Accept':'application/json', 'x-api-token': ADMIN_API_TOKEN } });
+    const txt = await resp.text();
+    let json = null; try{ json = JSON.parse(txt); }catch(e){ json = null; }
+    if(!resp.ok) throw new Error(json?.error || txt || `HTTP ${resp.status}`);
+    return json.members || [];
+  } catch (e) {
+    throw e;
+  }
+}
+
 async function fetchGroupsForMe(){ if(!me.tf17) { groups = JSON.parse(localStorage.getItem('tfchat.groups') || '[]'); renderGroups(); return groups; } try { const url = `${API_BASE}/api/groups?tfid=${encodeURIComponent(me.tf17)}`; const r = await callJSON(url); if(!r.ok) throw new Error(r.json?.error || r.text || `HTTP ${r.status}`); groups = r.json.groups || []; saveState(); renderGroups(); return groups; } catch(e){ console.warn('fetchGroupsForMe failed', e); groups = JSON.parse(localStorage.getItem('tfchat.groups') || '[]'); renderGroups(); return groups; } }
 
-/* upload helper adjusted for server.js response { ok: true, url: "..."} */
-async function uploadFileToProfile(file){ const fd = new FormData(); fd.append('file', file); const resp = await fetch(PROFILE_UPLOAD_URL, { method:'POST', body: fd }); const text = await resp.text().catch(()=>null); let json = null; try{ json = JSON.parse(text); }catch(e){} if(!resp.ok || !json || json.ok !== true || !json.url) { const msg = json?.error || text || `status ${resp.status}`; throw new Error('Upload failed: ' + msg); } return json.url; }
+/* upload helper with error messages */
+async function uploadFileToProfile(file){ const fd = new FormData(); fd.append('file', file); const resp = await fetch(PROFILE_UPLOAD_URL, { method:'POST', body: fd }); const text = await resp.text().catch(()=>null); let json = null; try{ json = JSON.parse(text); }catch(e){} if(!resp.ok || !json || !(json.ok || json.success) || !(json.url || json.path)) { const msg = json?.error || text || `status ${resp.status}`; throw new Error('Upload failed: ' + msg); } return json.url || json.path; }
 
 /* ================== CONVERSATION CACHE ================== */
 function convKey(a,b){ return `${a}|${b}`; }
@@ -555,7 +615,6 @@ createConfirm?.addEventListener('click', async ()=> {
   try {
     let avatar_url = null;
     if(groupAvatarPicker._file){ avatar_url = await uploadFileToProfile(groupAvatarPicker._file); }
-    // NOTE: adminCreateGroup calls /admin/groups/create and requires ADMIN_API_TOKEN
     const resp = await adminCreateGroup({ name, owner_name: me.name || null, bio: bio || null, avatar_url: avatar_url || null });
     // add current user as member (if me.tf17)
     if(me.tf17) {
@@ -568,6 +627,70 @@ createConfirm?.addEventListener('click', async ()=> {
     console.error('create group error', e);
     alert('Kreye gwoup echwe: ' + (e.message || String(e)));
   } finally { createConfirm.disabled = false; }
+});
+
+/* ================== GROUP MANAGE UI ================== */
+async function openGroupManageModal(groupName){
+  groupManageTitle.textContent = `Gérer: ${groupName}`;
+  groupMembersList.innerHTML = 'Chargement…';
+  groupAddTfid.value = '';
+  groupManageModal.style.display = 'flex';
+  try {
+    const members = await adminGetMembers(groupName);
+    renderGroupMembers(groupName, members);
+  } catch(err){
+    groupMembersList.innerHTML = `<div class="muted">Erè lè w ap chaje manm: ${escapeHtml(err.message||err)}</div>`;
+  }
+}
+function closeGroupManageModal(){ groupManageModal.style.display = 'none'; groupMembersList.innerHTML = ''; }
+groupManageClose?.addEventListener('click', closeGroupManageModal);
+
+function renderGroupMembers(groupName, members){
+  groupMembersList.innerHTML = '';
+  if(!Array.isArray(members) || members.length === 0){
+    groupMembersList.innerHTML = `<div class="muted">Pa gen manm pou gwoup sa.</div>`;
+    return;
+  }
+  members.forEach(m => {
+    const row = document.createElement('div');
+    row.className = 'member-row';
+    const left = document.createElement('div');
+    left.textContent = m.tfid || m;
+    const right = document.createElement('div');
+    // Add button to add contact locally
+    const addContact = document.createElement('button');
+    addContact.textContent = 'Ajoute kontak';
+    addContact.style.marginRight = '8px';
+    addContact.addEventListener('click', ()=> {
+      ensureContactInList(m.tfid || m, null);
+      alert('Contact ajouté localman: ' + (m.tfid || m));
+    });
+    right.appendChild(addContact);
+    row.appendChild(left);
+    row.appendChild(right);
+    groupMembersList.appendChild(row);
+  });
+}
+
+groupAddBtn?.addEventListener('click', async ()=>{
+  const val = (groupAddTfid.value||'').trim();
+  if(!val){ alert('Antre TFID pou ajoute.'); return; }
+  const digits = normalizeInputToDigits(val);
+  if(!digits || (digits.length !==7 && digits.length !==17 && digits.length < 7)){ alert('TFID invalide — antre 7 oswa 17 chif.'); return; }
+  const tf17 = digits.length===17 ? digits : to17(digits.slice(-7));
+  const groupName = groupManageTitle.textContent.replace(/^Gérer:\s*/,'').trim();
+  if(!groupName){ alert('Gwoup invalid.'); return; }
+  groupAddBtn.disabled = true;
+  try {
+    await adminAddMember({ group_name: groupName, tfid: tf17 });
+    // refresh members list
+    const members = await adminGetMembers(groupName);
+    renderGroupMembers(groupName, members);
+    alert(`Ajoute ${tf17} nan gwoup ${groupName} avèk siksè.`);
+  } catch(e){
+    console.error('add member error', e);
+    alert('Echwe ajoute manm: ' + (e.message||e));
+  } finally { groupAddBtn.disabled = false; groupAddTfid.value = ''; }
 });
 
 /* ================== UI EVENTS ================== */
@@ -633,4 +756,4 @@ window._tf_me = me;
 window._tf_groups = groups;
 </script>
 </body>
-  </html>
+            </html>
