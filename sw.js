@@ -1,7 +1,7 @@
+// sw.js (version push + sync + safe streaming bypass)
 const CACHE_NAME = 'tfstream-shell-v1';
 const IMAGE_CACHE = 'tfstream-thumbs-v1';
 const JSON_CACHE = 'tfstream-json-v1';
-// on déclare VIDEO_CACHE mais on évite de mettre des vidéos dedans
 const VIDEO_CACHE = 'tfstream-videos-v1';
 const OFFLINE_URL = '/offline.html';
 const PLACEHOLDER = '/images/placeholder-thumb.png';
@@ -16,24 +16,20 @@ const PRECACHE_URLS = [
   PLACEHOLDER
 ];
 
-// --- INSTALL ---
 self.addEventListener('install', event => {
   event.waitUntil((async () => {
     const cache = await caches.open(CACHE_NAME);
-    // on tente de precacher, mais on tolère les erreurs individuelles
     await Promise.allSettled(
       PRECACHE_URLS.map(u =>
         fetch(u, { cache: 'no-cache' }).then(res => {
           if (!res || (res.status !== 200 && res.type !== 'opaque')) throw new Error(`${u} -> ${res && res.status}`);
           return cache.put(new Request(u, { credentials: 'same-origin' }), res.clone());
         }).catch(err => {
-          // log, mais on n'arrête pas l'installation
           console.warn('Precache failed for', u, err);
         })
       )
     );
-
-    // tente de précacher thumbnails/json présents dans index.json (si accessible)
+    // attempt to fetch index.json thumbs/json (no videos)
     try {
       const resp = await fetch('/index.json', { cache: 'no-cache' });
       if (resp && (resp.ok || resp.type === 'opaque')) {
@@ -41,7 +37,6 @@ self.addEventListener('install', event => {
         const imageCache = await caches.open(IMAGE_CACHE);
         const jsonCache = await caches.open(JSON_CACHE);
         const urls = new Set();
-
         if (Array.isArray(index)) {
           index.forEach(it => {
             if (it['Url Thumb']) urls.add(normalizeUrl(it['Url Thumb']));
@@ -52,9 +47,7 @@ self.addEventListener('install', event => {
             if (typeof v === 'string' && (v.endsWith('.json') || /\.(jpg|jpeg|png|webp)$/.test(v))) urls.add(normalizeUrl(v));
           });
         }
-
         await Promise.allSettled(Array.from(urls).map(u => {
-          if (!u) return Promise.resolve();
           if (u.endsWith('.json')) {
             return fetch(u, { cache: 'no-cache' }).then(r => {
               if (r && (r.status === 200 || r.type === 'opaque')) return jsonCache.put(u, r.clone());
@@ -71,12 +64,10 @@ self.addEventListener('install', event => {
     } catch (e) {
       console.warn('Failed to fetch index.json during install', e);
     }
-
     await self.skipWaiting();
   })());
 });
 
-// --- ACTIVATE ---
 self.addEventListener('activate', evt => {
   evt.waitUntil((async () => {
     const keys = await caches.keys();
@@ -90,7 +81,6 @@ self.addEventListener('activate', evt => {
   })());
 });
 
-// --- HELPERS ---
 function normalizeUrl(u) {
   try {
     const url = new URL(u, self.location.origin);
@@ -100,13 +90,6 @@ function normalizeUrl(u) {
   }
 }
 
-/*
-  Decide si nou dwe BYPASS Service Worker (pa entèsepte)
-  - non-GET requests => bypass
-  - Range header (videostreaming partial) => bypass
-  - destination video/audio => bypass
-  - url with video extensions => bypass
-*/
 function shouldBypass(request) {
   try {
     if (request.method !== 'GET') return true;
@@ -114,43 +97,37 @@ function shouldBypass(request) {
     const dest = request.destination || '';
     if (dest === 'video' || dest === 'audio') return true;
     const url = request.url || '';
-    if (/\.(mp4|webm|m3u8|mpd|mov|mkv|flv)(\?.*)?$/i.test(url)) return true;
+    if (/\.(mp4|webm|m3u8|mpd|mov|mkv)(\?.*)?$/i.test(url)) return true;
     return false;
   } catch(e) {
     return true;
   }
 }
 
-// --- FETCH STRATEGIES ---
 self.addEventListener('fetch', event => {
   const req = event.request;
   if (req.method !== 'GET') return;
 
-  // bypass heavy/streaming requests
   if (shouldBypass(req)) {
     event.respondWith(fetch(req));
     return;
   }
 
-  // navigation (HTML): network-first fallback to offline page
   if (req.mode === 'navigate' || (req.headers.get('accept')||'').includes('text/html')) {
     event.respondWith(networkFirst(req));
     return;
   }
 
-  // images: cache-first, fallback to placeholder
   if (req.destination === 'image' || /\.(png|jpg|jpeg|webp|gif)$/.test(req.url)) {
     event.respondWith(cacheFirstWithFallback(req, IMAGE_CACHE, PLACEHOLDER));
     return;
   }
 
-  // json: network-first with cache fallback
   if (req.url.endsWith('.json')) {
     event.respondWith(networkFirst(req, JSON_CACHE));
     return;
   }
 
-  // other static assets (css/js): cache-first then network
   event.respondWith(cacheFirst(req));
 });
 
@@ -160,13 +137,11 @@ async function cacheFirst(request) {
   if (cached) return cached;
   try {
     const resp = await fetch(request);
-    // cache only safe responses: status 200 and non-opaque for app shell assets
     if (resp && resp.status === 200 && resp.type !== 'opaque') {
       cache.put(request, resp.clone()).catch(()=>{});
     }
     return resp;
   } catch (e) {
-    // fall back to cached asset or offline page for navigations
     const fallback = await caches.match(request) || await caches.match(OFFLINE_URL);
     return fallback;
   }
@@ -196,90 +171,94 @@ async function cacheFirstWithFallback(request, cacheName, fallbackUrl) {
       await cache.put(request, resp.clone());
       return resp;
     }
-  } catch (e) {
-    // ignored
-  }
-  // fallback placeholder from global cache; if not found return Response.error()
+  } catch (e) {}
   const ph = await caches.match(fallbackUrl);
   return ph || Response.error();
 }
 
-// --- NOTIFICATIONS / PUSH HANDLERS ---
-// Note: we intentionally DO NOT set an "icon" property here to avoid a bell icon.
-// You can still include 'badge' or 'image' if you want visuals from server.
-self.addEventListener('notificationclick', function(event) {
+/* =============== Push & notifications =============== */
+/*
+  NOTE: server must send push using subscription stored.
+  Notification icon/badge: use custom images (replace with your assets).
+*/
+const DEFAULT_NOTIFY_ICON = '/images/notification-128.png';
+const DEFAULT_NOTIFY_BADGE = '/images/notification-badge.png';
+
+self.addEventListener('push', event => {
+  try {
+    const data = event.data ? event.data.json() : {};
+    const title = data.title || 'TF-Chat';
+    const body = data.body || (data.message || 'Nouveau message');
+    const tag = data.tag || ('tfchat-' + (data.conversation || Math.random().toString(36).slice(2)));
+    const dataPayload = data.data || data;
+    const options = {
+      body,
+      tag,
+      data: dataPayload,
+      icon: data.icon || DEFAULT_NOTIFY_ICON,
+      badge: data.badge || DEFAULT_NOTIFY_BADGE,
+      renotify: !!data.renotify,
+      timestamp: Date.now()
+    };
+    event.waitUntil(self.registration.showNotification(title, options));
+  } catch (e) {
+    console.warn('push handler error', e);
+  }
+});
+
+self.addEventListener('notificationclick', (event) => {
   event.notification.close();
   const data = event.notification.data || {};
-  const url = data.url || '/';
-  event.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(windowClients => {
-      // Try to find a client to focus
-      for (let i = 0; i < windowClients.length; i++) {
-        const client = windowClients[i];
-        // If client already open, focus and navigate
-        // Use startsWith check because client.url may include query params
-        try {
-          if (client.url === url || client.url.indexOf(url) !== -1) {
-            return client.focus().then(c => {
-              // try to navigate to the exact url (some browsers restrict navigate)
-              try { return c.navigate(url); } catch(e){ return; }
-            }).catch(()=>{});
-          }
-        } catch(e){}
-      }
-      // Otherwise open a new window
-      return clients.openWindow(url);
-    })
-  );
+  const urlToOpen = data.url || '/';
+  event.waitUntil((async () => {
+    const all = await clients.matchAll({ includeUncontrolled: true, type: 'window' });
+    for (const c of all) {
+      try {
+        const u = new URL(c.url);
+        if (u.pathname === '/' || c.visibilityState === 'visible') {
+          // focus a client and post message
+          c.focus();
+          c.postMessage({ action: 'openConversation', data });
+          return;
+        }
+      } catch(e){}
+    }
+    // otherwise open a new window/tab
+    await clients.openWindow(urlToOpen);
+  })());
 });
 
-self.addEventListener('notificationclose', function(event) {
-  // optional: could inform server notification was dismissed
-  // const data = event.notification.data || {};
-  // post to analytics endpoint if desired
-});
-
-// push event from Web Push (if server configured)
-self.addEventListener('push', function(event) {
-  let payload = null;
-  try {
-    if (event.data) payload = event.data.json();
-  } catch(e) {
-    try { payload = { body: event.data.text() }; } catch(_){}
-  }
-  const title = (payload && payload.title) ? payload.title : 'TF-Chat';
-  const body = (payload && payload.body) ? payload.body : (payload && payload.message) ? payload.message : 'Nouveau message';
-  const tag = payload && payload.tag ? payload.tag : undefined;
-  // data: we try to include a navigation target like '/TF-1234567' or '/groupe/name'
-  const data = (payload && payload.data) ? payload.data : (payload && payload.url) ? { url: payload.url } : {};
-  const options = Object.assign({
-    body: body,
-    tag: tag,
-    data: data,
-    renotify: true
-    // Note: no icon set to avoid default bell icon
-    // If you want a badge, you can set "badge: '/path/to/badge.png'"
-  }, payload && payload.options ? payload.options : {});
-  event.waitUntil(self.registration.showNotification(title, options));
-});
-
-// allow pages to send a message to the SW to request a notification
-self.addEventListener('message', event => {
-  const msg = event.data || {};
-  if (msg && msg.type === 'show-notification') {
-    const title = msg.title || 'TF-Chat';
-    const options = Object.assign({
-      body: msg.body || '',
-      data: msg.data || {},
-      renotify: true
-    }, msg.options || {});
-    // showNotification returns a promise
+/* allow page -> sw message to trigger a notification (used when we have WS and page is open but want sw to show) */
+self.addEventListener('message', (event) => {
+  const d = event.data || {};
+  if (d && d.action === 'showNotification') {
+    const title = d.title || 'TF-Chat';
+    const options = d.options || {};
     event.waitUntil(self.registration.showNotification(title, options));
   }
 });
 
-// --- optional: handle fetch errors for video attempts gracefully ---
-// Already bypassing most video requests; but as extra safeguard:
-// if a fetch for a media resource still errors, we allow downstream to handle it.
+/* Background Sync — flush queued sends when back online */
+self.addEventListener('sync', (event) => {
+  if (event.tag && event.tag.startsWith('tf-send-queue')) {
+    event.waitUntil((async () => {
+      // read queue from IDB/localForage? We don't have IDB here in generic example.
+      // recommended: implement an indexedDB queue in client and in SW read it to flush.
+      // For now send a post to server endpoint that will reconcile pending messages.
+      try {
+        await fetch('/_background/sync-send', { method: 'POST', credentials: 'include' });
+      } catch(e) { console.warn('bg sync flush failed', e); }
+    })());
+  }
+});
 
-// End of sw.js
+/* handle pushsubscriptionchange so client can resend */
+self.addEventListener('pushsubscriptionchange', (event) => {
+  // Notify clients to re-subscribe
+  event.waitUntil((async () => {
+    const clientsList = await clients.matchAll({ includeUncontrolled: true });
+    for (const c of clientsList) {
+      c.postMessage({ action: 'reSubscribePush' });
+    }
+  })());
+});
