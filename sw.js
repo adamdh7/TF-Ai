@@ -1,8 +1,8 @@
-// service-worker.js (korije pou evite kraze video streaming)
 const CACHE_NAME = 'tfstream-shell-v1';
 const IMAGE_CACHE = 'tfstream-thumbs-v1';
 const JSON_CACHE = 'tfstream-json-v1';
-const VIDEO_CACHE = 'tfstream-videos-v1'; // nou kenbe non si vle men pa kache videyo
+// on déclare VIDEO_CACHE mais on évite de mettre des vidéos dedans
+const VIDEO_CACHE = 'tfstream-videos-v1';
 const OFFLINE_URL = '/offline.html';
 const PLACEHOLDER = '/images/placeholder-thumb.png';
 
@@ -16,22 +16,24 @@ const PRECACHE_URLS = [
   PLACEHOLDER
 ];
 
+// --- INSTALL ---
 self.addEventListener('install', event => {
   event.waitUntil((async () => {
     const cache = await caches.open(CACHE_NAME);
-    // Precache core small assets; si yon fetch echwe, nou pa fè enstalasyon echwe
+    // on tente de precacher, mais on tolère les erreurs individuelles
     await Promise.allSettled(
       PRECACHE_URLS.map(u =>
         fetch(u, { cache: 'no-cache' }).then(res => {
           if (!res || (res.status !== 200 && res.type !== 'opaque')) throw new Error(`${u} -> ${res && res.status}`);
           return cache.put(new Request(u, { credentials: 'same-origin' }), res.clone());
         }).catch(err => {
+          // log, mais on n'arrête pas l'installation
           console.warn('Precache failed for', u, err);
         })
       )
     );
 
-    // pa pre-cache videyo! -> si index.json egziste, nou cache sèlman thumb + json, men pa media
+    // tente de précacher thumbnails/json présents dans index.json (si accessible)
     try {
       const resp = await fetch('/index.json', { cache: 'no-cache' });
       if (resp && (resp.ok || resp.type === 'opaque')) {
@@ -44,7 +46,6 @@ self.addEventListener('install', event => {
           index.forEach(it => {
             if (it['Url Thumb']) urls.add(normalizeUrl(it['Url Thumb']));
             if (it.json) urls.add(normalizeUrl(it.json));
-            // pa ajoute it.video oswa mp4
           });
         } else {
           Object.values(index).forEach(v => {
@@ -53,6 +54,7 @@ self.addEventListener('install', event => {
         }
 
         await Promise.allSettled(Array.from(urls).map(u => {
+          if (!u) return Promise.resolve();
           if (u.endsWith('.json')) {
             return fetch(u, { cache: 'no-cache' }).then(r => {
               if (r && (r.status === 200 || r.type === 'opaque')) return jsonCache.put(u, r.clone());
@@ -74,6 +76,7 @@ self.addEventListener('install', event => {
   })());
 });
 
+// --- ACTIVATE ---
 self.addEventListener('activate', evt => {
   evt.waitUntil((async () => {
     const keys = await caches.keys();
@@ -87,7 +90,7 @@ self.addEventListener('activate', evt => {
   })());
 });
 
-// normalize pou itilize href (evite mismatch)
+// --- HELPERS ---
 function normalizeUrl(u) {
   try {
     const url = new URL(u, self.location.origin);
@@ -97,12 +100,12 @@ function normalizeUrl(u) {
   }
 }
 
-// Decide si nou dwe BYPASS Service Worker (pa entèsepte)
-/* 
-  - tout demann ki gen Range header
-  - destination video/audio
-  - url ki fini ak ekstansyon medya (mp4, webm, m3u8, mpd, mov, mkv)
-  - non-GET requests
+/*
+  Decide si nou dwe BYPASS Service Worker (pa entèsepte)
+  - non-GET requests => bypass
+  - Range header (videostreaming partial) => bypass
+  - destination video/audio => bypass
+  - url with video extensions => bypass
 */
 function shouldBypass(request) {
   try {
@@ -111,21 +114,20 @@ function shouldBypass(request) {
     const dest = request.destination || '';
     if (dest === 'video' || dest === 'audio') return true;
     const url = request.url || '';
-    if (/\.(mp4|webm|m3u8|mpd|mov|mkv)(\?.*)?$/i.test(url)) return true;
-    // optionally bypass known media CDN hosts:
-    // if (url.includes('r2.dev') || url.includes('your-media-cdn.com')) return true;
+    if (/\.(mp4|webm|m3u8|mpd|mov|mkv|flv)(\?.*)?$/i.test(url)) return true;
     return false;
   } catch(e) {
     return true;
   }
 }
 
+// --- FETCH STRATEGIES ---
 self.addEventListener('fetch', event => {
   const req = event.request;
   if (req.method !== 'GET') return;
 
+  // bypass heavy/streaming requests
   if (shouldBypass(req)) {
-    // Bypass service worker for media-range/streaming requests
     event.respondWith(fetch(req));
     return;
   }
@@ -152,7 +154,6 @@ self.addEventListener('fetch', event => {
   event.respondWith(cacheFirst(req));
 });
 
-// --- Strategies (pa cache videyo) ---
 async function cacheFirst(request) {
   const cache = await caches.open(CACHE_NAME);
   const cached = await cache.match(request);
@@ -202,3 +203,83 @@ async function cacheFirstWithFallback(request, cacheName, fallbackUrl) {
   const ph = await caches.match(fallbackUrl);
   return ph || Response.error();
 }
+
+// --- NOTIFICATIONS / PUSH HANDLERS ---
+// Note: we intentionally DO NOT set an "icon" property here to avoid a bell icon.
+// You can still include 'badge' or 'image' if you want visuals from server.
+self.addEventListener('notificationclick', function(event) {
+  event.notification.close();
+  const data = event.notification.data || {};
+  const url = data.url || '/';
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(windowClients => {
+      // Try to find a client to focus
+      for (let i = 0; i < windowClients.length; i++) {
+        const client = windowClients[i];
+        // If client already open, focus and navigate
+        // Use startsWith check because client.url may include query params
+        try {
+          if (client.url === url || client.url.indexOf(url) !== -1) {
+            return client.focus().then(c => {
+              // try to navigate to the exact url (some browsers restrict navigate)
+              try { return c.navigate(url); } catch(e){ return; }
+            }).catch(()=>{});
+          }
+        } catch(e){}
+      }
+      // Otherwise open a new window
+      return clients.openWindow(url);
+    })
+  );
+});
+
+self.addEventListener('notificationclose', function(event) {
+  // optional: could inform server notification was dismissed
+  // const data = event.notification.data || {};
+  // post to analytics endpoint if desired
+});
+
+// push event from Web Push (if server configured)
+self.addEventListener('push', function(event) {
+  let payload = null;
+  try {
+    if (event.data) payload = event.data.json();
+  } catch(e) {
+    try { payload = { body: event.data.text() }; } catch(_){}
+  }
+  const title = (payload && payload.title) ? payload.title : 'TF-Chat';
+  const body = (payload && payload.body) ? payload.body : (payload && payload.message) ? payload.message : 'Nouveau message';
+  const tag = payload && payload.tag ? payload.tag : undefined;
+  // data: we try to include a navigation target like '/TF-1234567' or '/groupe/name'
+  const data = (payload && payload.data) ? payload.data : (payload && payload.url) ? { url: payload.url } : {};
+  const options = Object.assign({
+    body: body,
+    tag: tag,
+    data: data,
+    renotify: true
+    // Note: no icon set to avoid default bell icon
+    // If you want a badge, you can set "badge: '/path/to/badge.png'"
+  }, payload && payload.options ? payload.options : {});
+  event.waitUntil(self.registration.showNotification(title, options));
+});
+
+// allow pages to send a message to the SW to request a notification
+self.addEventListener('message', event => {
+  const msg = event.data || {};
+  if (msg && msg.type === 'show-notification') {
+    const title = msg.title || 'TF-Chat';
+    const options = Object.assign({
+      body: msg.body || '',
+      data: msg.data || {},
+      renotify: true
+    }, msg.options || {});
+    // showNotification returns a promise
+    event.waitUntil(self.registration.showNotification(title, options));
+  }
+});
+
+// --- optional: handle fetch errors for video attempts gracefully ---
+// Already bypassing most video requests; but as extra safeguard:
+// if a fetch for a media resource still errors, we allow downstream to handle it.
+
+// End of sw.js
