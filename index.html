@@ -535,81 +535,7 @@ function addOrUpdateMessageToCache(me17, other17, msg){
   // persist for me
   saveConversationCacheForMe();
 }
-ws.onmessage = (ev) => {
-  try {
-    const data = JSON.parse(ev.data);
-    if (!data) return;
 
-    // Control events (from server)
-    if (data.type === 'control' && data.controlType) {
-      const ctrl = data.controlType;
-      const payload = data.payload || {};
-
-      // Example handlers:
-      if (ctrl === 'read') {
-        // payload: { type: 'read', from: 'TF-...', time: '...', lastCid: '...' }
-        // Mark messages as read in conversationCache for that conversation
-        const from = normParticipant(payload.from || payload.tfid || data.tfid);
-        const meN = normParticipant(me.tf17);
-        if (!from || !meN) return;
-        // find conversation key and set flags or update UI checks
-        const ck = convKey(meN, from);
-        const list = conversationCache[ck] || [];
-        // Mark any optimistic messages as acknowledged if their cid <= lastCid or whatever logic you use
-        for (const msg of list) {
-          if (msg.from && normParticipant(msg.from) === meN) {
-            // you can set msg._acked = true or set msg.id if payload gives lastCid mapping
-            msg._read = true;
-          }
-        }
-        // re-render current conversation if open
-        if (currentPartner && normParticipant(currentPartner.tf17) === from) {
-          renderConversation(me.tf17, from);
-        } else {
-          // if not open, you could update contact badge or lastTs etc.
-          const c = contacts.find(x => normParticipant(x.tf17) === from);
-          if (c) { c.lastTs = Date.now(); saveState(); renderContacts(); }
-        }
-        return;
-      }
-
-      if (ctrl === 'profile') {
-        // payload: { type:'profile', from:'TF-...', name:'Name', photo:'url', time:... }
-        const from = normParticipant(payload.from);
-        if (!from) return;
-        const c = ensureContactInList(from, payload.name || null);
-        if (payload.photo) { c.avatar = payload.photo; }
-        if (payload.name) { c.name = payload.name; }
-        c.lastTs = Date.now();
-        saveState();
-        renderContacts();
-        if (currentPartner && normParticipant(currentPartner.tf17) === from) renderConversation(me.tf17, from);
-        return;
-      }
-
-      if (ctrl === 'block' || ctrl === 'unblock') {
-        const from = normParticipant(payload.from || data.tfid);
-        const c = ensureContactInList(from, payload.name || null);
-        c.blocked = (ctrl === 'block');
-        saveState();
-        renderContacts();
-        return;
-      }
-
-      // handle other control types if needed
-      return;
-    }
-
-    // Normal message handling: existing logic (parse content etc.)
-    if (data.type === 'message') {
-      // existing code that parses data.content and pushes to conversationCache etc.
-      // keep your previous message handling here
-    }
-
-  } catch (err) {
-    console.warn('WS parse err', err);
-  }
-};
 /* ========== READ RECEIPT HELPERS ========== */
 async function sendReadReceiptTo(other17){
   if(!me.tf17) return;
@@ -1315,4 +1241,4 @@ function initials(name){ if(!name) return 'U'; return name.split(' ').map(p=>p[0
 async function uploadFileToProfile(file){ const fd = new FormData(); fd.append('file', file); const resp = await fetch(PROFILE_UPLOAD_URL, { method:'POST', body: fd }); const text = await resp.text().catch(()=>null); let json = null; try{ json = JSON.parse(text); }catch(e){} if(!resp.ok || !json || !(json.ok || json.success) || !(json.url || json.path)) { const msg = json?.error || text || `status ${resp.status}`; throw new Error('Upload failed: ' + msg); } return json.url || json.path; }
 </script>
 </body>
-      </html>
+          </html>
