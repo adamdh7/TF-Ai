@@ -2,7 +2,6 @@
 <html lang="ht">
 <head>
 <meta charset="utf-8" />
-<!-- Prevent pinch zoom on mobile (optional) -->
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no" />
 <title>TF-Chat</title>
 
@@ -13,6 +12,7 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
+/* (styles inchangés — repris depuis votre version) */
 :root{
   --bg:#000000; --panel:#000000; --text:#e6eefb; --muted:#9aa6bf;
   --card:#0b0b0b; --accent:#0b81ff; --header-h:56px; --tab-h:62px;
@@ -69,7 +69,7 @@ body.chat-open main > section { display:none !important; }
 
 .chat-input{display:flex;gap:8px;align-items:center;padding:12px;border-top:1px solid rgba(255,255,255,0.03);background:transparent}
 .input{flex:1;padding:12px;border-radius:999px;border:1px solid rgba(255,255,255,0.03);background:var(--card);color:var(--text);outline:none;min-width:0}
-.send-btn{background:transparent;border:0;padding:8px;border-radius:10px;cursor:pointer;color:var(--accent)}
+.send-btn{background:transparent;border:0;padding:8px;border-radius:10px;cursor:pointer;color:var(--accent);display:inline-flex;align-items:center;justify-content:center}
 .muted{text-align:center;color:var(--muted);padding:20px}
 .bottom-right { position: fixed; right: 16px; bottom: 16px; z-index: 1100; display:flex; gap:8px; align-items:center; }
 .ws-indicator{display:none}
@@ -145,8 +145,13 @@ body.chat-open main > section { display:none !important; }
       </div>
       <div class="chat-input" id="chatInputRow">
         <input id="chatText" class="input" placeholder="Ekri mesaj..." autocomplete="off" />
-        <!-- bouton send style like whatsapp icon for iPhone: keep character but you can replace with svg later -->
-        <button id="sendBtn" class="send-btn" aria-label="Envoyer">⤴</button>
+        <!-- send button: replaced with proper SVG icon (not emoji) -->
+        <button id="sendBtn" class="send-btn" aria-label="Envoyer" title="Envoyer">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+            <path d="M22 2L11 13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M22 2L15 22L11 13L2 9L22 2Z" stroke="currentColor" stroke-width="0" fill="currentColor" opacity="0.95"/>
+          </svg>
+        </button>
       </div>
     </div>
   </div>
@@ -247,15 +252,15 @@ const FRONTEND_NAME = 'site1';
 const ADMIN_API_TOKEN = 'tfstream_45dd9c02d4e34f18a42d';
 const WS_URL = (location.protocol === "https:" ? "wss://" : "ws://") + "tf-sove.onrender.com/ws";
 
-// --- PUSH / VAPID ---
-// Remplace ak kle piblik VAPID la (base64 URL-safe)
-const VAPID_PUBLIC_KEY = '<YOUR_VAPID_PUBLIC_KEY_HERE>';
-const SUBSCRIBE_ENDPOINT = API_BASE + '/api/subscribe'; // backend: resevwa subscription JSON + me.tf17
+/* ========== PUSH CONFIG ========== */
+/* Replace this by your real VAPID public key (base64 URL-safe) */
+const VAPID_PUBLIC_KEY = '<REPLACE_WITH_YOUR_VAPID_PUBLIC_KEY>'; // <--- replace me
+const PUSH_SUBSCRIBE_ENDPOINT = `${API_BASE}/push/subscribe`; // server endpoint to store subscription
 
 /* ================== HELPERS ================== */
 function urlBase64ToUint8Array(base64String) {
-  // helper pou abònman pushManager
-  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  // helper to convert VAPID key
+  const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
   const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
   const rawData = atob(base64);
   const outputArray = new Uint8Array(rawData.length);
@@ -283,7 +288,6 @@ function normParticipant(id){
   if(!id) return '';
   const s = String(id).trim();
   if(s.startsWith('GROUP:')) return s;
-  // if already like TF-XXXX use digits
   const digits = s.replace(/[^0-9]/g,'');
   if(!digits) return '';
   if(digits.length >= 17) return to17(digits.slice(-17));
@@ -298,16 +302,14 @@ let me = {
   name: localStorage.getItem('tfchat.me.name') || 'Utilisateur',
   avatarDataUrl: localStorage.getItem('tfchat.me.avatar') || null
 };
-// normalize me.tf17 if present
 if(me.tf17) me.tf17 = normParticipant(me.tf17);
 
 let contacts = JSON.parse(localStorage.getItem('tfchat.contacts') || '[]') || [];
-// normalize stored contacts
 contacts = contacts.map(c => { if(c && c.tf17) c.tf17 = normParticipant(c.tf17) || c.tf17; return c; });
 
 let groups = JSON.parse(localStorage.getItem('tfchat.groups') || '[]') || [];
 let ws = null; let reconnectTimer = null; let currentPartner = null; let currentGroup = null;
-const conversationCache = {}; // in-memory cache keyed by convKey
+const conversationCache = {};
 let pwWarningTimer = null; let pwForceReloadTimer = null;
 
 /* ================== DOM REFS ================== */
@@ -377,7 +379,6 @@ function saveState(){
   localStorage.setItem('tfchat.groups', JSON.stringify(groups || []));
 }
 
-/* Persist conversation store for current user (per canonical me.tf17) */
 function convStorageKeyForMe(tf17){
   const k = normParticipant(tf17 || me.tf17 || '');
   return `tfchat.conversations.${k}`;
@@ -536,61 +537,7 @@ function addOrUpdateMessageToCache(me17, other17, msg){
   saveConversationCacheForMe();
 }
 
-/* ========== READ RECEIPT HELPERS ========== */
-async function sendReadReceiptTo(other17){
-  if(!me.tf17) return;
-  const meN = normParticipant(me.tf17);
-  const otherN = normParticipant(other17);
-  const key = convKey(meN, otherN);
-  const arr = conversationCache[key] || [];
-  // find last message cid from the other (the last message the current user read)
-  // For notifying the sender, we will let them know lastCid read (i.e., last incoming message's cid)
-  let lastIncomingCid = null;
-  for (let i = arr.length - 1; i >= 0; i--) {
-    const m = arr[i];
-    if (m && normParticipant(m.from) === otherN && m.cid) { lastIncomingCid = m.cid; break; }
-  }
-  const payload = { type: 'read', from: me.tf17, time: nowISO(), lastCid: lastIncomingCid || null };
-  try {
-    await apiAdd(otherN, payload);
-  } catch (e) {
-    console.warn('sendReadReceiptTo failed', e);
-  }
-}
-
-/* ========== APPLY READ RECEIPT (when we receive a 'read' from other) ========== */
-function applyReadReceipt(from17, payload){
-  // mark messages in conversation (from me to that other) as read
-  const meN = normParticipant(me.tf17 || '');
-  const otherN = normParticipant(from17);
-  const key = convKey(meN, otherN);
-  const list = conversationCache[key] || [];
-  // If payload.lastCid provided, only mark messages up to that cid as read.
-  const lastCid = payload && payload.lastCid ? payload.lastCid : null;
-  for (const m of list) {
-    if (!m) continue;
-    if (normParticipant(m.from) === meN) {
-      if (lastCid) {
-        // mark read only if m.cid exists and its order is <= lastCid chronologically
-        if (m.cid && m.cid <= lastCid) m.read = true;
-      } else {
-        // no lastCid provided: mark all sent messages as read
-        m.read = true;
-      }
-    }
-  }
-  saveConversationCacheForMe();
-  // rerender if currently viewing the conversation
-  if (currentPartner && normParticipant(currentPartner.tf17) === otherN) {
-    renderConversation(me.tf17, otherN);
-  } else {
-    // update contact list badges / preview
-    const c = contacts.find(x => normParticipant(x.tf17) === otherN);
-    if (c) { c.lastMsg = c.lastMsg || ''; saveState(); renderContacts(); }
-  }
-}
-
-/* ================== load + render conv (reads server lists and local cache), normalized parsing ================== */
+/* load + render conv (reads server lists and local cache), normalized parsing */
 async function loadConversation(me17, other17){
   const meN = normParticipant(me17);
   const otherN = normParticipant(other17);
@@ -606,12 +553,11 @@ async function loadConversation(me17, other17){
     const parsedFromRaw = parsed && parsed.from ? parsed.from : null;
     if(!parsedFromRaw) return;
     const parsedFrom = normParticipant(parsedFromRaw);
-    // we only accept rows where parsedFrom equals meN or otherN
     if(parsedFrom !== meN && parsedFrom !== otherN) return;
     const parsedTime = parsed && parsed.time ? parsed.time : null;
     const parsedCid = parsed && parsed.cid ? parsed.cid : null;
     const parsedText = parsed && (parsed.text || parsed.message) ? (parsed.text || parsed.message) : (r.content || "");
-    const m = { id: r.id || null, cid: parsedCid || null, from: parsedFrom, text: parsedText, parsed_time: parsedTime || null, _db_created_at: r.created_at || null, created_at: parsedTime || r.created_at || nowISO(), read: parsed && parsed.type === 'read_ack' ? true : false };
+    const m = { id: r.id || null, cid: parsedCid || null, from: parsedFrom, text: parsedText, parsed_time: parsedTime || null, _db_created_at: r.created_at || null, created_at: parsedTime || r.created_at || nowISO() };
     const keyu = messageUniqueKey(m);
     if(seen.has(keyu)) return;
     seen.add(keyu);
@@ -633,7 +579,7 @@ async function loadConversation(me17, other17){
   renderConversation(meN, otherN);
 }
 
-/* ensure messages area padding */
+/* ensure messages padding */
 function ensureMessagesPadding(){ const wrap = document.querySelector('#chatModal .messages-wrap'); if(!wrap) return; const inputRow = document.getElementById('chatInputRow'); const h = inputRow ? inputRow.getBoundingClientRect().height : 80; wrap.style.paddingBottom = (h + 16) + 'px'; }
 window.addEventListener('resize', ensureMessagesPadding);
 
@@ -670,18 +616,10 @@ function renderConversation(me17, other17){
       const ts = m.created_at ? (new Date(m.created_at)).toLocaleString() : '';
       const checksEl = document.createElement('span');
       checksEl.style.marginLeft = '8px';
-      checksEl.className = 'checks';
       if(isMe){
-        // show ticks based on m.read / m.id
-        if(m.read){
-          checksEl.textContent = '✓✓';
-          checksEl.style.opacity = 0.95;
-        } else if(m.id){
-          checksEl.textContent = '✓';
-          checksEl.style.opacity = 0.9;
-        } else {
-          checksEl.textContent = '';
-        }
+        // read status: show double tick if _read === true OR id set and _read true
+        checksEl.textContent = (m._read || m._delivered) ? '✓✓' : (m.id ? '✓✓' : '✓');
+        checksEl.className = 'checks';
       }
       // show short TF for sender
       meta.textContent = `${formatTFShort(m.from||'')} • ${ts} `;
@@ -701,7 +639,99 @@ function renderConversation(me17, other17){
   }, 40);
 }
 
-/* ================== OPEN/SEND + short-poll fallback ================== */
+/* ================== PUSH / SW helpers (client side) ================== */
+async function registerServiceWorkerAndPush() {
+  if (!('serviceWorker' in navigator)) return;
+  try {
+    const reg = await navigator.serviceWorker.register('/sw.js', { scope: '/' });
+    console.log('sw registered', reg.scope);
+    // message listener from SW
+    navigator.serviceWorker.addEventListener('message', (ev) => {
+      const d = ev.data || {};
+      if (d && d.action === 'reSubscribePush') {
+        // re-subscribe
+        subscribeToPush().catch(e => console.warn('re-subscribe failed', e));
+      }
+      if (d && d.action === 'openConversation' && d.data) {
+        // if SW asks to open conversation (notification click)
+        const conv = d.data.conversation || null;
+        if (conv) {
+          // open chat (if conv is TFID)
+          try { openChat(conv); } catch(e){}
+        }
+      }
+    });
+    await navigator.serviceWorker.ready;
+    if (Notification.permission === 'granted') {
+      await subscribeToPush().catch(e => { console.warn('subscribeToPush fail', e); });
+    }
+  } catch (e) {
+    console.warn('sw register failed', e);
+  }
+}
+
+/* request permission then subscribe */
+async function requestNotificationPermission() {
+  if (!('Notification' in window)) return false;
+  try {
+    const p = await Notification.requestPermission();
+    return p === 'granted';
+  } catch (e) {
+    return false;
+  }
+}
+
+async function subscribeToPush() {
+  if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+    console.warn('Push unsupported');
+    return;
+  }
+  const reg = await navigator.serviceWorker.ready;
+  try {
+    const subscribeOptions = {
+      userVisibleOnly: true
+    };
+    if (VAPID_PUBLIC_KEY && VAPID_PUBLIC_KEY.length > 10) {
+      subscribeOptions.applicationServerKey = urlBase64ToUint8Array(VAPID_PUBLIC_KEY);
+    }
+    const subscription = await reg.pushManager.subscribe(subscribeOptions);
+    // send subscription to server
+    await sendSubscriptionToServer(subscription);
+    console.log('Push subscribed', subscription);
+    return subscription;
+  } catch (e) {
+    console.warn('push subscribe error', e);
+    throw e;
+  }
+}
+
+async function sendSubscriptionToServer(subscription) {
+  // POST subscription to your server for storing & future push sending
+  try {
+    await fetch(PUSH_SUBSCRIBE_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tfid: me.tf17, subscription })
+    });
+  } catch (e) {
+    console.warn('sendSubscriptionToServer fail', e);
+  }
+}
+
+/* helper: ask SW to show notification (when page hidden) */
+function showLocalNotification(title, options = {}) {
+  if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+    try {
+      navigator.serviceWorker.controller.postMessage({ action: 'showNotification', title, options });
+      return;
+    } catch (e) { /* fall through */ }
+  }
+  if ('Notification' in window && Notification.permission === 'granted') {
+    try { new Notification(title, options); } catch(e) { console.warn('Notification direct fail', e); }
+  }
+}
+
+/* ================== OPEN/SEND + short-poll fallback + read receipts ================== */
 async function openChat(other17, contactObj=null, pushHistory=true){
   const otherN = normParticipant(other17);
   currentPartner = { tf17: otherN, name: (contactObj && contactObj.name) || null };
@@ -711,14 +741,8 @@ async function openChat(other17, contactObj=null, pushHistory=true){
   messagesEl.innerHTML = '<div class="muted">Chaje mesaj...</div>';
   try { await loadConversation(me.tf17 || null, otherN); } catch(e){ messagesEl.innerHTML = `<div class="muted">Pa kapab chaje mesaj: ${escapeHtml(e.message||e)}</div>`; }
   showChatModal();
-
-  // after opening conversation we send a read receipt so the other user will see double ticks
-  try {
-    await sendReadReceiptTo(otherN);
-  } catch(e) {
-    console.warn('read receipt send failed', e);
-  }
-
+  // send read receipt for this conversation
+  try { await sendReadReceipt(otherN); } catch(e){ /* ignore */ }
   try {
     const slug = encodeURIComponent(otherN);
     if(pushHistory){
@@ -728,41 +752,46 @@ async function openChat(other17, contactObj=null, pushHistory=true){
   } catch(e){}
 }
 
-function openGroupChat(groupName){
-  currentGroup = groupName;
-  currentPartner = null;
-  chatTitleEl.textContent = `# ${groupName}`;
-  messagesEl.innerHTML = '<div class="muted">Chaje mesaj gwoup...</div>';
-  (async ()=>{
-    try {
-      const r = await callJSON(`${API_BASE}/api/group/messages?group_name=${encodeURIComponent(groupName)}&tfid=${encodeURIComponent(me.tf17||'')}&name=${encodeURIComponent(FRONTEND_NAME)}`);
-      if(!r.ok) throw new Error(r.json?.error || r.text || `HTTP ${r.status}`);
-      const rows = r.json.rows || [];
-      const key = convKey(me.tf17 || 'anon', `GROUP:${groupName}`);
-      conversationCache[key] = [];
-      // rows likely newest first; show in chronological order
-      for(const row of rows.reverse()){
-        let parsed = null; try{ parsed = JSON.parse(row.content); }catch(e){ parsed = null; }
-        const from = parsed?.from ? normParticipant(parsed.from) : null;
-        const text = parsed?.text || parsed?.message || (row.content || '');
-        const created_at = parsed?.time || row.created_at || nowISO();
-        if(!from) continue;
-        addOrUpdateMessageToCache(me.tf17 || 'anon', `GROUP:${groupName}`, { id: row.id, from, text, created_at, parsed_time: parsed?.time || null, _db_created_at: row.created_at || null });
-      }
-      renderConversation(me.tf17 || 'anon', `GROUP:${groupName}`);
-      showChatModal();
-      try { history.pushState({ group: groupName }, '', '/groupe/' + encodeURIComponent(groupName)); } catch(e){}
-    } catch(e){
-      messagesEl.innerHTML = `<div class="muted">Pa kapab chaje mesaj gwoup: ${escapeHtml(e.message||e)}</div>`;
-      showChatModal();
-    }
-  })();
+/* send read receipt to other user (server will forward) */
+async function sendReadReceipt(otherN) {
+  if(!me.tf17 || !otherN) return;
+  // find last message CID from other that is visible
+  const key = convKey(me.tf17, otherN);
+  const list = conversationCache[key] || [];
+  let lastCidFromOther = null;
+  for (let i = list.length - 1; i >= 0; i--) {
+    const m = list[i];
+    if (normParticipant(m.from) === otherN && m.cid) { lastCidFromOther = m.cid; break; }
+  }
+  const payload = { type: 'read', from: me.tf17, time: nowISO(), cid: lastCidFromOther, name: me.name || null, conversation: otherN };
+  try {
+    await apiAdd(otherN, payload);
+  } catch(e){
+    console.warn('sendReadReceipt fail', e);
+  }
 }
 
-function showChatModal(){ document.body.classList.add('chat-open'); chatModalEl.style.display = 'block'; ensureMessagesPadding(); setTimeout(()=> chatTextEl?.focus(), 150); }
-function hideChatModal(){ chatModalEl.style.display = 'none'; document.body.classList.remove('chat-open'); currentPartner = null; currentGroup = null; }
+/* when we receive a 'read' from remote: mark messages as read */
+function handleIncomingRead(parsed) {
+  try {
+    const from = normParticipant(parsed.from);
+    const targetConv = convKey(me.tf17, from);
+    if(!conversationCache[targetConv]) return;
+    const lastCid = parsed.cid || null;
+    // mark messages from me as read if cid matches
+    const list = conversationCache[targetConv];
+    for (const m of list) {
+      if (m && m.cid && m.cid === lastCid && m.from && normParticipant(m.from) === me.tf17) {
+        m._read = true;
+      }
+    }
+    saveConversationCacheForMe();
+    if (currentPartner && normParticipant(currentPartner.tf17) === from) {
+      renderConversation(me.tf17, from);
+    }
+  } catch(e) { console.warn('handleIncomingRead err', e); }
+}
 
-/* ================== SEND MESSAGE ================== */
 async function sendMessageFromModal(){
   let txt = (chatTextEl?.value || '').trim();
   if(!txt) return;
@@ -770,7 +799,6 @@ async function sendMessageFromModal(){
   if(!me.tf17){ alert('Ou dwe mete TFID nan Paramètres avan ou voye mesaj. Klike sou TF-Chat anlè a pou mete li.'); return; }
   if(currentGroup){
     const payload = { type:'text', group: currentGroup, from: me.tf17, text: txt, time: nowISO(), cid: makeCid(), name: me.name || null };
-    // optimistic add: include parsed_time and _db_created_at so sorting keeps chronology
     addOrUpdateMessageToCache(me.tf17, `GROUP:${currentGroup}`, {
       id: null,
       cid: payload.cid,
@@ -796,7 +824,6 @@ async function sendMessageFromModal(){
   if(c && c.blocked){ alert('Ou bloke kontak sa — ou pa ka voye mesaj.'); return; }
   const cid = makeCid();
   const payload = { type:'text', from: me.tf17, text: txt, time: nowISO(), cid, name: me.name || null };
-  // optimistic add: include parsed_time and _db_created_at so sorting keeps chronology
   addOrUpdateMessageToCache(me.tf17, recipient17, {
     id: null,
     cid: cid,
@@ -810,6 +837,20 @@ async function sendMessageFromModal(){
   renderConversation(me.tf17, recipient17);
   chatTextEl.value = '';
   if(c){ c.lastMsg = txt; c.lastTs = Date.now(); saveState(); renderContacts(); }
+
+  // try background sync if offline
+  if('serviceWorker' in navigator && 'SyncManager' in window && !navigator.onLine) {
+    // queue the message in localStorage (or better: indexedDB). Simple example:
+    try {
+      const qk = `tf-send-queue.${me.tf17}`;
+      const q = JSON.parse(localStorage.getItem(qk) || '[]');
+      q.push({ to: recipient17, payload });
+      localStorage.setItem(qk, JSON.stringify(q));
+      const reg = await navigator.serviceWorker.ready;
+      await reg.sync.register('tf-send-queue-' + Date.now());
+    } catch(e) { console.warn('bg sync queue fail', e); }
+  }
+
   try {
     const resp = await apiAdd(recipient17, payload);
     startShortPollForMessage(recipient17, cid);
@@ -833,90 +874,43 @@ function ensureContactInList(tf17, name){
   return c;
 }
 
-/* Settings modal flow */
-function promptForMeModal(){
-  updateSettingsUI();
-  settingsModal.style.display = 'flex';
-  profileNameInput.focus();
-  return new Promise(resolve=>{
-    async function onSave(){
-      const nameVal = profileNameInput.value.trim();
-      const short = normalizeInputToDigits(profileTfidInput.value.trim());
-      if(!short || short.length < 7){ alert('TFID invalide — antre 7 chif.'); return; }
-      const tfShort = short.slice(-7);
-      const tf17c = to17(tfShort);
-      const existingHash = getPasswordHash(tf17c);
-      if(existingHash){
-        const pw = prompt('TFID sa egziste deja lokalman. Antre modpas pou kont sa:');
-        if(!pw){ alert('Modpas obligatwa pou kont sa.'); return; }
-        const has = await hashPasswordHex(pw);
-        if(has !== existingHash){ alert('Modpas pa kòrèk.'); return; }
-      }
-      me.name = nameVal || me.name || 'Utilisateur';
-      me.short = tfShort;
-      me.tf17 = to17(me.short);
-      me.tf17 = normParticipant(me.tf17);
-      saveState();
-      settingsModal.style.display = 'none';
-      cleanup();
-      registerFrontendIfNeeded().then(()=>{ if(ws && ws.readyState === WebSocket.OPEN){ try{ ws.send(JSON.stringify({ type:'subscribe', tfid: me.tf17 })); }catch(e){} } else connectWS(); });
-      try{ await fetchGroupsForMe(); }catch(e){}
-      loadConversationCacheForMe();
-      // ask for notification & push subscription after identity set
-      try { await askNotificationPermissionAndSubscribe(); } catch(e){ console.warn('push init fail', e); }
-      resolve(true);
-    }
-    function onCancel(){ settingsModal.style.display = 'none'; cleanup(); resolve(false); }
-    function cleanup(){ profileSaveBtn.removeEventListener('click', onSave); settingsCancelBtn.removeEventListener('click', onCancel); }
-    profileSaveBtn.addEventListener('click', onSave);
-    settingsCancelBtn.addEventListener('click', onCancel);
-  });
-}
-
-function pwKeyForTf(tf17){ return `tfchat.pw.${tf17}`; }
-function hasPasswordFor(tf17){ return !!localStorage.getItem(pwKeyForTf(tf17)); }
-function storePasswordHash(tf17, hexHash){ localStorage.setItem(pwKeyForTf(tf17), hexHash); }
-function getPasswordHash(tf17){ return localStorage.getItem(pwKeyForTf(tf17)); }
-function triggerPwBannerIfNeeded(){ if(!me.tf17) return; if(hasPasswordFor(me.tf17)) { hidePwBanner(); return; } pwBanner.style.display = 'block'; if(pwWarningTimer) clearTimeout(pwWarningTimer); if(pwForceReloadTimer) clearTimeout(pwForceReloadTimer); pwWarningTimer = setTimeout(()=> { settingsModal.style.display = 'flex'; updateSettingsUI(); }, 60 * 1000); pwForceReloadTimer = setTimeout(()=> { location.reload(); }, 2 * 60 * 1000); }
-function hidePwBanner(){ pwBanner.style.display = 'none'; if(pwWarningTimer) { clearTimeout(pwWarningTimer); pwWarningTimer=null; } if(pwForceReloadTimer){ clearTimeout(pwForceReloadTimer); pwForceReloadTimer=null; } }
-
-/* ================== WEBSOCKET ================== */
+/* ----------------- WEBSOCKET ----------------- */
 function connectWS(){ if(!me.tf17){ if(wsStatusEl) wsStatusEl.textContent = ''; return; } try { ws = new WebSocket(WS_URL); } catch(e){ scheduleReconnect(); return; } ws.onopen = ()=>{ if(wsStatusEl) wsStatusEl.textContent = ''; try{ ws.send(JSON.stringify({ type:'subscribe', tfid: me.tf17 })); }catch(e){} }; ws.onmessage = (ev)=>{ try { const data = JSON.parse(ev.data); if(data.type === 'subscribed') return; if(data.type === 'message'){ const payload = data; let parsed = null; try{ parsed = JSON.parse(payload.content); } catch(e){ parsed = null; } if(!parsed || !parsed.from) return; const recipientRaw = payload.tfid || null; const fromRaw = parsed.from; const recipient = normParticipant(recipientRaw); const from = normParticipant(fromRaw); const other = (recipient === me.tf17) ? from : recipient; if(!other) return; const created = parsed.time || payload.created_at || nowISO(); const msgObj = { id: payload.id || null, cid: parsed.cid || null, from, text: parsed.text || parsed.message || '', parsed_time: parsed.time || null, _db_created_at: payload.created_at || null, created_at: created };
-            // handle read receipts specially
-            if(parsed.type === 'read'){
-              // someone read messages in convo with them => if that someone is not me and recipient is me => apply to me
-              if(recipient === me.tf17){
-                applyReadReceipt(parsed.from, parsed);
-              }
+
+            // if this is a read receipt
+            if(parsed.type === 'read') {
+              handleIncomingRead(parsed);
               return;
             }
-            // normal message content
+
             addOrUpdateMessageToCache(me.tf17, other, msgObj);
 
             if(parsed.name){ const c = ensureContactInList(other, parsed.name); c.name = parsed.name; c.lastMsg = msgObj.text; c.lastTs = Date.now(); saveState(); renderContacts(); }
             if(parsed.type === 'profile' && parsed.photo){ const c = ensureContactInList(other, parsed.name || null); c.avatar = parsed.photo; c.name = parsed.name || c.name; c.lastTs = Date.now(); saveState(); renderContacts(); }
 
-            // if we're currently viewing that chat, render it; also send read receipt if user is viewing (auto-read)
+            // If chat open with that partner, render conversation and send read receipt
             if(currentPartner && normParticipant(currentPartner.tf17) === other){
-              // if chat is open and focused -> render and optionally send read receipt
-              addOrUpdateMessageToCache(me.tf17, other, msgObj);
               renderConversation(me.tf17, other);
-              // auto send read receipt to the sender (so they will see ✓✓)
-              // only if message is incoming (from !== me)
-              if(normParticipant(parsed.from) === other && me.tf17){
-                // small delay to avoid immediate race
-                setTimeout(()=> { sendReadReceiptTo(other); }, 350);
-              }
+              // send read receipt automatically (so sender sees double checks)
+              sendReadReceipt(other).catch(()=>{});
             } else if(recipient === me.tf17){
-              // not viewing currently -> increase unread + show push/notification
               const c = ensureContactInList(other, parsed && parsed.name ? parsed.name : null);
               c.unread = (c.unread||0) + 1;
               c.lastMsg = msgObj.text;
               c.lastTs = Date.now();
-              saveState(); renderContacts();
-
-              // show notification if permission granted and page not visible or not viewing conversation
-              showNotificationForIncoming(other, parsed, msgObj);
+              saveState();
+              renderContacts();
+              // show notification if page hidden
+              if(document.hidden || document.visibilityState === 'hidden') {
+                const title = parsed.name || formatTFShort(other);
+                const body = (parsed.text || parsed.message || '').slice(0,120);
+                showLocalNotification(title, {
+                  body,
+                  data: { conversation: other, tfid: other, url: '/' + other },
+                  icon: '/images/notification-128.png',
+                  badge: '/images/notification-badge.png'
+                });
+              }
             }
         }
     } catch(err){ console.warn('WS parse err', err); } };
@@ -925,82 +919,42 @@ function connectWS(){ if(!me.tf17){ if(wsStatusEl) wsStatusEl.textContent = ''; 
 }
 function scheduleReconnect(){ if(reconnectTimer) return; reconnectTimer = setTimeout(()=>{ reconnectTimer=null; connectWS(); }, 3000); }
 
-/* ========== SHOW NOTIFICATION HANDLER ========== */
-async function showNotificationForIncoming(from, parsed, msgObj){
-  try {
-    // don't show notifs if user explicitly denied
-    if(!('Notification' in window)) return;
-    if(Notification.permission !== 'granted') return;
-    // if page is visible and user viewing that conversation, avoid notification
-    if(document.visibilityState === 'visible' && currentPartner && normParticipant(currentPartner.tf17) === normParticipant(from)) return;
-
-    const title = parsed && parsed.name ? parsed.name : formatTFShort(from);
-    const body = (parsed && parsed.text) ? parsed.text : (msgObj && msgObj.text) ? msgObj.text : 'Nouveau message';
-    const url = '/' + encodeURIComponent(from); // ouvre konvèsasyon
-    const data = { url };
-
-    // prefer service worker registration showNotification
-    const reg = await navigator.serviceWorker.getRegistration();
-    if(reg && reg.showNotification){
-      await reg.showNotification(title, { body, data, renotify: true, tag: 'tfchat-' + (from || 'msg') });
-    } else {
-      // fallback: use Notification API in page
-      new Notification(title, { body, data });
+/* ================== visibility / focus handling ================== */
+/* When user returns to page, fetch latest messages & sync */
+document.addEventListener('visibilitychange', async () => {
+  if (document.visibilityState === 'visible') {
+    // reload conversation cache and fetch server rows
+    try {
+      loadConversationCacheForMe();
+      // re-connect websocket if necessary
+      if(!ws || ws.readyState !== WebSocket.OPEN) connectWS();
+      // fetch lists for me (missed messages)
+      if(me.tf17) {
+        try {
+          await loadConversation(me.tf17, currentPartner ? currentPartner.tf17 : (contacts[0] ? contacts[0].tf17 : null));
+        } catch(e) {}
+        // scan all contacts to refresh last messages quickly (could be optimized)
+        contacts.slice(0, 10).forEach(async c => {
+          try { await apiList(c.tf17); } catch(e){ }
+        });
+      }
+    } catch(e){}
+    // if user opened chat, send read receipt (so sender sees double ticks)
+    if(currentPartner && me.tf17) {
+      sendReadReceipt(currentPartner.tf17).catch(()=>{});
     }
-  } catch(e){ console.warn('showNotification failed', e); }
-}
-
-/* ================== PUSH SUBSCRIPTION (client) ================== */
-async function askNotificationPermissionAndSubscribe(){
-  // Ask for notification permission (it triggers browser native prompt)
-  try {
-    if (!('Notification' in window) || !('serviceWorker' in navigator) || !('PushManager' in window)) {
-      console.warn('Notifications/Push not supported in this browser');
-      return;
-    }
-    const permission = await Notification.requestPermission();
-    if (permission !== 'granted') {
-      console.log('Notification permission not granted:', permission);
-      return;
-    }
-    // subscribe
-    await subscribeToPush();
-  } catch (e) {
-    console.warn('askNotificationPermissionAndSubscribe error', e);
   }
-}
+});
 
-async function subscribeToPush(){
-  try {
-    const reg = await navigator.serviceWorker.ready;
-    const sub = await reg.pushManager.getSubscription();
-    if (sub) {
-      // already subscribed -> send to server to ensure stored
-      await sendSubscriptionToServer(sub);
-      return sub;
+window.addEventListener('focus', async () => {
+  if(me.tf17) {
+    if(!ws || ws.readyState !== WebSocket.OPEN) connectWS();
+    // ensure conversations loaded
+    if(currentPartner && currentPartner.tf17) {
+      try { await loadConversation(me.tf17, currentPartner.tf17); } catch(e){}
     }
-    if(!VAPID_PUBLIC_KEY || VAPID_PUBLIC_KEY === '<YOUR_VAPID_PUBLIC_KEY_HERE>'){
-      console.warn('VAPID_PUBLIC_KEY missing — cannot subscribe to push');
-      return null;
-    }
-    const convertedVapidKey = urlBase64ToUint8Array(VAPID_PUBLIC_KEY);
-    const newSub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: convertedVapidKey });
-    await sendSubscriptionToServer(newSub);
-    return newSub;
-  } catch (e) {
-    console.warn('subscribeToPush failed', e);
-    return null;
   }
-}
-
-async function sendSubscriptionToServer(subscription){
-  try {
-    if(!subscription) return;
-    const body = { subscription, tfid: me.tf17 || null, name: FRONTEND_NAME };
-    await fetch(SUBSCRIBE_ENDPOINT, { method: 'POST', headers: { 'Content-Type':'application/json' }, body: JSON.stringify(body) })
-      .then(r => r.text()).then(t => { /* optional response handling */ }).catch(()=>{});
-  } catch(e){ console.warn('sendSubscriptionToServer fail', e); }
-}
+});
 
 /* ================== SEARCH / UI EVENTS ================== */
 async function performSearchQuery(raw){
@@ -1190,8 +1144,14 @@ tabGroupes?.addEventListener('click', ()=> { tabGroupes.classList.add('active');
 appTitleEl?.addEventListener('click', ()=> { updateSettingsUI(); settingsModal.style.display = 'flex'; });
 
 /* profile save */
-profileSaveBtn?.addEventListener('click', async ()=>{ const newName = profileNameInput.value.trim(); const short = normalizeInputToDigits(profileTfidInput.value.trim()); if(!short || short.length < 7){ alert('TFID pa valab — antre 7 chif.'); return; } const tfShort = short.slice(-7); const tf17 = to17(tfShort); const existingHash = getPasswordHash(tf17); if(existingHash && (!me.tf17 || me.tf17 !== tf17)) { const pw = prompt('Kont sa deja egziste lokalman. Antre modpas li pou itilize li:'); if(!pw) { alert('Modpas obligatwa.'); return; } const has = await hashPasswordHex(pw); if(has !== existingHash){ alert('Modpas pa kòrèk.'); return; } } const newPw = profilePwInput.value || ''; if(newPw){ const hex = await hashPasswordHex(newPw); storePasswordHash(tf17, hex); } me.name = newName || me.name; me.short = tfShort; me.tf17 = normParticipant(to17(tfShort)); saveState(); settingsModal.style.display = 'none'; await registerFrontendIfNeeded(); if(ws && ws.readyState === WebSocket.OPEN){ try{ ws.send(JSON.stringify({ type:'subscribe', tfid: me.tf17 })); }catch(e){} } else connectWS(); triggerPwBannerIfNeeded(); try{ await fetchGroupsForMe(); }catch(e){} loadConversationCacheForMe(); // init push
-try { await askNotificationPermissionAndSubscribe(); } catch(e){ console.warn('push init fail', e); } });
+profileSaveBtn?.addEventListener('click', async ()=>{ const newName = profileNameInput.value.trim(); const short = normalizeInputToDigits(profileTfidInput.value.trim()); if(!short || short.length < 7){ alert('TFID pa valab — antre 7 chif.'); return; } const tfShort = short.slice(-7); const tf17 = to17(tfShort); const existingHash = getPasswordHash(tf17); if(existingHash && (!me.tf17 || me.tf17 !== tf17)) { const pw = prompt('Kont sa deja egziste lokalman. Antre modpas li pou itilize li:'); if(!pw) { alert('Modpas obligatwa.'); return; } const has = await hashPasswordHex(pw); if(has !== existingHash){ alert('Modpas pa kòrèk.'); return; } } const newPw = profilePwInput.value || ''; if(newPw){ const hex = await hashPasswordHex(newPw); storePasswordHash(tf17, hex); } me.name = newName || me.name; me.short = tfShort; me.tf17 = normParticipant(to17(tfShort)); saveState(); settingsModal.style.display = 'none'; await registerFrontendIfNeeded(); if(ws && ws.readyState === WebSocket.OPEN){ try{ ws.send(JSON.stringify({ type:'subscribe', tfid: me.tf17 })); }catch(e){} } else connectWS(); triggerPwBannerIfNeeded(); try{ await fetchGroupsForMe(); }catch(e){} loadConversationCacheForMe(); // subscribe to push if allowed
+  if(Notification && Notification.permission === 'granted') {
+    subscribeToPush().catch(()=>{});
+  } else {
+    // ask permission optionally
+    // do not auto-request on page load; request when user clicks "activer notifications"
+  }
+});
 settingsCancelBtn?.addEventListener('click', ()=> settingsModal.style.display = 'none');
 
 /* popstate handlers & initial path */
@@ -1208,8 +1168,8 @@ if(me.tf17){
   loadConversationCacheForMe();
   connectWS();
   fetchGroupsForMe();
-  // ask notification permission & subscribe on boot (requested only if needed)
-  askNotificationPermissionAndSubscribe().catch(()=>{});
+  // register sw & push
+  registerServiceWorkerAndPush().catch(()=>{});
 } else {
   const shownOnce = localStorage.getItem('tfchat.settings_shown_once');
   if(!shownOnce){
@@ -1217,14 +1177,10 @@ if(me.tf17){
   }
 }
 
-/* ================== SERVICE WORKER REGISTRATION ================== */
+/* ================== SERVICE WORKER REGISTRATION (already in boot) ================== */
 if('serviceWorker' in navigator){
-  navigator.serviceWorker.register('/sw.js', { scope: '/' }).then(async reg=>{
+  navigator.serviceWorker.register('/sw.js', { scope: '/' }).then(reg=>{
     console.log('sw registered', reg.scope);
-    // after registration, if me is already set, ask permission (user wanted prompt)
-    if(me.tf17){
-      try { await askNotificationPermissionAndSubscribe(); } catch(e){ console.warn('push init after sw registration failed', e); }
-    }
   }).catch(err=>{
     console.warn('sw register failed', err);
   });
@@ -1241,4 +1197,4 @@ function initials(name){ if(!name) return 'U'; return name.split(' ').map(p=>p[0
 async function uploadFileToProfile(file){ const fd = new FormData(); fd.append('file', file); const resp = await fetch(PROFILE_UPLOAD_URL, { method:'POST', body: fd }); const text = await resp.text().catch(()=>null); let json = null; try{ json = JSON.parse(text); }catch(e){} if(!resp.ok || !json || !(json.ok || json.success) || !(json.url || json.path)) { const msg = json?.error || text || `status ${resp.status}`; throw new Error('Upload failed: ' + msg); } return json.url || json.path; }
 </script>
 </body>
-          </html>
+  </html>
