@@ -1,357 +1,1244 @@
 <!doctype html>
-<html lang="fr">
+<html lang="ht">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>TF-Chat</title>
-  <style>
-    /* --- minimal styles (kenbe sa ou te genyen si gen lòt CSS) --- */
-    body { font-family: system-ui, Arial; margin:0; padding:0; background:#f7f7f8; color:#111; }
-    .header { display:flex; align-items:center; gap:12px; padding:12px 16px; background:#fff; border-bottom:1px solid #eee; }
-    .app-logo { width:36px; height:36px; display:inline-flex; align-items:center; justify-content:center; border-radius:8px; background:linear-gradient(90deg,#4f46e5,#06b6d4); color:white; font-weight:700; }
-    .app-title { font-size:18px; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:8px; }
-    .main { display:flex; gap:12px; padding:16px; }
-    /* chat area */
-    #chatModal { width:100%; max-width:900px; margin:0 auto; background:#fff; border-radius:8px; box-shadow:0 4px 18px rgba(0,0,0,0.06); padding:12px; }
-    #messages { max-height:60vh; overflow:auto; padding:8px; }
-    .message-row { padding:6px 8px; margin:6px 0; border-radius:8px; background:#f2f4f7; }
-    .compose { display:flex; gap:8px; align-items:center; margin-top:8px; }
-    .compose textarea { flex:1; min-height:44px; padding:8px; border-radius:8px; border:1px solid #ddd; resize:vertical;}
-    .btn { display:inline-flex; align-items:center; justify-content:center; padding:8px 12px; border-radius:8px; border:none; background:#2563eb; color:white; cursor:pointer; }
-    .icon-btn { width:44px; height:44px; display:inline-flex; align-items:center; justify-content:center; border-radius:8px; background:#2563eb; color:white; border:none; cursor:pointer; }
-    .small-muted { color:#666; font-size:12px; }
-  </style>
+<meta charset="utf-8" />
+<!-- Prevent pinch zoom on mobile (optional) -->
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no" />
+<title>TF-Chat</title>
+
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" type="image/jpeg" href="https://files.catbox.moe/ixgmht.jpg" />
+<link rel="apple-touch-icon" href="https://files.catbox.moe/ixgmht.jpg" />
+<meta name="theme-color" content="#000000">
+
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#000000; --panel:#000000; --text:#e6eefb; --muted:#9aa6bf;
+  --card:#0b0b0b; --accent:#0b81ff; --header-h:56px; --tab-h:62px;
+  --msg-line-height:1.35rem; --msg-max-lines:8;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;padding:0;background:var(--bg);color:var(--text);font-family:Roboto,system-ui,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+header{position:fixed;left:0;right:0;top:0;height:var(--header-h);display:flex;align-items:center;justify-content:center;background:var(--panel);z-index:1000;border-bottom:1px solid rgba(255,255,255,0.03)}
+.app-title{font-weight:700;font-size:18px;cursor:pointer}
+main{position:fixed;left:0;right:0;top:var(--header-h);bottom:var(--tab-h);overflow:auto;padding:12px;margin:0 auto;max-width:980px}
+
+/* When chat modal open hide main content for clarity */
+body.chat-open main > section { display:none !important; }
+
+/* tabbar bottom */
+.tabbar { position:fixed; left:0; right:0; bottom:0; height:var(--tab-h); display:flex; gap:0; border-top:1px solid rgba(255,255,255,0.03); background:var(--panel); align-items:center; justify-content:center; z-index:1000; }
+.tab { flex:1; text-align:center; padding:10px 6px; cursor:pointer; font-weight:700; color:var(--muted); }
+.tab.active{ color:var(--text); border-top:3px solid var(--accent); background: linear-gradient(180deg, rgba(255,255,255,0.01), transparent); }
+
+.search{padding:8px 12px;display:flex;justify-content:center}
+.search-box{display:flex;align-items:center;gap:8px;background:var(--card);padding:10px;border-radius:999px;border:1px solid rgba(255,255,255,0.03);width:100%;max-width:980px}
+.search-box input{flex:1;background:transparent;border:0;outline:none;color:var(--text);font-size:15px}
+.search-btn{background:var(--accent);border:none;color:white;padding:8px 12px;border-radius:10px;cursor:pointer;font-weight:600}
+.list{margin-top:12px}
+.contact{display:flex;gap:12px;align-items:center;padding:12px;border-radius:12px;cursor:pointer;width:100%}
+.contact:hover{background:rgba(255,255,255,0.02)}
+.avatar{width:56px;height:56px;border-radius:50%;background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;color:var(--text);flex-shrink:0;overflow:hidden}
+.avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+.meta{flex:1;min-width:0}
+.meta-top{display:flex;justify-content:space-between;align-items:flex-start}
+.name{font-weight:600;font-size:16px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.time{font-size:12px;color:var(--muted)}
+.meta-bottom{display:flex;justify-content:space-between;margin-top:6px;align-items:center}
+.snippet{font-size:13px;color:var(--muted);overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.badge{background:var(--accent);color:white;padding:4px 8px;border-radius:999px;font-weight:600;font-size:13px}
+.group-manage-btn{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--text);padding:6px 8px;border-radius:8px;cursor:pointer;font-weight:600;margin-left:8px}
+
+.messages-wrap{padding:12px;height:calc(100% - 56px - 84px);overflow:auto;display:flex;flex-direction:column;gap:8px}
+.messages{display:flex;flex-direction:column;gap:8px}
+.msg{max-width:74%;padding:10px;border-radius:12px;margin-bottom:4px;word-break:break-word;overflow:hidden;display:inline-block}
+.msg.bot{background:#121212;color:var(--text);align-self:flex-start}
+.msg.user{background:linear-gradient(180deg,var(--accent),#0563c9);color:white;align-self:flex-end}
+.msg .checks{font-size:11px;margin-left:8px;opacity:0.9}
+
+.msg-text{
+  white-space:pre-wrap;
+  word-break:break-word;
+  overflow-wrap:anywhere;
+  display:block;
+  line-height: var(--msg-line-height);
+  max-height: calc(var(--msg-line-height) * var(--msg-max-lines));
+}
+.msg-meta{font-size:11px;color:var(--muted);margin-top:6px;display:flex;gap:8px;align-items:center}
+
+.chat-input{display:flex;gap:8px;align-items:center;padding:12px;border-top:1px solid rgba(255,255,255,0.03);background:transparent}
+.input{flex:1;padding:12px;border-radius:999px;border:1px solid rgba(255,255,255,0.03);background:var(--card);color:var(--text);outline:none;min-width:0}
+.send-btn{background:transparent;border:0;padding:8px;border-radius:10px;cursor:pointer;color:var(--accent)}
+.muted{text-align:center;color:var(--muted);padding:20px}
+.bottom-right { position: fixed; right: 16px; bottom: 16px; z-index: 1100; display:flex; gap:8px; align-items:center; }
+.ws-indicator{display:none}
+@media (min-width:900px){main{max-width:700px;margin:0 auto}}
+.settings-panel{width:420px;background:#fff;border-radius:12px;padding:18px;box-shadow:0 10px 30px rgba(11,18,32,0.2);color:#0b1220}
+.settings-label{font-size:13px;color:#374151}
+.banner { position: fixed; left: 50%; transform: translateX(-50%); top: var(--header-h); z-index:1300; background: #fffbeb; color:#92400e; border:1px solid #f59e0b; padding:10px 14px;border-radius:10px;box-shadow:0 6px 20px rgba(0,0,0,0.2);font-weight:600; display:none; }
+.profile-modal { position:fixed; inset:0; display:none; align-items:center; justify-content:center; z-index:1400; background:rgba(0,0,0,0.6); }
+.profile-card { width:320px; background:#fff; color:#0b1220; padding:18px; border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,0.3); }
+.profile-row{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.profile-avatar{width:64px;height:64px;border-radius:12px;background:#cbd5e1;display:flex;align-items:center;justify-content:center;font-weight:700;overflow:hidden}
+.profile-avatar img{width:100%;height:100%;object-fit:cover;border-radius:12px}
+.small{font-size:12px;color:var(--muted)}
+#create-group,.group-manage{display:none}
+@media (max-width:640px){
+  .avatar{width:48px;height:48px}
+  .profile-avatar{width:56px;height:56px}
+  main{ padding:10px; }
+}
+</style>
 </head>
 <body>
+  <header><div class="app-title">TF-Chat</div></header>
 
-  <header class="header">
-    <div class="app-logo" aria-hidden="true">TF</div>
-    <div class="app-title" title="Paramètres & profil">
-      <!-- replaced bell emoji by a small SVG notification icon to look professional -->
-      <span style="display:inline-flex;align-items:center;gap:8px;">
-        TF-Sove
-        <svg id="notifLogo" width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0 1 18.6 14.6V11a6.002 6.002 0 0 0-4-5.659V4a2 2 0 1 0-4 0v1.341C8.4 6.165 6 8.388 6 11v3.6c0 .538-.214 1.055-.595 1.435L4 17h11z" stroke="#0f172a" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path>
-          <path d="M13.73 21a2 2 0 0 1-3.46 0" stroke="#0f172a" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
-        </svg>
-      </span>
-    </div>
-    <div style="margin-left:auto; display:flex; gap:12px; align-items:center;">
-      <div id="wsStatus" class="small-muted">WS: —</div>
-      <button id="openSettingsBtn" class="btn">Settings</button>
-    </div>
-  </header>
+  <div class="banner" id="pwBanner">Tanpri mete yon modpas pou sekirize sesyon ou. Ou gen 2 min pou sove li.</div>
 
-  <main class="main">
-    <section style="flex:1;">
-      <div id="chatModal">
-        <div id="messages" aria-live="polite"></div>
-
-        <div class="compose" id="chatInputRow">
-          <textarea id="chatText" placeholder="Écrire un message..."></textarea>
-
-          <!-- Send button: real SVG icon (no emoji or plain text) -->
-          <button id="sendBtn" class="icon-btn" title="Envoyer" aria-label="Envoyer">
-            <!-- modern rounded send icon -->
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <path d="M22 2L11 13" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              <path d="M22 2L15 22L11 13L2 9L22 2Z" stroke="white" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" fill="white" opacity="0.08"/>
-            </svg>
-          </button>
+  <main>
+    <section id="section-accueil">
+      <section class="search">
+        <div class="search-box" role="search">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" aria-hidden="true"><path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="1.6"/><circle cx="11" cy="11" r="6" stroke="currentColor" stroke-width="1.6"/></svg>
+          <input id="searchInput" placeholder="Recherche (TFID ou 7 chif)" aria-label="Recherche" />
+          <button id="searchBtn" class="search-btn">Rechercher</button>
         </div>
+      </section>
+
+      <section class="list" id="contactsList" aria-live="polite"></section>
+    </section>
+
+    <section id="section-groupes" style="display:none">
+      <section class="search">
+        <div class="search-box" role="search">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" aria-hidden="true"><path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="1.6"/><circle cx="11" cy="11" r="6" stroke="currentColor" stroke-width="1.6"/></svg>
+          <input id="groupSearchInput" placeholder="Chercher un groupe…" aria-label="Recherche groupe" />
+          <button id="groupSearchBtn" class="search-btn">Recherche</button>
+        </div>
+      </section>
+
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px">
+        <div style="font-weight:700">Mes groupes</div>
+        <button id="openCreateGroup" class="search-btn" style="background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--text);padding:8px 12px;border-radius:10px">Créer</button>
       </div>
+
+      <section class="list" id="groupsList" aria-live="polite" style="margin-top:12px"></section>
     </section>
   </main>
 
-  <!-- Settings modal / small UI pieces should be here (omitted for brevity if you have full UI) -->
-  <!-- ... keep your full modals and other markup as before ... -->
+  <div class="tabbar">
+    <div id="tabAccueil" class="tab active">Accueil</div>
+    <div id="tabGroupes" class="tab">Groupes</div>
+  </div>
+
+  <!-- Chat modal -->
+  <div id="chatModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.96);z-index:1200">
+    <div style="height:100%;display:flex;flex-direction:column">
+      <div style="height:56px;display:flex;align-items:center;padding:8px 12px;border-bottom:1px solid rgba(255,255,255,0.03)">
+        <button id="chatBack" style="background:transparent;border:0;color:var(--text);cursor:pointer">←</button>
+        <div style="flex:1;text-align:center;font-weight:700;cursor:pointer" id="chatTitle">Chat</div>
+        <div style="width:44px"></div>
+      </div>
+      <div class="messages-wrap">
+        <div class="messages" id="messages" aria-live="polite" role="log"></div>
+      </div>
+      <div class="chat-input" id="chatInputRow">
+        <input id="chatText" class="input" placeholder="Ekri mesaj..." autocomplete="off" />
+        <!-- bouton send style like whatsapp icon for iPhone: keep character but you can replace with svg later -->
+        <button id="sendBtn" class="send-btn" aria-label="Envoyer">⤴</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Create group modal -->
+  <div class="create-group" id="createGroupModal" style="display:none;position:fixed;inset:0;align-items:center;justify-content:center;z-index:1500;background:rgba(0,0,0,0.6)">
+    <div class="create-panel">
+      <h3>Kreye gwoup</h3>
+      <div style="display:flex;gap:12px">
+        <div>
+          <div class="create-avatar" id="groupAvatarPicker" title="Chwazi logo/gwoup">
+            <span id="groupAvatarLabel">+</span>
+            <img id="groupAvatarPreview" style="display:none" />
+          </div>
+          <input type="file" id="groupAvatarFile" accept="image/*" style="display:none">
+        </div>
+        <div style="flex:1">
+          <div style="margin-bottom:10px">
+            <label>Non gwoup <span style="color:#ef4444">*</span></label>
+            <input id="groupNameInput" style="width:100%;padding:8px;border-radius:8px;border:1px solid #e6eef3;margin-top:6px" />
+          </div>
+          <div style="margin-bottom:10px">
+            <label>Bio (opsyonèl)</label>
+            <textarea id="groupBioInput" rows="3" style="width:100%;padding:8px;border-radius:8px;border:1px solid #e6eef3;margin-top:6px"></textarea>
+          </div>
+          <div style="display:flex;justify-content:flex-end;gap:8px">
+            <button id="createCancel" style="padding:8px 12px;border-radius:8px;border:1px solid #e6edf3;background:white;cursor:pointer">Retour</button>
+            <button id="createConfirm" class="search-btn">Valider</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Group manage modal -->
+  <div class="group-manage" id="groupManageModal" style="display:none;position:fixed;inset:0;align-items:center;justify-content:center;z-index:1550;background:rgba(0,0,0,0.6)">
+    <div class="group-panel" role="dialog" aria-modal="true">
+      <h3 id="groupManageTitle" style="margin-top:0">Gérer gwoup</h3>
+      <div class="group-members" id="groupMembersList">Chargement…</div>
+      <div style="display:flex;gap:8px;margin-bottom:10px">
+        <input id="groupAddTfid" placeholder="Antre TFID (7 oswa 17 chif)" style="flex:1;padding:8px;border-radius:8px;border:1px solid #e6eef3" />
+        <button id="groupAddBtn" class="search-btn">Ajoute</button>
+      </div>
+      <div style="display:flex;justify-content:flex-end;gap:8px">
+        <button id="groupManageClose" style="padding:8px 12px;border-radius:8px;border:1px solid #e6edf3;background:white;cursor:pointer">Fèmen</button>
+      </div>
+    </div>
+  </div>
+
+  <input type="file" id="profileFile" accept="image/*" style="display:none" />
+
+  <div class="profile-modal" id="profileModal">
+    <div class="profile-card" role="dialog" aria-modal="true">
+      <div class="profile-row">
+        <div class="profile-avatar" id="profileAvatar">U</div>
+        <div>
+          <div id="profileName" style="font-weight:800">Utilisateur</div>
+          <div id="profileTfid" class="small">TF-0000000</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end">
+        <button id="addContactBtn" style="padding:8px 12px;border-radius:8px;border:1px solid #e6edf3;background:white;cursor:pointer">Ajouter</button>
+        <button id="blockBtn" style="padding:8px 12px;border-radius:8px;background:#ef4444;color:white;border:none;cursor:pointer">Bloquer</button>
+        <button id="closeProfileBtn" style="padding:8px 12px;border-radius:8px;border:1px solid #e6edf3;background:white;cursor:pointer">Fermer</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="settingsModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:1200;align-items:center;justify-content:center;">
+    <div class="settings-panel" role="dialog" aria-modal="true">
+      <h3 style="margin:0 0 12px 0">Paramètres — Identité</h3>
+      <div style="margin-bottom:8px">
+        <label class="settings-label">Pseudo affiché</label>
+        <input id="profileNameInput" style="width:100%;padding:10px;border-radius:8px;border:1px solid #e6eef3;margin-top:6px" />
+      </div>
+      <div style="margin-bottom:12px">
+        <label class="settings-label">TFID (7 chif) — ex: 0204143</label>
+        <input id="profileTfidInput" style="width:100%;padding:10px;border-radius:8px;border:1px solid #e6eef3;margin-top:6px" />
+        <div style="font-size:12px;color:#6b7280;margin-top:6px">Sere TFID tankou TF-XXXXXXX. Sistèm lan konvèti pou TF-17-chif otomatikman.</div>
+      </div>
+      <div style="margin-bottom:12px">
+        <label class="settings-label">Mot de passe (créer / changer)</label>
+        <input id="profilePwInput" type="password" placeholder="Nouveau mot de passe" style="width:100%;padding:10px;border-radius:8px;border:1px solid #e6eef3;margin-top:6px" />
+        <div style="font-size:12px;color:#6b7280;margin-top:6px">Le mot de passe est haché côté client et stocké localement. Ne partagez pas ce mot de passe.</div>
+      </div>
+      <div style="display:flex;justify-content:flex-end;gap:8px">
+        <button id="settingsCancel" style="padding:8px 12px;border-radius:8px;border:1px solid #e6edf3;background:white;cursor:pointer">Annuler</button>
+        <button id="profileSave" style="padding:8px 12px;border-radius:8px;background:#007aff;color:white;border:none;cursor:pointer">Sove</button>
+      </div>
+    </div>
+  </div>
 
 <script>
-/* ================== CONFIG (adjust if needed) ================== */
-/* Link client to your server base */
-const API_BASE = 'https://tf-sove.onrender.com'; // <--- server url (as requested)
-const FRONTEND_NAME = 'site1'; // change if needed (must match registered frontend on server)
-const SUBSCRIBE_ENDPOINT = API_BASE + '/push/subscribe'; // server endpoint we implemented
-const VAPID_GET_ENDPOINT = API_BASE + '/push/vapid'; // server endpoint to fetch public key
-let VAPID_PUBLIC_KEY = null; // will be fetched at boot
+/* ================== CONFIG ================== */
+const API_BASE = 'https://tf-sove.onrender.com';
+const PROFILE_UPLOAD_URL = API_BASE + '/upload';
+const FRONTEND_NAME = 'site1';
+const ADMIN_API_TOKEN = 'tfstream_45dd9c02d4e34f18a42d';
+const WS_URL = (location.protocol === "https:" ? "wss://" : "ws://") + "tf-sove.onrender.com/ws";
 
-/* ================== App state (keep original logic) ================== */
-let me = { tf17: localStorage.getItem('tfchat.me.17') || '', name: localStorage.getItem('tfchat.me.name') || '', short: localStorage.getItem('tfchat.me.short') || '', avatarDataUrl: localStorage.getItem('tfchat.me.avatar') || '' };
-let ws = null;
-let reconnectTimer = null;
+// --- PUSH / VAPID ---
+// Remplace ak kle piblik VAPID la (base64 URL-safe)
+const VAPID_PUBLIC_KEY = '<YOUR_VAPID_PUBLIC_KEY_HERE>';
+const SUBSCRIBE_ENDPOINT = API_BASE + '/api/subscribe'; // backend: resevwa subscription JSON + me.tf17
 
-/* DOM refs */
-const messagesEl = document.getElementById('messages');
-const chatTextEl = document.getElementById('chatText');
-const sendBtnEl = document.getElementById('sendBtn');
-const wsStatusEl = document.getElementById('wsStatus');
-const appTitleEl = document.querySelector('.app-title');
-const openSettingsBtn = document.getElementById('openSettingsBtn');
-
-/* ------------------ Helper: format message in UI ------------------ */
-function appendMessageRow(msgObj, opts = {}) {
-  // msgObj: {id, tfid, content, created_at, name}
-  const row = document.createElement('div');
-  row.className = 'message-row';
-  const who = document.createElement('div');
-  who.innerHTML = `<strong>${escapeHtml(msgObj.name || msgObj.from || msgObj.tfid)}</strong> <span class="small-muted">${msgObj.created_at ? new Date(msgObj.created_at).toLocaleString() : ''}</span>`;
-  const body = document.createElement('div');
-  let text = '';
-  try {
-    const p = JSON.parse(msgObj.content);
-    text = p.text || p.message || JSON.stringify(p);
-  } catch (e) {
-    text = msgObj.content || '';
-  }
-  body.textContent = text;
-  row.appendChild(who);
-  row.appendChild(body);
-  messagesEl.appendChild(row);
-  messagesEl.scrollTop = messagesEl.scrollHeight;
-}
-
-/* escapeHtml copied from server for safety */
-function escapeHtml(s) {
-  if (s == null) return "";
-  return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
-}
-
-/* ------------------ API helpers ------------------ */
-async function apiAdd(tfid, payload) {
-  const url = API_BASE + '/api/add';
-  const body = Object.assign({}, payload);
-  // body must include 'name' (frontend name) and 'tfid' or 'group_name'
-  if(!body.tfid) body.tfid = tfid;
-  body.name = FRONTEND_NAME;
-  try {
-    const r = await fetch(url, { method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify(body) });
-    return await r.json();
-  } catch (e) { throw e; }
-}
-
-async function apiList(tfid) {
-  const url = API_BASE + '/api/list?tfid=' + encodeURIComponent(tfid) + '&name=' + encodeURIComponent(FRONTEND_NAME);
-  const r = await fetch(url);
-  const j = await r.json();
-  if(!j.ok) throw new Error(j.error || 'api list failed');
-  return j.rows || [];
-}
-
-/* ------------------ WebSocket (subscribe + rehydrate) ------------------ */
-function connectWS() {
-  if (!me.tf17) {
-    wsStatusEl.textContent = 'WS: no profile';
-    return;
-  }
-  const wsUrl = (API_BASE.replace(/^http/, 'ws')) + '/ws';
-  try {
-    ws = new WebSocket(wsUrl);
-  } catch (e) {
-    wsStatusEl.textContent = 'WS: error';
-    scheduleReconnect();
-    return;
-  }
-  ws.onopen = () => {
-    wsStatusEl.textContent = 'WS: open';
-    // subscribe our TFID
-    try { ws.send(JSON.stringify({ type: 'subscribe', tfid: me.tf17 })); } catch(e){}
-    // also fetch recent messages via API to ensure UI rehydrates
-    loadConversationCacheForMe().catch(()=>{});
-  };
-  ws.onmessage = (ev) => {
-    try {
-      const d = JSON.parse(ev.data);
-      if(d && d.type === 'message') {
-        appendMessageRow(d);
-        // show a local notification as well
-        showNotificationForIncoming(d);
-      }
-    } catch(e){ console.warn('ws parse error', e); }
-  };
-  ws.onclose = () => { wsStatusEl.textContent = 'WS: closed'; scheduleReconnect(); };
-  ws.onerror = (e) => { wsStatusEl.textContent = 'WS: error'; console.warn('ws err', e); scheduleReconnect(); };
-}
-
-function scheduleReconnect() {
-  if (reconnectTimer) return;
-  reconnectTimer = setTimeout(()=>{ reconnectTimer = null; connectWS(); }, 3000 + Math.floor(Math.random()*3000));
-}
-
-async function loadConversationCacheForMe() {
-  if (!me.tf17) return;
-  try {
-    const rows = await apiList(me.tf17);
-    messagesEl.innerHTML = ''; // clear and render
-    for (let r of rows.reverse()) {
-      appendMessageRow(r);
-    }
-  } catch (e) {
-    console.warn('rehydrate failed', e);
-  }
-}
-
-/* ------------------ Sending messages ------------------ */
-async function sendMessageFromModal() {
-  const text = (chatTextEl.value || '').trim();
-  if(!text) return;
-  const payload = { content: text, content_type: 'text', from: me.tf17 || null };
-  try {
-    // deliver to current open partner or just store
-    // for demo: assume you have currentPartner variable; else you can hardcode recipient (example)
-    const toTfid = window.currentPartner ? window.currentPartner.tf17 : null;
-    if(!toTfid) { alert('Ouvrir yon chat an premye'); return; }
-    const r = await apiAdd(toTfid, payload);
-    if (r && r.ok) {
-      chatTextEl.value = '';
-      // append locally right away (server will also broadcast back)
-      appendMessageRow({ name: me.name || me.tf17, content: JSON.stringify({ text }), created_at: new Date().toISOString(), tfid: toTfid });
-    } else {
-      alert('Échec envoi: ' + (r && r.error) );
-    }
-  } catch (e) {
-    alert('Erreur envoi: ' + e.message);
-  }
-}
-
-/* ------------------ Push subscription helpers ------------------ */
+/* ================== HELPERS ================== */
 function urlBase64ToUint8Array(base64String) {
-  // convert VAPID key for subscribe
+  // helper pou abònman pushManager
   const padding = '='.repeat((4 - base64String.length % 4) % 4);
   const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
-  const rawData = window.atob(base64);
+  const rawData = atob(base64);
   const outputArray = new Uint8Array(rawData.length);
-  for (let i = 0; i < rawData.length; ++i) outputArray[i] = rawData.charCodeAt(i);
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
   return outputArray;
 }
 
-async function fetchVapidPublicKey() {
-  try {
-    const r = await fetch(VAPID_GET_ENDPOINT);
-    const j = await r.json();
-    if (j && j.ok && j.publicKey) {
-      VAPID_PUBLIC_KEY = j.publicKey;
-      return VAPID_PUBLIC_KEY;
-    } else {
-      console.warn('vapid key not available', j);
-      return null;
-    }
-  } catch (e) { console.warn('fetchVapidPublicKey err', e); return null; }
+function normalizeInputToDigits(inp){ if(!inp) return null; const s=String(inp).trim().toUpperCase(); const digits=s.replace(/[^0-9]/g,''); return digits||null; }
+function to17(shortOrDigits){ if(!shortOrDigits) return null; const ds=String(shortOrDigits).replace(/[^0-9]/g,''); if(ds.length>17) return ds.slice(-17); return ds.padStart(17,'0'); }
+function formatTFShort(digitsString){ if(!digitsString) return ''; const s=String(digitsString).replace(/[^0-9]/g,''); const last7 = s.slice(-7); return 'TF-'+ last7.padStart(7,'0'); }
+function nowISO(){ return (new Date()).toISOString(); }
+function escapeHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function makeCid(){ return String(Date.now()) + '-' + Math.floor(Math.random()*100000).toString(16); }
+function parseDatePrefer(isoOrDb, parsedTime){ const t1 = parsedTime ? Date.parse(parsedTime) : NaN; if(!isNaN(t1)) return t1; const t2 = Date.parse(isoOrDb || ""); return isNaN(t2) ? 0 : t2; }
+async function hashPasswordHex(pw){ const enc = new TextEncoder(); const data = enc.encode(String(pw)); const hashBuffer = await crypto.subtle.digest('SHA-256', data); const hashArray = Array.from(new Uint8Array(hashBuffer)); return hashArray.map(b => b.toString(16).padStart(2,'0')).join(''); }
+function isValidTfid(tfid){ return typeof tfid === 'string' && /^\d{17}$/.test(tfid); }
+
+/* Normalize participant ID:
+   - preserves GROUP:... as-is
+   - converts any numeric / TF-7 / TF-17 into canonical TF-17 string digits
+*/
+function normParticipant(id){
+  if(!id) return '';
+  const s = String(id).trim();
+  if(s.startsWith('GROUP:')) return s;
+  // if already like TF-XXXX use digits
+  const digits = s.replace(/[^0-9]/g,'');
+  if(!digits) return '';
+  if(digits.length >= 17) return to17(digits.slice(-17));
+  if(digits.length >= 7) return to17(digits.slice(-7));
+  return to17(digits);
 }
 
-async function askNotificationPermissionAndSubscribe() {
-  if (!('serviceWorker' in navigator)) return;
-  // register service worker (if not yet)
-  try {
-    const reg = await navigator.serviceWorker.register('/sw.js', { scope: '/' });
-    console.log('sw registered', reg);
-  } catch (e) {
-    console.warn('sw register failed', e);
+/* ================== STATE ================== */
+let me = {
+  short: localStorage.getItem('tfchat.me.short') || null,
+  tf17: localStorage.getItem('tfchat.me.17') || null,
+  name: localStorage.getItem('tfchat.me.name') || 'Utilisateur',
+  avatarDataUrl: localStorage.getItem('tfchat.me.avatar') || null
+};
+// normalize me.tf17 if present
+if(me.tf17) me.tf17 = normParticipant(me.tf17);
+
+let contacts = JSON.parse(localStorage.getItem('tfchat.contacts') || '[]') || [];
+// normalize stored contacts
+contacts = contacts.map(c => { if(c && c.tf17) c.tf17 = normParticipant(c.tf17) || c.tf17; return c; });
+
+let groups = JSON.parse(localStorage.getItem('tfchat.groups') || '[]') || [];
+let ws = null; let reconnectTimer = null; let currentPartner = null; let currentGroup = null;
+const conversationCache = {}; // in-memory cache keyed by convKey
+let pwWarningTimer = null; let pwForceReloadTimer = null;
+
+/* ================== DOM REFS ================== */
+const tabAccueil = document.getElementById('tabAccueil');
+const tabGroupes = document.getElementById('tabGroupes');
+const sectionAccueil = document.getElementById('section-accueil');
+const sectionGroupes = document.getElementById('section-groupes');
+
+const searchInput = document.getElementById('searchInput');
+const searchBtn = document.getElementById('searchBtn');
+const contactsListEl = document.getElementById('contactsList');
+
+const groupSearchInput = document.getElementById('groupSearchInput');
+const groupSearchBtn = document.getElementById('groupSearchBtn');
+const groupsListEl = document.getElementById('groupsList');
+const openCreateGroup = document.getElementById('openCreateGroup');
+const createGroupModal = document.getElementById('createGroupModal');
+const groupAvatarPicker = document.getElementById('groupAvatarPicker');
+const groupAvatarFile = document.getElementById('groupAvatarFile');
+const groupAvatarPreview = document.getElementById('groupAvatarPreview');
+const groupAvatarLabel = document.getElementById('groupAvatarLabel');
+const groupNameInput = document.getElementById('groupNameInput');
+const groupBioInput = document.getElementById('groupBioInput');
+const createCancel = document.getElementById('createCancel');
+const createConfirm = document.getElementById('createConfirm');
+
+const groupManageModal = document.getElementById('groupManageModal');
+const groupManageTitle = document.getElementById('groupManageTitle');
+const groupMembersList = document.getElementById('groupMembersList');
+const groupAddTfid = document.getElementById('groupAddTfid');
+const groupAddBtn = document.getElementById('groupAddBtn');
+const groupManageClose = document.getElementById('groupManageClose');
+
+const chatModalEl = document.getElementById('chatModal');
+const messagesEl = document.getElementById('messages');
+const chatInputRow = document.getElementById('chatInputRow');
+const chatTextEl = document.getElementById('chatText');
+const sendBtnEl = document.getElementById('sendBtn');
+
+const wsStatusEl = document.getElementById('wsStatus');
+const settingsModal = document.getElementById('settingsModal');
+const profileNameInput = document.getElementById('profileNameInput');
+const profileTfidInput = document.getElementById('profileTfidInput');
+const profilePwInput = document.getElementById('profilePwInput');
+const profileSaveBtn = document.getElementById('profileSave');
+const settingsCancelBtn = document.getElementById('settingsCancel');
+const pwBanner = document.getElementById('pwBanner');
+
+const profileModal = document.getElementById('profileModal');
+const profileAvatar = document.getElementById('profileAvatar');
+const profileName = document.getElementById('profileName');
+const profileTfid = document.getElementById('profileTfid');
+const addContactBtn = document.getElementById('addContactBtn');
+const blockBtn = document.getElementById('blockBtn');
+const closeProfileBtn = document.getElementById('closeProfileBtn');
+const fileInput = document.getElementById('profileFile');
+const appTitleEl = document.querySelector('.app-title');
+const chatTitleEl = document.getElementById('chatTitle');
+
+/* ================== STORAGE HELPERS ================== */
+function saveState(){
+  localStorage.setItem('tfchat.me.short', me.short || '');
+  localStorage.setItem('tfchat.me.17', me.tf17 || '');
+  localStorage.setItem('tfchat.me.name', me.name || '');
+  if(me.avatarDataUrl) localStorage.setItem('tfchat.me.avatar', me.avatarDataUrl);
+  localStorage.setItem('tfchat.contacts', JSON.stringify(contacts || []));
+  localStorage.setItem('tfchat.groups', JSON.stringify(groups || []));
+}
+
+/* Persist conversation store for current user (per canonical me.tf17) */
+function convStorageKeyForMe(tf17){
+  const k = normParticipant(tf17 || me.tf17 || '');
+  return `tfchat.conversations.${k}`;
+}
+function saveConversationCacheForMe(){
+  const meN = normParticipant(me.tf17);
+  if(!meN) return;
+  const key = convStorageKeyForMe(meN);
+  const out = {};
+  for(const k in conversationCache){
+    if(!conversationCache.hasOwnProperty(k)) continue;
+    const parts = k.split('|');
+    if(parts.length !== 2) continue;
+    const [a,b] = parts;
+    if(a === meN){
+      out[b] = conversationCache[k];
+    } else if(b === meN){
+      out[a] = conversationCache[k];
+    }
   }
-  // fetch vapid key from server
-  await fetchVapidPublicKey();
-  if (!VAPID_PUBLIC_KEY) {
-    console.warn('no vapid key; cannot subscribe');
+  try { localStorage.setItem(key, JSON.stringify(out)); } catch(e){ console.warn('save conv cache fail', e); }
+}
+function loadConversationCacheForMe(){
+  const meN = normParticipant(me.tf17);
+  if(!meN) return;
+  const key = convStorageKeyForMe(meN);
+  try {
+    const raw = localStorage.getItem(key);
+    if(!raw) return;
+    const obj = JSON.parse(raw || '{}');
+    for(const other in obj){
+      if(!obj.hasOwnProperty(other)) continue;
+      const ck = convKey(meN, other);
+      conversationCache[ck] = obj[other].slice();
+    }
+  } catch(e){
+    console.warn('load conv cache fail', e);
+  }
+}
+
+/* ================== RENDER & LINKIFY ================== */
+const URL_RE = /((https?:\/\/|www\.)[^\s<>]+)/gi;
+function createMessageNodes(text){
+  const wrapper = document.createDocumentFragment();
+  if(!text) { wrapper.appendChild(document.createTextNode('')); return wrapper; }
+  let lastIndex = 0;
+  let match;
+  while ((match = URL_RE.exec(text)) !== null) {
+    const idx = match.index;
+    if(idx > lastIndex){
+      wrapper.appendChild(document.createTextNode(text.slice(lastIndex, idx)));
+    }
+    let url = match[0];
+    if(!/^https?:\/\//i.test(url)) url = 'http://' + url;
+    const a = document.createElement('a');
+    a.href = url;
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+    a.textContent = match[0];
+    a.style.color = 'inherit';
+    a.style.textDecoration = 'underline';
+    a.style.cursor = 'pointer';
+    wrapper.appendChild(a);
+    lastIndex = idx + match[0].length;
+  }
+  if(lastIndex < text.length){
+    wrapper.appendChild(document.createTextNode(text.slice(lastIndex)));
+  }
+  return wrapper;
+}
+
+function updateSettingsUI(){ profileNameInput.value = me.name || ''; profileTfidInput.value = (me.tf17 || '').replace(/^TF-?/i, '').slice(-7); profilePwInput.value = ''; }
+
+function renderContacts(filter=''){
+  contactsListEl.innerHTML = '';
+  const q = (filter||'').toLowerCase().trim();
+  const list = contacts.filter(c => { if(!q) return true; return (c.name||'').toLowerCase().includes(q) || (c.tf17||'').toLowerCase().includes(q); });
+  if(list.length === 0){
+    const div = document.createElement('div');
+    div.className = 'muted';
+    div.textContent = 'Pa gen kontak. Rechèch yon TFID oswa ajoute yon kontak.';
+    contactsListEl.appendChild(div);
     return;
+  }
+  list.forEach(c => {
+    const el = document.createElement('div');
+    el.className = 'contact';
+    el.dataset.tf17 = c.tf17 || '';
+    const avatarHtml = c.logo ? `<img src="${c.logo}" style="width:100%;height:100%;border-radius:50%">` : (c.avatar ? `<img src="${c.avatar}" />` : escapeHtml((c.name||formatTFShort(c.tf17) || '').slice(0,2)));
+    el.innerHTML = `<div class="avatar">${avatarHtml}</div>
+      <div class="meta">
+        <div class="meta-top">
+          <div class="name">${escapeHtml(c.name||formatTFShort(c.tf17)||'')}</div>
+          <div class="time">${c.lastTs? timeAgo(c.lastTs): ''}</div>
+        </div>
+        <div class="meta-bottom">
+          <div class="snippet">${escapeHtml(c.lastMsg||'')}</div>
+          <div>${c.unread?'<span class="badge">'+c.unread+'</span>':''}</div>
+        </div>
+      </div>`;
+    el.addEventListener('click', ()=> { openChat(c.tf17, c, true); });
+    contactsListEl.appendChild(el);
+  });
+}
+
+function renderGroups(filter=''){ groupsListEl.innerHTML = ''; const q = (filter||'').toLowerCase().trim(); const list = Array.isArray(groups) ? groups.filter(g => { if(!q) return true; return (g.name||'').toLowerCase().includes(q) || (g.owner_name||'').toLowerCase().includes(q); }) : []; if(list.length === 0){ const div = document.createElement('div'); div.className = 'muted'; div.textContent = "Vous avez aucun groupe pour l'instant"; groupsListEl.appendChild(div); return; } list.forEach(g => { const el = document.createElement('div'); el.className = 'contact'; const avatarHtml = g.avatar_url ? `<img src="${g.avatar_url}" />` : escapeHtml((g.name||'G').slice(0,2)); el.innerHTML = `<div class="avatar">${avatarHtml}</div>
+      <div class="meta">
+        <div class="meta-top"><div class="name">${escapeHtml(g.name||'')}</div><div class="time">${g.created_at? new Date(g.created_at).toLocaleDateString() : ''}</div></div>
+        <div class="meta-bottom"><div class="snippet">${escapeHtml(g.bio||'')}</div><div></div></div>
+      </div>`;
+    el.addEventListener('click', ()=> { openGroupChat(g.name); });
+    const manageBtn = document.createElement('button');
+    manageBtn.className = 'group-manage-btn';
+    manageBtn.textContent = 'Gérer';
+    manageBtn.addEventListener('click', (ev)=>{ ev.stopPropagation(); openGroupManageModal(g.name); });
+    const meta = el.querySelector('.meta');
+    if(meta){ const mb = document.createElement('div'); mb.style.display = 'flex'; mb.style.alignItems = 'center'; mb.appendChild(manageBtn); meta.appendChild(mb); }
+    groupsListEl.appendChild(el);
+  }); }
+
+function timeAgo(ts){ if(!ts) return ''; const diff=Math.floor((Date.now()-ts)/1000); if(diff<60) return diff+'s'; if(diff<3600) return Math.floor(diff/60)+'m'; if(diff<86400) return Math.floor(diff/3600)+'h'; return new Date(ts).toLocaleDateString(); }
+
+/* ================== NETWORK HELPERS ================== */
+async function callJSON(url, opts = {}) { opts = Object.assign({}, opts); opts.headers = Object.assign({}, opts.headers || {}, { 'Accept': 'application/json' }); try { const r = await fetch(url, opts); const text = await r.text(); let json = null; try{ json = JSON.parse(text); }catch(e){} return { ok: r.ok, status: r.status, json, text }; } catch (err) { return { ok: false, error: err.message }; } }
+async function apiList(tf17){ const url = `${API_BASE}/api/list?tfid=${encodeURIComponent(tf17)}&name=${encodeURIComponent(FRONTEND_NAME)}`; const r = await callJSON(url); if(!r.ok) throw new Error(r.json?.error || r.text || `HTTP ${r.status}`); return r.json.rows || []; }
+async function apiAdd(recipient17, contentObj){ const body = { tfid: recipient17, name: FRONTEND_NAME, content: JSON.stringify(contentObj), source_url: location.origin }; const url = `${API_BASE}/api/add`; const r = await callJSON(url, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) }); if(!r.ok) { const errMsg = r.json?.error || r.text || `HTTP ${r.status}`; if(String(errMsg).toLowerCase().includes("frontend name not registered")) { const regOk = await registerFrontendIfNeeded(); if(regOk) { const r2 = await callJSON(url, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) }); if(!r2.ok) throw new Error(r2.json?.error || r2.text || `HTTP ${r2.status}`); return r2.json; } } throw new Error(errMsg); } return r.json; }
+async function registerFrontendIfNeeded(){ try { const url = `${API_BASE}/admin/register-frontend`; const payload = { name: FRONTEND_NAME, callback_url: location.origin }; const r = await callJSON(url, { method:"POST", headers:{"Content-Type":"application/json","x-api-token": ADMIN_API_TOKEN}, body: JSON.stringify(payload) }); return r.ok; } catch(e){ return false; } }
+
+/* Admin group helpers (kept same shape) */
+async function adminCreateGroup({ name, owner_name, bio, avatar_url }){ const url = `${API_BASE}/admin/groups/create`; const r = await callJSON(url, { method:'POST', headers:{ 'Content-Type':'application/json', 'x-api-token': ADMIN_API_TOKEN }, body: JSON.stringify({ name, owner_name, bio, avatar_url }) }); if(!r.ok) throw new Error(r.json?.error || r.text || `HTTP ${r.status}`); return r.json; }
+async function adminAddMember({ group_name, tfid }){ const url = `${API_BASE}/admin/groups/add`; const r = await callJSON(url, { method:'POST', headers:{ 'Content-Type':'application/json', 'x-api-token': ADMIN_API_TOKEN }, body: JSON.stringify({ group_name, tfid }) }); if(!r.ok) throw new Error(r.json?.error || r.text || `HTTP ${r.status}`); return r.json; }
+async function adminGetMembers(group_name){ try { const url = `${API_BASE}/admin/groups/members?group_name=${encodeURIComponent(group_name)}`; const resp = await fetch(url, { method:'GET', headers: { 'Accept':'application/json', 'x-api-token': ADMIN_API_TOKEN } }); const txt = await resp.text(); let json = null; try{ json = JSON.parse(txt); }catch(e){ json = null; } if(!resp.ok) throw new Error(json?.error || txt || `HTTP ${resp.status}`); return json.members || []; } catch (e) { throw e; } }
+
+async function fetchGroupsForMe(){ if(!me.tf17) { groups = JSON.parse(localStorage.getItem('tfchat.groups') || '[]'); renderGroups(); return groups; } try { const url = `${API_BASE}/api/groups?tfid=${encodeURIComponent(me.tf17)}`; const r = await callJSON(url); if(!r.ok) throw new Error(r.json?.error || r.text || `HTTP ${r.status}`); groups = r.json.groups || []; saveState(); renderGroups(); return groups; } catch(e){ console.warn('fetchGroupsForMe failed', e); groups = JSON.parse(localStorage.getItem('tfchat.groups') || '[]'); renderGroups(); return groups; } }
+
+/* ================== CONV CACHE (normalized keys & persistence) ================== */
+function convKey(a,b){
+  const na = normParticipant(a);
+  const nb = normParticipant(b);
+  if(!na || !nb) return `${a}|${b}`;
+  return `${na}|${nb}`;
+}
+function messageUniqueKey(m){ if(m.cid) return "cid:"+m.cid; if(m.id) return "id:"+m.id; return "temp:"+ (m._tempKey || (m._tempKey = Math.random().toString(36).slice(2))); }
+function compareMessagesAsc(a,b){ const ta = parseDatePrefer(a._db_created_at, a.parsed_time); const tb = parseDatePrefer(b._db_created_at, b.parsed_time); if(ta !== tb) return ta - tb; if(a.id && b.id && a.id !== b.id) return Number(a.id) - Number(b.id); if(a.cid && b.cid && a.cid !== b.cid) return a.cid < b.cid ? -1 : 1; return 0; }
+
+function addOrUpdateMessageToCache(me17, other17, msg){
+  const meN = normParticipant(me17);
+  const otherN = normParticipant(other17);
+  const key = convKey(meN, otherN);
+  if(!conversationCache[key]) conversationCache[key] = [];
+  const list = conversationCache[key];
+  const findIndex = msg.cid ? list.findIndex(x => x.cid && x.cid === msg.cid) : (msg.id ? list.findIndex(x => x.id && String(x.id) === String(msg.id)) : -1);
+  if(findIndex !== -1){ list[findIndex] = Object.assign({}, list[findIndex], msg); } else { list.push(msg); }
+  list.sort(compareMessagesAsc);
+  // persist for me
+  saveConversationCacheForMe();
+}
+
+/* ========== READ RECEIPT HELPERS ========== */
+async function sendReadReceiptTo(other17){
+  if(!me.tf17) return;
+  const meN = normParticipant(me.tf17);
+  const otherN = normParticipant(other17);
+  const key = convKey(meN, otherN);
+  const arr = conversationCache[key] || [];
+  // find last message cid from the other (the last message the current user read)
+  // For notifying the sender, we will let them know lastCid read (i.e., last incoming message's cid)
+  let lastIncomingCid = null;
+  for (let i = arr.length - 1; i >= 0; i--) {
+    const m = arr[i];
+    if (m && normParticipant(m.from) === otherN && m.cid) { lastIncomingCid = m.cid; break; }
+  }
+  const payload = { type: 'read', from: me.tf17, time: nowISO(), lastCid: lastIncomingCid || null };
+  try {
+    await apiAdd(otherN, payload);
+  } catch (e) {
+    console.warn('sendReadReceiptTo failed', e);
+  }
+}
+
+/* ========== APPLY READ RECEIPT (when we receive a 'read' from other) ========== */
+function applyReadReceipt(from17, payload){
+  // mark messages in conversation (from me to that other) as read
+  const meN = normParticipant(me.tf17 || '');
+  const otherN = normParticipant(from17);
+  const key = convKey(meN, otherN);
+  const list = conversationCache[key] || [];
+  // If payload.lastCid provided, only mark messages up to that cid as read.
+  const lastCid = payload && payload.lastCid ? payload.lastCid : null;
+  for (const m of list) {
+    if (!m) continue;
+    if (normParticipant(m.from) === meN) {
+      if (lastCid) {
+        // mark read only if m.cid exists and its order is <= lastCid chronologically
+        if (m.cid && m.cid <= lastCid) m.read = true;
+      } else {
+        // no lastCid provided: mark all sent messages as read
+        m.read = true;
+      }
+    }
+  }
+  saveConversationCacheForMe();
+  // rerender if currently viewing the conversation
+  if (currentPartner && normParticipant(currentPartner.tf17) === otherN) {
+    renderConversation(me.tf17, otherN);
+  } else {
+    // update contact list badges / preview
+    const c = contacts.find(x => normParticipant(x.tf17) === otherN);
+    if (c) { c.lastMsg = c.lastMsg || ''; saveState(); renderContacts(); }
+  }
+}
+
+/* ================== load + render conv (reads server lists and local cache), normalized parsing ================== */
+async function loadConversation(me17, other17){
+  const meN = normParticipant(me17);
+  const otherN = normParticipant(other17);
+  // load persisted for me into memory (if not loaded)
+  loadConversationCacheForMe();
+
+  const key = convKey(meN, otherN);
+  conversationCache[key] = conversationCache[key] || [];
+  const seen = new Set();
+
+  function pushRowFromServer(r){
+    let parsed = null; try { parsed = JSON.parse(r.content); } catch(e){ parsed = null; }
+    const parsedFromRaw = parsed && parsed.from ? parsed.from : null;
+    if(!parsedFromRaw) return;
+    const parsedFrom = normParticipant(parsedFromRaw);
+    // we only accept rows where parsedFrom equals meN or otherN
+    if(parsedFrom !== meN && parsedFrom !== otherN) return;
+    const parsedTime = parsed && parsed.time ? parsed.time : null;
+    const parsedCid = parsed && parsed.cid ? parsed.cid : null;
+    const parsedText = parsed && (parsed.text || parsed.message) ? (parsed.text || parsed.message) : (r.content || "");
+    const m = { id: r.id || null, cid: parsedCid || null, from: parsedFrom, text: parsedText, parsed_time: parsedTime || null, _db_created_at: r.created_at || null, created_at: parsedTime || r.created_at || nowISO(), read: parsed && parsed.type === 'read_ack' ? true : false };
+    const keyu = messageUniqueKey(m);
+    if(seen.has(keyu)) return;
+    seen.add(keyu);
+    addOrUpdateMessageToCache(meN, otherN, m);
   }
 
-  // request permission
-  if (Notification.permission === 'default') {
-    try { await Notification.requestPermission(); } catch(e){}
+  try {
+    const outRows = await apiList(otherN);
+    for(const r of outRows) pushRowFromServer(r);
+  } catch(e){ console.warn("LIST outgoing failed for", otherN, e); }
+
+  if(isValidTfid(meN)){
+    try {
+      const inRows = await apiList(meN);
+      for(const r of inRows) pushRowFromServer(r);
+    } catch(e){ console.warn("LIST incoming failed for", meN, e); }
   }
-  if (Notification.permission !== 'granted') {
-    console.warn('Notifications not granted');
+
+  renderConversation(meN, otherN);
+}
+
+/* ensure messages area padding */
+function ensureMessagesPadding(){ const wrap = document.querySelector('#chatModal .messages-wrap'); if(!wrap) return; const inputRow = document.getElementById('chatInputRow'); const h = inputRow ? inputRow.getBoundingClientRect().height : 80; wrap.style.paddingBottom = (h + 16) + 'px'; }
+window.addEventListener('resize', ensureMessagesPadding);
+
+/* ================== renderConversation: stable + preserves scroll position when not at bottom ================== */
+function renderConversation(me17, other17){
+  ensureMessagesPadding();
+  const meN = normParticipant(me17);
+  const otherN = normParticipant(other17);
+  const key = convKey(meN, otherN);
+  const arr = conversationCache[key] ? [...conversationCache[key]] : [];
+
+  arr.sort(compareMessagesAsc);
+  const parent = messagesEl?.parentElement;
+  const wasAtBottom = parent ? (parent.scrollHeight - parent.scrollTop - parent.clientHeight < 60) : true;
+
+  messagesEl.innerHTML = '';
+  if(arr.length === 0){
+    const d = document.createElement('div');
+    d.className = 'muted';
+    d.textContent = 'Pa gen mesaj ankò.';
+    messagesEl.appendChild(d);
+  } else {
+    for(const m of arr){
+      const fromNorm = normParticipant(m.from);
+      const isMe = fromNorm === meN;
+      const d = document.createElement('div');
+      d.className = 'msg ' + (isMe ? 'user' : 'bot');
+      const textBlock = document.createElement('div');
+      textBlock.className = 'msg-text';
+      textBlock.appendChild(createMessageNodes(m.text || ''));
+
+      const meta = document.createElement('div');
+      meta.className = 'msg-meta';
+      const ts = m.created_at ? (new Date(m.created_at)).toLocaleString() : '';
+      const checksEl = document.createElement('span');
+      checksEl.style.marginLeft = '8px';
+      checksEl.className = 'checks';
+      if(isMe){
+        // show ticks based on m.read / m.id
+        if(m.read){
+          checksEl.textContent = '✓✓';
+          checksEl.style.opacity = 0.95;
+        } else if(m.id){
+          checksEl.textContent = '✓';
+          checksEl.style.opacity = 0.9;
+        } else {
+          checksEl.textContent = '';
+        }
+      }
+      // show short TF for sender
+      meta.textContent = `${formatTFShort(m.from||'')} • ${ts} `;
+      meta.appendChild(checksEl);
+
+      d.appendChild(textBlock);
+      d.appendChild(meta);
+      messagesEl.appendChild(d);
+    }
+  }
+
+  setTimeout(()=>{
+    if(!parent) return;
+    if(wasAtBottom){
+      parent.scrollTop = parent.scrollHeight;
+    }
+  }, 40);
+}
+
+/* ================== OPEN/SEND + short-poll fallback ================== */
+async function openChat(other17, contactObj=null, pushHistory=true){
+  const otherN = normParticipant(other17);
+  currentPartner = { tf17: otherN, name: (contactObj && contactObj.name) || null };
+  chatTitleEl.textContent = (currentPartner.name || formatTFShort(currentPartner.tf17));
+  const c = contacts.find(x => normParticipant(x.tf17) === otherN);
+  if(c){ c.unread = 0; saveState(); renderContacts(); }
+  messagesEl.innerHTML = '<div class="muted">Chaje mesaj...</div>';
+  try { await loadConversation(me.tf17 || null, otherN); } catch(e){ messagesEl.innerHTML = `<div class="muted">Pa kapab chaje mesaj: ${escapeHtml(e.message||e)}</div>`; }
+  showChatModal();
+
+  // after opening conversation we send a read receipt so the other user will see double ticks
+  try {
+    await sendReadReceiptTo(otherN);
+  } catch(e) {
+    console.warn('read receipt send failed', e);
+  }
+
+  try {
+    const slug = encodeURIComponent(otherN);
+    if(pushHistory){
+      if(!history.state || !history.state._tfchat_init){ history.replaceState(Object.assign({}, history.state || {}, {_tfchat_init:true}), '', location.pathname); }
+      history.pushState({tfchat: otherN}, '', '/' + slug);
+    }
+  } catch(e){}
+}
+
+function openGroupChat(groupName){
+  currentGroup = groupName;
+  currentPartner = null;
+  chatTitleEl.textContent = `# ${groupName}`;
+  messagesEl.innerHTML = '<div class="muted">Chaje mesaj gwoup...</div>';
+  (async ()=>{
+    try {
+      const r = await callJSON(`${API_BASE}/api/group/messages?group_name=${encodeURIComponent(groupName)}&tfid=${encodeURIComponent(me.tf17||'')}&name=${encodeURIComponent(FRONTEND_NAME)}`);
+      if(!r.ok) throw new Error(r.json?.error || r.text || `HTTP ${r.status}`);
+      const rows = r.json.rows || [];
+      const key = convKey(me.tf17 || 'anon', `GROUP:${groupName}`);
+      conversationCache[key] = [];
+      // rows likely newest first; show in chronological order
+      for(const row of rows.reverse()){
+        let parsed = null; try{ parsed = JSON.parse(row.content); }catch(e){ parsed = null; }
+        const from = parsed?.from ? normParticipant(parsed.from) : null;
+        const text = parsed?.text || parsed?.message || (row.content || '');
+        const created_at = parsed?.time || row.created_at || nowISO();
+        if(!from) continue;
+        addOrUpdateMessageToCache(me.tf17 || 'anon', `GROUP:${groupName}`, { id: row.id, from, text, created_at, parsed_time: parsed?.time || null, _db_created_at: row.created_at || null });
+      }
+      renderConversation(me.tf17 || 'anon', `GROUP:${groupName}`);
+      showChatModal();
+      try { history.pushState({ group: groupName }, '', '/groupe/' + encodeURIComponent(groupName)); } catch(e){}
+    } catch(e){
+      messagesEl.innerHTML = `<div class="muted">Pa kapab chaje mesaj gwoup: ${escapeHtml(e.message||e)}</div>`;
+      showChatModal();
+    }
+  })();
+}
+
+function showChatModal(){ document.body.classList.add('chat-open'); chatModalEl.style.display = 'block'; ensureMessagesPadding(); setTimeout(()=> chatTextEl?.focus(), 150); }
+function hideChatModal(){ chatModalEl.style.display = 'none'; document.body.classList.remove('chat-open'); currentPartner = null; currentGroup = null; }
+
+/* ================== SEND MESSAGE ================== */
+async function sendMessageFromModal(){
+  let txt = (chatTextEl?.value || '').trim();
+  if(!txt) return;
+  if(txt.length > 20000){ if(!confirm('Mesaj la ekstrèmman long. Kontinye?')) return; txt = txt.slice(0,20000); }
+  if(!me.tf17){ alert('Ou dwe mete TFID nan Paramètres avan ou voye mesaj. Klike sou TF-Chat anlè a pou mete li.'); return; }
+  if(currentGroup){
+    const payload = { type:'text', group: currentGroup, from: me.tf17, text: txt, time: nowISO(), cid: makeCid(), name: me.name || null };
+    // optimistic add: include parsed_time and _db_created_at so sorting keeps chronology
+    addOrUpdateMessageToCache(me.tf17, `GROUP:${currentGroup}`, {
+      id: null,
+      cid: payload.cid,
+      from: normParticipant(me.tf17),
+      text: txt,
+      created_at: payload.time,
+      parsed_time: payload.time,
+      _db_created_at: payload.time,
+      _optimistic: true
+    });
+    renderConversation(me.tf17, `GROUP:${currentGroup}`);
+    chatTextEl.value = '';
+    try {
+      const body = { group_name: currentGroup, name: FRONTEND_NAME, content: JSON.stringify(payload), content_type: 'group' };
+      const r = await callJSON(`${API_BASE}/api/add`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+      if(!r.ok) throw new Error(r.json?.error || r.text || `HTTP ${r.status}`);
+    } catch(e){ alert('Envoi gwoup echwe: ' + (e.message||e)); }
     return;
   }
-  // do subscription
+  if(!currentPartner){ alert('Pa gen konvèsasyon chwazi.'); return; }
+  const recipient17 = normParticipant(currentPartner.tf17);
+  const c = contacts.find(x=> normParticipant(x.tf17) === recipient17);
+  if(c && c.blocked){ alert('Ou bloke kontak sa — ou pa ka voye mesaj.'); return; }
+  const cid = makeCid();
+  const payload = { type:'text', from: me.tf17, text: txt, time: nowISO(), cid, name: me.name || null };
+  // optimistic add: include parsed_time and _db_created_at so sorting keeps chronology
+  addOrUpdateMessageToCache(me.tf17, recipient17, {
+    id: null,
+    cid: cid,
+    from: normParticipant(me.tf17),
+    text: txt,
+    created_at: payload.time,
+    parsed_time: payload.time,
+    _db_created_at: payload.time,
+    _optimistic: true
+  });
+  renderConversation(me.tf17, recipient17);
+  chatTextEl.value = '';
+  if(c){ c.lastMsg = txt; c.lastTs = Date.now(); saveState(); renderContacts(); }
+  try {
+    const resp = await apiAdd(recipient17, payload);
+    startShortPollForMessage(recipient17, cid);
+  } catch(e){
+    alert('Envoi echwe: ' + (e.message||e));
+  }
+}
+
+function startShortPollForMessage(target17, cid){ let tries = 0; const maxTries = 8; const interval = 1200; const attempt = async ()=>{ tries++; try{ const rows = await apiList(target17); const found = rows.find(r => { try { const p = JSON.parse(r.content); return p && p.cid === cid; } catch(e){ return false; } }); if(found){ await loadConversation(me.tf17, target17); return true; } }catch(e){} if(tries < maxTries) setTimeout(attempt, interval); }; attempt(); }
+
+/* ================== CONTACTS / PROFILE / GROUP UI ================== */
+function ensureContactInList(tf17, name){
+  const tfN = normParticipant(tf17);
+  let c = contacts.find(x=> normParticipant(x.tf17) === tfN);
+  if(!c){
+    c = { tf17: tfN, short: formatTFShort(tfN), name: name||null, unread:0, blocked:false, avatar:null, lastMsg:'', lastTs: Date.now() };
+    contacts.unshift(c);
+    saveState();
+    renderContacts();
+  }
+  return c;
+}
+
+/* Settings modal flow */
+function promptForMeModal(){
+  updateSettingsUI();
+  settingsModal.style.display = 'flex';
+  profileNameInput.focus();
+  return new Promise(resolve=>{
+    async function onSave(){
+      const nameVal = profileNameInput.value.trim();
+      const short = normalizeInputToDigits(profileTfidInput.value.trim());
+      if(!short || short.length < 7){ alert('TFID invalide — antre 7 chif.'); return; }
+      const tfShort = short.slice(-7);
+      const tf17c = to17(tfShort);
+      const existingHash = getPasswordHash(tf17c);
+      if(existingHash){
+        const pw = prompt('TFID sa egziste deja lokalman. Antre modpas pou kont sa:');
+        if(!pw){ alert('Modpas obligatwa pou kont sa.'); return; }
+        const has = await hashPasswordHex(pw);
+        if(has !== existingHash){ alert('Modpas pa kòrèk.'); return; }
+      }
+      me.name = nameVal || me.name || 'Utilisateur';
+      me.short = tfShort;
+      me.tf17 = to17(me.short);
+      me.tf17 = normParticipant(me.tf17);
+      saveState();
+      settingsModal.style.display = 'none';
+      cleanup();
+      registerFrontendIfNeeded().then(()=>{ if(ws && ws.readyState === WebSocket.OPEN){ try{ ws.send(JSON.stringify({ type:'subscribe', tfid: me.tf17 })); }catch(e){} } else connectWS(); });
+      try{ await fetchGroupsForMe(); }catch(e){}
+      loadConversationCacheForMe();
+      // ask for notification & push subscription after identity set
+      try { await askNotificationPermissionAndSubscribe(); } catch(e){ console.warn('push init fail', e); }
+      resolve(true);
+    }
+    function onCancel(){ settingsModal.style.display = 'none'; cleanup(); resolve(false); }
+    function cleanup(){ profileSaveBtn.removeEventListener('click', onSave); settingsCancelBtn.removeEventListener('click', onCancel); }
+    profileSaveBtn.addEventListener('click', onSave);
+    settingsCancelBtn.addEventListener('click', onCancel);
+  });
+}
+
+function pwKeyForTf(tf17){ return `tfchat.pw.${tf17}`; }
+function hasPasswordFor(tf17){ return !!localStorage.getItem(pwKeyForTf(tf17)); }
+function storePasswordHash(tf17, hexHash){ localStorage.setItem(pwKeyForTf(tf17), hexHash); }
+function getPasswordHash(tf17){ return localStorage.getItem(pwKeyForTf(tf17)); }
+function triggerPwBannerIfNeeded(){ if(!me.tf17) return; if(hasPasswordFor(me.tf17)) { hidePwBanner(); return; } pwBanner.style.display = 'block'; if(pwWarningTimer) clearTimeout(pwWarningTimer); if(pwForceReloadTimer) clearTimeout(pwForceReloadTimer); pwWarningTimer = setTimeout(()=> { settingsModal.style.display = 'flex'; updateSettingsUI(); }, 60 * 1000); pwForceReloadTimer = setTimeout(()=> { location.reload(); }, 2 * 60 * 1000); }
+function hidePwBanner(){ pwBanner.style.display = 'none'; if(pwWarningTimer) { clearTimeout(pwWarningTimer); pwWarningTimer=null; } if(pwForceReloadTimer){ clearTimeout(pwForceReloadTimer); pwForceReloadTimer=null; } }
+
+/* ================== WEBSOCKET ================== */
+function connectWS(){ if(!me.tf17){ if(wsStatusEl) wsStatusEl.textContent = ''; return; } try { ws = new WebSocket(WS_URL); } catch(e){ scheduleReconnect(); return; } ws.onopen = ()=>{ if(wsStatusEl) wsStatusEl.textContent = ''; try{ ws.send(JSON.stringify({ type:'subscribe', tfid: me.tf17 })); }catch(e){} }; ws.onmessage = (ev)=>{ try { const data = JSON.parse(ev.data); if(data.type === 'subscribed') return; if(data.type === 'message'){ const payload = data; let parsed = null; try{ parsed = JSON.parse(payload.content); } catch(e){ parsed = null; } if(!parsed || !parsed.from) return; const recipientRaw = payload.tfid || null; const fromRaw = parsed.from; const recipient = normParticipant(recipientRaw); const from = normParticipant(fromRaw); const other = (recipient === me.tf17) ? from : recipient; if(!other) return; const created = parsed.time || payload.created_at || nowISO(); const msgObj = { id: payload.id || null, cid: parsed.cid || null, from, text: parsed.text || parsed.message || '', parsed_time: parsed.time || null, _db_created_at: payload.created_at || null, created_at: created };
+            // handle read receipts specially
+            if(parsed.type === 'read'){
+              // someone read messages in convo with them => if that someone is not me and recipient is me => apply to me
+              if(recipient === me.tf17){
+                applyReadReceipt(parsed.from, parsed);
+              }
+              return;
+            }
+            // normal message content
+            addOrUpdateMessageToCache(me.tf17, other, msgObj);
+
+            if(parsed.name){ const c = ensureContactInList(other, parsed.name); c.name = parsed.name; c.lastMsg = msgObj.text; c.lastTs = Date.now(); saveState(); renderContacts(); }
+            if(parsed.type === 'profile' && parsed.photo){ const c = ensureContactInList(other, parsed.name || null); c.avatar = parsed.photo; c.name = parsed.name || c.name; c.lastTs = Date.now(); saveState(); renderContacts(); }
+
+            // if we're currently viewing that chat, render it; also send read receipt if user is viewing (auto-read)
+            if(currentPartner && normParticipant(currentPartner.tf17) === other){
+              // if chat is open and focused -> render and optionally send read receipt
+              addOrUpdateMessageToCache(me.tf17, other, msgObj);
+              renderConversation(me.tf17, other);
+              // auto send read receipt to the sender (so they will see ✓✓)
+              // only if message is incoming (from !== me)
+              if(normParticipant(parsed.from) === other && me.tf17){
+                // small delay to avoid immediate race
+                setTimeout(()=> { sendReadReceiptTo(other); }, 350);
+              }
+            } else if(recipient === me.tf17){
+              // not viewing currently -> increase unread + show push/notification
+              const c = ensureContactInList(other, parsed && parsed.name ? parsed.name : null);
+              c.unread = (c.unread||0) + 1;
+              c.lastMsg = msgObj.text;
+              c.lastTs = Date.now();
+              saveState(); renderContacts();
+
+              // show notification if permission granted and page not visible or not viewing conversation
+              showNotificationForIncoming(other, parsed, msgObj);
+            }
+        }
+    } catch(err){ console.warn('WS parse err', err); } };
+  ws.onclose = ()=>{ if(wsStatusEl) wsStatusEl.textContent = ''; scheduleReconnect(); };
+  ws.onerror = (e)=>{ console.warn('WS error', e); if(ws) try{ ws.close(); }catch(e){} };
+}
+function scheduleReconnect(){ if(reconnectTimer) return; reconnectTimer = setTimeout(()=>{ reconnectTimer=null; connectWS(); }, 3000); }
+
+/* ========== SHOW NOTIFICATION HANDLER ========== */
+async function showNotificationForIncoming(from, parsed, msgObj){
+  try {
+    // don't show notifs if user explicitly denied
+    if(!('Notification' in window)) return;
+    if(Notification.permission !== 'granted') return;
+    // if page is visible and user viewing that conversation, avoid notification
+    if(document.visibilityState === 'visible' && currentPartner && normParticipant(currentPartner.tf17) === normParticipant(from)) return;
+
+    const title = parsed && parsed.name ? parsed.name : formatTFShort(from);
+    const body = (parsed && parsed.text) ? parsed.text : (msgObj && msgObj.text) ? msgObj.text : 'Nouveau message';
+    const url = '/' + encodeURIComponent(from); // ouvre konvèsasyon
+    const data = { url };
+
+    // prefer service worker registration showNotification
+    const reg = await navigator.serviceWorker.getRegistration();
+    if(reg && reg.showNotification){
+      await reg.showNotification(title, { body, data, renotify: true, tag: 'tfchat-' + (from || 'msg') });
+    } else {
+      // fallback: use Notification API in page
+      new Notification(title, { body, data });
+    }
+  } catch(e){ console.warn('showNotification failed', e); }
+}
+
+/* ================== PUSH SUBSCRIPTION (client) ================== */
+async function askNotificationPermissionAndSubscribe(){
+  // Ask for notification permission (it triggers browser native prompt)
+  try {
+    if (!('Notification' in window) || !('serviceWorker' in navigator) || !('PushManager' in window)) {
+      console.warn('Notifications/Push not supported in this browser');
+      return;
+    }
+    const permission = await Notification.requestPermission();
+    if (permission !== 'granted') {
+      console.log('Notification permission not granted:', permission);
+      return;
+    }
+    // subscribe
+    await subscribeToPush();
+  } catch (e) {
+    console.warn('askNotificationPermissionAndSubscribe error', e);
+  }
+}
+
+async function subscribeToPush(){
   try {
     const reg = await navigator.serviceWorker.ready;
-    // try to reuse existing subscription
-    let sub = await reg.pushManager.getSubscription();
-    if (!sub) {
-      sub = await reg.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
-      });
+    const sub = await reg.pushManager.getSubscription();
+    if (sub) {
+      // already subscribed -> send to server to ensure stored
+      await sendSubscriptionToServer(sub);
+      return sub;
     }
-    // send to server
-    if (sub && me.tf17) {
-      await fetch(SUBSCRIBE_ENDPOINT, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tfid: me.tf17, subscription: sub })
-      });
-      console.log('push subscription saved to server');
-    } else {
-      console.warn('no subscription or no me.tf17');
+    if(!VAPID_PUBLIC_KEY || VAPID_PUBLIC_KEY === '<YOUR_VAPID_PUBLIC_KEY_HERE>'){
+      console.warn('VAPID_PUBLIC_KEY missing — cannot subscribe to push');
+      return null;
     }
+    const convertedVapidKey = urlBase64ToUint8Array(VAPID_PUBLIC_KEY);
+    const newSub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: convertedVapidKey });
+    await sendSubscriptionToServer(newSub);
+    return newSub;
   } catch (e) {
-    console.warn('subscribe failed', e);
+    console.warn('subscribeToPush failed', e);
+    return null;
   }
 }
 
-/* small helper: send WAKE push when incoming message arrives (server already attempts) */
-function showNotificationForIncoming(payload) {
-  // if page visible, optional: show in-UI; else show notification
-  const title = (payload.name && payload.name !== '') ? payload.name : 'TF-Chat';
-  const body = (typeof payload.content === 'string' ? (payload.content.length>200?payload.content.slice(0,200)+'...':payload.content) : '');
-  const data = payload;
-  // page visibility
-  if (document.visibilityState === 'visible') {
-    // optionally flash UI
-    try { navigator.vibrate && navigator.vibrate(100); } catch(e){}
-    return;
-  }
-  // otherwise trigger a notification via service worker
-  if (navigator.serviceWorker && navigator.serviceWorker.controller) {
-    navigator.serviceWorker.controller.postMessage({ cmd: 'show-notif', title, body, data });
-  } else {
-    // fallback: use Notification API directly
-    if (Notification.permission === 'granted') {
-      new Notification(title, { body, data, icon: '/images/notification-128.png', badge: '/images/notification-badge.png' });
+async function sendSubscriptionToServer(subscription){
+  try {
+    if(!subscription) return;
+    const body = { subscription, tfid: me.tf17 || null, name: FRONTEND_NAME };
+    await fetch(SUBSCRIBE_ENDPOINT, { method: 'POST', headers: { 'Content-Type':'application/json' }, body: JSON.stringify(body) })
+      .then(r => r.text()).then(t => { /* optional response handling */ }).catch(()=>{});
+  } catch(e){ console.warn('sendSubscriptionToServer fail', e); }
+}
+
+/* ================== SEARCH / UI EVENTS ================== */
+async function performSearchQuery(raw){
+  if(!raw) return;
+  const digits = normalizeInputToDigits(raw);
+  if(!digits){ renderContacts(raw); return; }
+  if(digits.length < 7){ alert('TFID dwe gen omwen 7 chif.'); return; }
+  const short7 = digits.slice(-7);
+  const tf17 = to17(short7);
+  const local = contacts.find(c => normParticipant(c.tf17) === normParticipant(tf17));
+  if(local){ openChat(local.tf17, local, true); return; }
+  try {
+    const rows = await apiList(tf17);
+    if(rows && rows.length > 0){
+      const last = rows[rows.length-1] || rows[0];
+      let lastMsg = '';
+      try{ const p = JSON.parse(last.content); lastMsg = p.text || p.message || last.content; } catch(e){ lastMsg = last.content || ''; }
+      const nameFromServer = (() => { try { const p = JSON.parse(last.content); return p.name || null } catch(_) { return null } })();
+      const c = { tf17: normParticipant(tf17), name: nameFromServer || formatTFShort(short7), lastMsg, lastTs: Date.now(), unread: 0, blocked:false, avatar:null };
+      contacts.unshift(c); saveState(); renderContacts(); openChat(c.tf17, c, true); return;
+    } else {
+      if(confirm('Pa jwenn done sou servèr. Kreye kontak lokal pou TFID sa a?')){
+        const c = { tf17: normParticipant(tf17), name: formatTFShort(short7), lastMsg: '', lastTs: Date.now(), unread:0, blocked:false, avatar:null };
+        contacts.unshift(c); saveState(); renderContacts(); openChat(c.tf17, c, true);
+      }
     }
-  }
+  } catch(err){ alert('Erè lè w ap chèche sou servèr: ' + (err.message||err)); }
 }
 
-/* ------------------ Service Worker message relay (optional) ------------------ */
-navigator.serviceWorker?.addEventListener?.('message', (ev) => {
-  // handle messages from sw if needed
-  // console.log('from-sw', ev.data);
+/* ================== PROFILE MODAL ================== */
+let profileCurrent = null;
+chatTitleEl?.addEventListener('click', ()=>{ if(!currentPartner && !currentGroup) return; if(currentPartner) openProfileModal(currentPartner.tf17); else if(currentGroup) alert('Groupe info: ' + currentGroup); });
+
+function openProfileModal(tf17){
+  profileCurrent = tf17;
+  const c = contacts.find(x=> normParticipant(x.tf17) === normParticipant(tf17)) || { tf17, name: formatTFShort(tf17), blocked:false, avatar:null };
+  if(c.avatar) { profileAvatar.innerHTML = `<img src="${c.avatar}" />`; } else { profileAvatar.textContent = initials(c.name || c.tf17); }
+  profileName.textContent = c.name || formatTFShort(tf17);
+  profileTfid.textContent = c.tf17;
+  blockBtn.textContent = c.blocked ? 'Débloquer' : 'Bloquer';
+  profileModal.style.display = 'flex';
+}
+
+addContactBtn?.addEventListener('click', ()=>{ if(!profileCurrent) return; const c = ensureContactInList(profileCurrent, null); alert('Contact ajouté : ' + (c.name || c.tf17)); profileModal.style.display = 'none'; });
+
+blockBtn?.addEventListener('click', async ()=>{ if(!profileCurrent) return; const c = ensureContactInList(profileCurrent, null); c.blocked = !c.blocked; saveState(); renderContacts(); try{ const payload = { type: c.blocked ? 'block' : 'unblock', from: me.tf17, time: nowISO(), name: me.name || null }; await apiAdd(profileCurrent, payload); }catch(e){ console.warn('notify block failed', e); } openProfileModal(profileCurrent); });
+
+closeProfileBtn?.addEventListener('click', ()=>{ profileModal.style.display = 'none'; });
+
+profileAvatar?.addEventListener('click', ()=> { if(fileInput) fileInput.click(); });
+
+window.addEventListener('paste', (ev)=>{ const items = ev.clipboardData && ev.clipboardData.items; if(!items) return; for(const it of items){ if(it.kind === 'file' && it.type && it.type.startsWith('image/')){ const f = it.getAsFile(); if(f) { autoUploadProfileFile(f); ev.preventDefault(); break; } } } }, false);
+
+async function autoUploadProfileFile(file){
+  if(!file) return;
+  if(!file.type || !file.type.startsWith('image/')) { alert('Se sèlman imaj ki aksepte (jpg/png...).'); return; }
+  const input = fileInput; if(input) input.disabled = true;
+  try {
+    const url = await uploadFileToProfile(file);
+    me.avatarDataUrl = url;
+    saveState();
+    contacts.forEach(c => { if(normParticipant(c.tf17) === normParticipant(me.tf17)) c.avatar = url; });
+    document.querySelectorAll('.avatar').forEach(el=>{ if(el.dataset && el.dataset.tf17 && normParticipant(el.dataset.tf17) === normParticipant(me.tf17)){ el.innerHTML = `<img src="${url}" />`; } });
+    profileAvatar.innerHTML = `<img src="${url}" />`;
+    if(!me.tf17) { console.warn('No me.tf17 — profile update saved locally but not pushed'); return; }
+    const now = (new Date()).toISOString();
+    const contactsToNotify = Array.isArray(contacts) ? contacts.slice() : [];
+    for(const c of contactsToNotify){
+      if(!c || !c.tf17 || normParticipant(c.tf17) === normParticipant(me.tf17)) continue;
+      const cid = makeCid();
+      const payload = { type: 'profile', from: me.tf17, name: me.name || null, photo: url, time: now, cid };
+      apiAdd(c.tf17, payload).catch(err => { console.warn('Push profile update failed for', c.tf17, err); });
+    }
+  } catch(err){ console.error('autoUploadProfileFile error', err); alert('Erè pandan upload: ' + (err.message || err)); } finally { if(input) { input.disabled = false; input.value = ''; } }
+}
+
+/* ================== CREATE GROUP FLOW ================== */
+groupAvatarPicker?.addEventListener('click', ()=> groupAvatarFile.click());
+groupAvatarFile?.addEventListener('change', async (ev)=> {
+  const f = ev.target.files && ev.target.files[0]; if(!f) return;
+  const url = URL.createObjectURL(f);
+  groupAvatarPreview.src = url; groupAvatarPreview.style.display = ''; groupAvatarLabel.style.display = 'none';
+  groupAvatarPicker._file = f;
 });
 
-/* ------------------ Boot logic ------------------ */
-(async function boot(){
-  // render existing cached messages if any
-  if (me.tf17) {
-    try { await loadConversationCacheForMe(); } catch(e){ console.warn(e); }
-  }
-  // register WS
-  connectWS();
-  // register service worker and subscribe (if possible)
-  // do not block boot if vapid not available
-  try { await askNotificationPermissionAndSubscribe(); } catch(e){ console.warn(e); }
+openCreateGroup?.addEventListener('click', ()=> {
+  groupAvatarPreview.style.display = 'none'; groupAvatarLabel.style.display = ''; groupNameInput.value=''; groupBioInput.value=''; createGroupModal.style.display = 'flex';
+});
 
-  // wire send button
-  sendBtnEl.addEventListener('click', sendMessageFromModal);
-  chatTextEl.addEventListener('keydown', (ev)=>{ if(ev.key === 'Enter' && !ev.shiftKey){ ev.preventDefault(); sendMessageFromModal(); } });
+createCancel?.addEventListener('click', ()=> createGroupModal.style.display = 'none');
 
-  // settings button open (or title click)
-  openSettingsBtn?.addEventListener('click', ()=>{ // open your settings modal (existing HTML) if present
-    // existing logic probably toggles #settingsModal
-    // fallback alert:
-    if(typeof updateSettingsUI === 'function'){ updateSettingsUI(); document.getElementById('settingsModal').style.display = 'flex'; } else { alert('Open settings'); }
-  });
-
-  // ensure WS reconnect on visibility change if needed
-  document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible') {
-      // rehydrate messages & reconnect ws
-      if (!ws || ws.readyState !== WebSocket.OPEN) connectWS();
-      loadConversationCacheForMe().catch(()=>{});
+createConfirm?.addEventListener('click', async ()=> {
+  const name = (groupNameInput.value || '').trim();
+  const bio = (groupBioInput.value || '').trim();
+  if(!name){ alert('Nom obligatoire'); return; }
+  createConfirm.disabled = true;
+  try {
+    let avatar_url = null;
+    if(groupAvatarPicker._file){ avatar_url = await uploadFileToProfile(groupAvatarPicker._file); }
+    const resp = await adminCreateGroup({ name, owner_name: me.name || null, bio: bio || null, avatar_url: avatar_url || null });
+    if(me.tf17) {
+      try { await adminAddMember({ group_name: name, tfid: me.tf17 }); } catch(e){ console.warn('add self to group failed', e); }
     }
-  });
-})();
-</script>
+    await fetchGroupsForMe();
+    createGroupModal.style.display = 'none';
+    alert('Gwoup kreye avèk siksè.');
+  } catch(e){ console.error('create group error', e); alert('Kreye gwoup echwe: ' + (e.message || String(e))); } finally { createConfirm.disabled = false; }
+});
 
+/* ================== GROUP MANAGE UI ================== */
+async function openGroupManageModal(groupName){
+  groupManageTitle.textContent = `Gérer: ${groupName}`;
+  groupMembersList.innerHTML = 'Chargement…';
+  groupAddTfid.value = '';
+  groupManageModal.style.display = 'flex';
+  try {
+    const members = await adminGetMembers(groupName);
+    renderGroupMembers(groupName, members);
+  } catch(err){
+    groupMembersList.innerHTML = `<div class="muted">Erè lè w ap chaje manm: ${escapeHtml(err.message||err)}</div>`;
+  }
+}
+function closeGroupManageModal(){ groupManageModal.style.display = 'none'; groupMembersList.innerHTML = ''; }
+groupManageClose?.addEventListener('click', closeGroupManageModal);
+
+function renderGroupMembers(groupName, members){
+  groupMembersList.innerHTML = '';
+  if(!Array.isArray(members) || members.length === 0){
+    groupMembersList.innerHTML = `<div class="muted">Pa gen manm pou gwoup sa.</div>`;
+    return;
+  }
+  members.forEach(m => {
+    const row = document.createElement('div');
+    row.className = 'member-row';
+    const left = document.createElement('div');
+    left.textContent = (m.tfid || m);
+    const right = document.createElement('div');
+    const addContact = document.createElement('button');
+    addContact.textContent = 'Ajoute kontak';
+    addContact.style.marginRight = '8px';
+    addContact.addEventListener('click', ()=> {
+      ensureContactInList(m.tfid || m, null);
+      alert('Contact ajouté localman: ' + (m.tfid || m));
+    });
+    right.appendChild(addContact);
+    row.appendChild(left);
+    row.appendChild(right);
+    groupMembersList.appendChild(row);
+  });
+}
+
+groupAddBtn?.addEventListener('click', async ()=>{
+  const val = (groupAddTfid.value||'').trim();
+  if(!val){ alert('Antre TFID pou ajoute.'); return; }
+  const digits = normalizeInputToDigits(val);
+  if(!digits || (digits.length !==7 && digits.length !==17 && digits.length < 7)){ alert('TFID invalide — antre 7 oswa 17 chif.'); return; }
+  const tf17 = digits.length===17 ? digits : to17(digits.slice(-7));
+  const groupName = groupManageTitle.textContent.replace(/^Gérer:\s*/,'').trim();
+  if(!groupName){ alert('Gwoup invalid.'); return; }
+  groupAddBtn.disabled = true;
+  try {
+    await adminAddMember({ group_name: groupName, tfid: tf17 });
+    const members = await adminGetMembers(groupName);
+    renderGroupMembers(groupName, members);
+    alert(`Ajoute ${tf17} nan gwoup ${groupName} avèk siksè.`);
+  } catch(e){ console.error('add member error', e); alert('Echwe ajoute manm: ' + (e.message||e)); } finally { groupAddBtn.disabled = false; groupAddTfid.value = ''; }
+});
+
+/* ================== UI EVENTS ================== */
+document.getElementById('chatBack')?.addEventListener('click', ()=>{
+  const path = location.pathname || '/';
+  if(path && path.replace(/^\//, '') !== '' ){
+    history.back();
+  } else {
+    hideChatModal();
+  }
+});
+sendBtnEl?.addEventListener('click', sendMessageFromModal);
+chatTextEl?.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); sendMessageFromModal(); } });
+searchInput?.addEventListener('keydown', async (e)=>{ if(e.key==='Enter'){ e.preventDefault(); await performSearchQuery(searchInput.value.trim()); } });
+searchBtn?.addEventListener('click', async ()=>{ await performSearchQuery(searchInput.value.trim()); });
+groupSearchInput?.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); renderGroups(groupSearchInput.value.trim()); }});
+groupSearchBtn?.addEventListener('click', ()=> renderGroups(groupSearchInput.value.trim()));
+
+tabAccueil?.addEventListener('click', ()=> { tabAccueil.classList.add('active'); tabGroupes.classList.remove('active'); sectionAccueil.style.display='block'; sectionGroupes.style.display='none'; });
+tabGroupes?.addEventListener('click', ()=> { tabGroupes.classList.add('active'); tabAccueil.classList.remove('active'); sectionGroupes.style.display='block'; sectionAccueil.style.display='none'; fetchGroupsForMe(); });
+appTitleEl?.addEventListener('click', ()=> { updateSettingsUI(); settingsModal.style.display = 'flex'; });
+
+/* profile save */
+profileSaveBtn?.addEventListener('click', async ()=>{ const newName = profileNameInput.value.trim(); const short = normalizeInputToDigits(profileTfidInput.value.trim()); if(!short || short.length < 7){ alert('TFID pa valab — antre 7 chif.'); return; } const tfShort = short.slice(-7); const tf17 = to17(tfShort); const existingHash = getPasswordHash(tf17); if(existingHash && (!me.tf17 || me.tf17 !== tf17)) { const pw = prompt('Kont sa deja egziste lokalman. Antre modpas li pou itilize li:'); if(!pw) { alert('Modpas obligatwa.'); return; } const has = await hashPasswordHex(pw); if(has !== existingHash){ alert('Modpas pa kòrèk.'); return; } } const newPw = profilePwInput.value || ''; if(newPw){ const hex = await hashPasswordHex(newPw); storePasswordHash(tf17, hex); } me.name = newName || me.name; me.short = tfShort; me.tf17 = normParticipant(to17(tfShort)); saveState(); settingsModal.style.display = 'none'; await registerFrontendIfNeeded(); if(ws && ws.readyState === WebSocket.OPEN){ try{ ws.send(JSON.stringify({ type:'subscribe', tfid: me.tf17 })); }catch(e){} } else connectWS(); triggerPwBannerIfNeeded(); try{ await fetchGroupsForMe(); }catch(e){} loadConversationCacheForMe(); // init push
+try { await askNotificationPermissionAndSubscribe(); } catch(e){ console.warn('push init fail', e); } });
+settingsCancelBtn?.addEventListener('click', ()=> settingsModal.style.display = 'none');
+
+/* popstate handlers & initial path */
+window.addEventListener('popstate', (ev)=>{ const s = ev.state; if(s && s.tfchat){ openChat(s.tfchat, contacts.find(c=>normParticipant(c.tf17)===normParticipant(s.tfchat))||null, false); } else if(s && s.group){ openGroupChat(s.group); } else { hideChatModal(); } });
+
+(function handleInitialPath(){ const raw = location.pathname.replace(/^\/+/, ''); if(!raw) return; try { if(raw.startsWith('groupe/')){ const name = decodeURIComponent(raw.replace(/^groupe\//,'')); (async ()=>{ await fetchGroupsForMe(); const g = groups.find(x=>x.name===name); if(g){ openGroupChat(name); } else { groups.unshift({ name, owner_name:'', bio:'', avatar_url:null, created_at:null}); renderGroups(); openGroupChat(name); } })(); } else if(/^TF-?\d{7,}$/.test(raw) || /^\d{7,}$/.test(raw) || /^\d{17,}$/.test(raw)){ const tf17 = raw.startsWith('TF-') ? raw : to17(raw); let c = contacts.find(x=>normParticipant(x.tf17)===normParticipant(tf17)); if(!c){ c = { tf17: normParticipant(tf17), name: formatTFShort(tf17), lastMsg:'', lastTs: Date.now(), unread:0, blocked:false, avatar:null }; contacts.unshift(c); saveState(); renderContacts(); } openChat(tf17, c, false); } } catch(e){ console.warn('initial path parse failed', e); } })();
+
+/* ================== BOOT ================== */
+renderContacts();
+renderGroups();
+if(me.avatarDataUrl){ document.querySelectorAll('.avatar').forEach(el => { if(!el.querySelector('img')) el.innerHTML = `<img src="${me.avatarDataUrl}" />`; }); }
+
+if(me.tf17){
+  loadConversationCacheForMe();
+  connectWS();
+  fetchGroupsForMe();
+  // ask notification permission & subscribe on boot (requested only if needed)
+  askNotificationPermissionAndSubscribe().catch(()=>{});
+} else {
+  const shownOnce = localStorage.getItem('tfchat.settings_shown_once');
+  if(!shownOnce){
+    localStorage.setItem('tfchat.settings_shown_once', '1');
+  }
+}
+
+/* ================== SERVICE WORKER REGISTRATION ================== */
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('/sw.js', { scope: '/' }).then(async reg=>{
+    console.log('sw registered', reg.scope);
+    // after registration, if me is already set, ask permission (user wanted prompt)
+    if(me.tf17){
+      try { await askNotificationPermissionAndSubscribe(); } catch(e){ console.warn('push init after sw registration failed', e); }
+    }
+  }).catch(err=>{
+    console.warn('sw register failed', err);
+  });
+}
+
+/* expose debug */
+window._tf_contacts = contacts;
+window._tf_me = me;
+window._tf_groups = groups;
+window._tf_conv_cache = conversationCache;
+
+/* minimal helper functions used above but declared late */
+function initials(name){ if(!name) return 'U'; return name.split(' ').map(p=>p[0]).slice(0,2).join('').toUpperCase(); }
+async function uploadFileToProfile(file){ const fd = new FormData(); fd.append('file', file); const resp = await fetch(PROFILE_UPLOAD_URL, { method:'POST', body: fd }); const text = await resp.text().catch(()=>null); let json = null; try{ json = JSON.parse(text); }catch(e){} if(!resp.ok || !json || !(json.ok || json.success) || !(json.url || json.path)) { const msg = json?.error || text || `status ${resp.status}`; throw new Error('Upload failed: ' + msg); } return json.url || json.path; }
+</script>
 </body>
-  </html>
+      </html>
