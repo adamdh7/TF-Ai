@@ -370,7 +370,6 @@ function saveConversationCacheForMe(){
   const key = convStorageKeyForMe(meN);
   const out = {};
   for(const k in conversationCache){
-    // conversationCache keys are convKey(meN, otherN) or similar; store only conversations where meN participates
     if(!conversationCache.hasOwnProperty(k)) continue;
     const parts = k.split('|');
     if(parts.length !== 2) continue;
@@ -658,7 +657,7 @@ function openGroupChat(groupName){
         const text = parsed?.text || parsed?.message || (row.content || '');
         const created_at = parsed?.time || row.created_at || nowISO();
         if(!from) continue;
-        addOrUpdateMessageToCache(me.tf17 || 'anon', `GROUP:${groupName}`, { id: row.id, from, text, created_at });
+        addOrUpdateMessageToCache(me.tf17 || 'anon', `GROUP:${groupName}`, { id: row.id, from, text, created_at, parsed_time: parsed?.time || null, _db_created_at: row.created_at || null });
       }
       renderConversation(me.tf17 || 'anon', `GROUP:${groupName}`);
       showChatModal();
@@ -680,7 +679,17 @@ async function sendMessageFromModal(){
   if(!me.tf17){ alert('Ou dwe mete TFID nan Paramètres avan ou voye mesaj. Klike sou TF-Chat anlè a pou mete li.'); return; }
   if(currentGroup){
     const payload = { type:'text', group: currentGroup, from: me.tf17, text: txt, time: nowISO(), cid: makeCid(), name: me.name || null };
-    addOrUpdateMessageToCache(me.tf17, `GROUP:${currentGroup}`, { id:null, cid: payload.cid, from: normParticipant(me.tf17), text: txt, created_at: payload.time, _optimistic:true });
+    // optimistic add: include parsed_time and _db_created_at so sorting keeps chronology
+    addOrUpdateMessageToCache(me.tf17, `GROUP:${currentGroup}`, {
+      id: null,
+      cid: payload.cid,
+      from: normParticipant(me.tf17),
+      text: txt,
+      created_at: payload.time,
+      parsed_time: payload.time,
+      _db_created_at: payload.time,
+      _optimistic: true
+    });
     renderConversation(me.tf17, `GROUP:${currentGroup}`);
     chatTextEl.value = '';
     try {
@@ -696,7 +705,17 @@ async function sendMessageFromModal(){
   if(c && c.blocked){ alert('Ou bloke kontak sa — ou pa ka voye mesaj.'); return; }
   const cid = makeCid();
   const payload = { type:'text', from: me.tf17, text: txt, time: nowISO(), cid, name: me.name || null };
-  addOrUpdateMessageToCache(me.tf17, recipient17, { id:null, cid, from: normParticipant(me.tf17), text: txt, created_at: payload.time, _optimistic:true });
+  // optimistic add: include parsed_time and _db_created_at so sorting keeps chronology
+  addOrUpdateMessageToCache(me.tf17, recipient17, {
+    id: null,
+    cid: cid,
+    from: normParticipant(me.tf17),
+    text: txt,
+    created_at: payload.time,
+    parsed_time: payload.time,
+    _db_created_at: payload.time,
+    _optimistic: true
+  });
   renderConversation(me.tf17, recipient17);
   chatTextEl.value = '';
   if(c){ c.lastMsg = txt; c.lastTs = Date.now(); saveState(); renderContacts(); }
@@ -1013,4 +1032,4 @@ function initials(name){ if(!name) return 'U'; return name.split(' ').map(p=>p[0
 async function uploadFileToProfile(file){ const fd = new FormData(); fd.append('file', file); const resp = await fetch(PROFILE_UPLOAD_URL, { method:'POST', body: fd }); const text = await resp.text().catch(()=>null); let json = null; try{ json = JSON.parse(text); }catch(e){} if(!resp.ok || !json || !(json.ok || json.success) || !(json.url || json.path)) { const msg = json?.error || text || `status ${resp.status}`; throw new Error('Upload failed: ' + msg); } return json.url || json.path; }
 </script>
 </body>
-    </html>
+            </html>
