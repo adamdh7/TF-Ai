@@ -1,232 +1,357 @@
 <!doctype html>
-
 <html lang="fr">
 <head>
-  <meta charset="utf-8">
+  <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>TF Chat (updated)</title>
+  <title>TF-Chat</title>
   <style>
-    /* --- minimal styles (kept from original, adjusted for send button) --- */
-    :root{--bg:#f8fafc;--card:#fff;--muted:#6b7280}
-    body{font-family:system-ui,Arial,Helvetica,sans-serif;background:var(--bg);margin:0;padding:0;color:#111}
-    .app{max-width:980px;margin:18px auto;padding:12px}
-    .chat-input-row{display:flex;gap:8px;align-items:center;padding:10px;background:linear-gradient(180deg,#fff,#fbfdff);border-top:1px solid #eee}
-    .chat-input-row textarea{flex:1;border-radius:10px;padding:10px;border:1px solid #e6eef3;min-height:48px;resize:none}
-    .send-btn{display:inline-flex;align-items:center;justify-content:center;width:48px;height:48px;border-radius:10px;border:none;background:#006eff;color:white;cursor:pointer}
-    .send-btn svg{width:20px;height:20px;transform:translateX(2px)}
-    /* other minimal UI pieces kept as-is in original file */
+    /* --- minimal styles (kenbe sa ou te genyen si gen lòt CSS) --- */
+    body { font-family: system-ui, Arial; margin:0; padding:0; background:#f7f7f8; color:#111; }
+    .header { display:flex; align-items:center; gap:12px; padding:12px 16px; background:#fff; border-bottom:1px solid #eee; }
+    .app-logo { width:36px; height:36px; display:inline-flex; align-items:center; justify-content:center; border-radius:8px; background:linear-gradient(90deg,#4f46e5,#06b6d4); color:white; font-weight:700; }
+    .app-title { font-size:18px; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:8px; }
+    .main { display:flex; gap:12px; padding:16px; }
+    /* chat area */
+    #chatModal { width:100%; max-width:900px; margin:0 auto; background:#fff; border-radius:8px; box-shadow:0 4px 18px rgba(0,0,0,0.06); padding:12px; }
+    #messages { max-height:60vh; overflow:auto; padding:8px; }
+    .message-row { padding:6px 8px; margin:6px 0; border-radius:8px; background:#f2f4f7; }
+    .compose { display:flex; gap:8px; align-items:center; margin-top:8px; }
+    .compose textarea { flex:1; min-height:44px; padding:8px; border-radius:8px; border:1px solid #ddd; resize:vertical;}
+    .btn { display:inline-flex; align-items:center; justify-content:center; padding:8px 12px; border-radius:8px; border:none; background:#2563eb; color:white; cursor:pointer; }
+    .icon-btn { width:44px; height:44px; display:inline-flex; align-items:center; justify-content:center; border-radius:8px; background:#2563eb; color:white; border:none; cursor:pointer; }
+    .small-muted { color:#666; font-size:12px; }
   </style>
 </head>
 <body>
-<div class="app">
-  <h1>TF Chat</h1>  <!-- simplified chat input area (original UI is larger but we keep identifiers) -->  <div id="chatModal">
-    <div class="messages-wrap" style="min-height:300px;border:1px solid #eee;background:white;padding:12px;border-radius:8px;margin-bottom:8px" id="messagesWrap">
-      <div id="messages" style="min-height:200px"></div>
-    </div>
-    <div id="chatInputRow" class="chat-input-row">
-      <textarea id="chatText" placeholder="Ecris un message..."></textarea>
-      <button id="sendBtn" class="send-btn" title="Envoyer">
-        <!-- REPLACED: real send SVG icon instead of emoji/text -->
-        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-          <path d="M2 21L23 12L2 3V10L17 12L2 14V21Z" fill="currentColor"/>
+
+  <header class="header">
+    <div class="app-logo" aria-hidden="true">TF</div>
+    <div class="app-title" title="Paramètres & profil">
+      <!-- replaced bell emoji by a small SVG notification icon to look professional -->
+      <span style="display:inline-flex;align-items:center;gap:8px;">
+        TF-Sove
+        <svg id="notifLogo" width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0 1 18.6 14.6V11a6.002 6.002 0 0 0-4-5.659V4a2 2 0 1 0-4 0v1.341C8.4 6.165 6 8.388 6 11v3.6c0 .538-.214 1.055-.595 1.435L4 17h11z" stroke="#0f172a" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path>
+          <path d="M13.73 21a2 2 0 0 1-3.46 0" stroke="#0f172a" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
         </svg>
-      </button>
+      </span>
     </div>
-  </div></div><script>
-/* ================== CONFIG ================== */
-const API_BASE = 'https://tf-sove.onrender.com';
-const PROFILE_UPLOAD_URL = API_BASE + '/upload';
-const FRONTEND_NAME = 'site1';
-const ADMIN_API_TOKEN = 'tfstream_45dd9c02d4e34f18a42d';
-const WS_URL = (location.protocol === "https:" ? "wss://" : "ws://") + "tf-sove.onrender.com/ws";
+    <div style="margin-left:auto; display:flex; gap:12px; align-items:center;">
+      <div id="wsStatus" class="small-muted">WS: —</div>
+      <button id="openSettingsBtn" class="btn">Settings</button>
+    </div>
+  </header>
 
-// --- PUSH / VAPID ---
-// we'll fetch the VAPID public key from server at /push/vapid
-let VAPID_PUBLIC_KEY = '';
-const SUBSCRIBE_ENDPOINT = API_BASE + '/push/subscribe';
-const UNSUBSCRIBE_ENDPOINT = API_BASE + '/push/unsubscribe';
+  <main class="main">
+    <section style="flex:1;">
+      <div id="chatModal">
+        <div id="messages" aria-live="polite"></div>
 
-/* ================== HELPERS ================== */
+        <div class="compose" id="chatInputRow">
+          <textarea id="chatText" placeholder="Écrire un message..."></textarea>
+
+          <!-- Send button: real SVG icon (no emoji or plain text) -->
+          <button id="sendBtn" class="icon-btn" title="Envoyer" aria-label="Envoyer">
+            <!-- modern rounded send icon -->
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M22 2L11 13" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M22 2L15 22L11 13L2 9L22 2Z" stroke="white" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" fill="white" opacity="0.08"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Settings modal / small UI pieces should be here (omitted for brevity if you have full UI) -->
+  <!-- ... keep your full modals and other markup as before ... -->
+
+<script>
+/* ================== CONFIG (adjust if needed) ================== */
+/* Link client to your server base */
+const API_BASE = 'https://tf-sove.onrender.com'; // <--- server url (as requested)
+const FRONTEND_NAME = 'site1'; // change if needed (must match registered frontend on server)
+const SUBSCRIBE_ENDPOINT = API_BASE + '/push/subscribe'; // server endpoint we implemented
+const VAPID_GET_ENDPOINT = API_BASE + '/push/vapid'; // server endpoint to fetch public key
+let VAPID_PUBLIC_KEY = null; // will be fetched at boot
+
+/* ================== App state (keep original logic) ================== */
+let me = { tf17: localStorage.getItem('tfchat.me.17') || '', name: localStorage.getItem('tfchat.me.name') || '', short: localStorage.getItem('tfchat.me.short') || '', avatarDataUrl: localStorage.getItem('tfchat.me.avatar') || '' };
+let ws = null;
+let reconnectTimer = null;
+
+/* DOM refs */
+const messagesEl = document.getElementById('messages');
+const chatTextEl = document.getElementById('chatText');
+const sendBtnEl = document.getElementById('sendBtn');
+const wsStatusEl = document.getElementById('wsStatus');
+const appTitleEl = document.querySelector('.app-title');
+const openSettingsBtn = document.getElementById('openSettingsBtn');
+
+/* ------------------ Helper: format message in UI ------------------ */
+function appendMessageRow(msgObj, opts = {}) {
+  // msgObj: {id, tfid, content, created_at, name}
+  const row = document.createElement('div');
+  row.className = 'message-row';
+  const who = document.createElement('div');
+  who.innerHTML = `<strong>${escapeHtml(msgObj.name || msgObj.from || msgObj.tfid)}</strong> <span class="small-muted">${msgObj.created_at ? new Date(msgObj.created_at).toLocaleString() : ''}</span>`;
+  const body = document.createElement('div');
+  let text = '';
+  try {
+    const p = JSON.parse(msgObj.content);
+    text = p.text || p.message || JSON.stringify(p);
+  } catch (e) {
+    text = msgObj.content || '';
+  }
+  body.textContent = text;
+  row.appendChild(who);
+  row.appendChild(body);
+  messagesEl.appendChild(row);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+}
+
+/* escapeHtml copied from server for safety */
+function escapeHtml(s) {
+  if (s == null) return "";
+  return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+}
+
+/* ------------------ API helpers ------------------ */
+async function apiAdd(tfid, payload) {
+  const url = API_BASE + '/api/add';
+  const body = Object.assign({}, payload);
+  // body must include 'name' (frontend name) and 'tfid' or 'group_name'
+  if(!body.tfid) body.tfid = tfid;
+  body.name = FRONTEND_NAME;
+  try {
+    const r = await fetch(url, { method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify(body) });
+    return await r.json();
+  } catch (e) { throw e; }
+}
+
+async function apiList(tfid) {
+  const url = API_BASE + '/api/list?tfid=' + encodeURIComponent(tfid) + '&name=' + encodeURIComponent(FRONTEND_NAME);
+  const r = await fetch(url);
+  const j = await r.json();
+  if(!j.ok) throw new Error(j.error || 'api list failed');
+  return j.rows || [];
+}
+
+/* ------------------ WebSocket (subscribe + rehydrate) ------------------ */
+function connectWS() {
+  if (!me.tf17) {
+    wsStatusEl.textContent = 'WS: no profile';
+    return;
+  }
+  const wsUrl = (API_BASE.replace(/^http/, 'ws')) + '/ws';
+  try {
+    ws = new WebSocket(wsUrl);
+  } catch (e) {
+    wsStatusEl.textContent = 'WS: error';
+    scheduleReconnect();
+    return;
+  }
+  ws.onopen = () => {
+    wsStatusEl.textContent = 'WS: open';
+    // subscribe our TFID
+    try { ws.send(JSON.stringify({ type: 'subscribe', tfid: me.tf17 })); } catch(e){}
+    // also fetch recent messages via API to ensure UI rehydrates
+    loadConversationCacheForMe().catch(()=>{});
+  };
+  ws.onmessage = (ev) => {
+    try {
+      const d = JSON.parse(ev.data);
+      if(d && d.type === 'message') {
+        appendMessageRow(d);
+        // show a local notification as well
+        showNotificationForIncoming(d);
+      }
+    } catch(e){ console.warn('ws parse error', e); }
+  };
+  ws.onclose = () => { wsStatusEl.textContent = 'WS: closed'; scheduleReconnect(); };
+  ws.onerror = (e) => { wsStatusEl.textContent = 'WS: error'; console.warn('ws err', e); scheduleReconnect(); };
+}
+
+function scheduleReconnect() {
+  if (reconnectTimer) return;
+  reconnectTimer = setTimeout(()=>{ reconnectTimer = null; connectWS(); }, 3000 + Math.floor(Math.random()*3000));
+}
+
+async function loadConversationCacheForMe() {
+  if (!me.tf17) return;
+  try {
+    const rows = await apiList(me.tf17);
+    messagesEl.innerHTML = ''; // clear and render
+    for (let r of rows.reverse()) {
+      appendMessageRow(r);
+    }
+  } catch (e) {
+    console.warn('rehydrate failed', e);
+  }
+}
+
+/* ------------------ Sending messages ------------------ */
+async function sendMessageFromModal() {
+  const text = (chatTextEl.value || '').trim();
+  if(!text) return;
+  const payload = { content: text, content_type: 'text', from: me.tf17 || null };
+  try {
+    // deliver to current open partner or just store
+    // for demo: assume you have currentPartner variable; else you can hardcode recipient (example)
+    const toTfid = window.currentPartner ? window.currentPartner.tf17 : null;
+    if(!toTfid) { alert('Ouvrir yon chat an premye'); return; }
+    const r = await apiAdd(toTfid, payload);
+    if (r && r.ok) {
+      chatTextEl.value = '';
+      // append locally right away (server will also broadcast back)
+      appendMessageRow({ name: me.name || me.tf17, content: JSON.stringify({ text }), created_at: new Date().toISOString(), tfid: toTfid });
+    } else {
+      alert('Échec envoi: ' + (r && r.error) );
+    }
+  } catch (e) {
+    alert('Erreur envoi: ' + e.message);
+  }
+}
+
+/* ------------------ Push subscription helpers ------------------ */
 function urlBase64ToUint8Array(base64String) {
+  // convert VAPID key for subscribe
   const padding = '='.repeat((4 - base64String.length % 4) % 4);
   const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
-  const rawData = atob(base64);
+  const rawData = window.atob(base64);
   const outputArray = new Uint8Array(rawData.length);
-  for (let i = 0; i < rawData.length; ++i) {
-    outputArray[i] = rawData.charCodeAt(i);
-  }
+  for (let i = 0; i < rawData.length; ++i) outputArray[i] = rawData.charCodeAt(i);
   return outputArray;
 }
 
-function normalizeInputToDigits(inp){ if(!inp) return null; const s=String(inp).trim().toUpperCase(); const digits=s.replace(/[^0-9]/g,''); return digits||null; }
-function to17(shortOrDigits){ if(!shortOrDigits) return null; const ds=String(shortOrDigits).replace(/[^0-9]/g,''); if(ds.length>17) return ds.slice(-17); return ds.padStart(17,'0'); }
-function formatTFShort(digitsString){ if(!digitsString) return ''; const s=String(digitsString).replace(/[^0-9]/g,''); const last7 = s.slice(-7); return 'TF-'+ last7.padStart(7,'0'); }
-function nowISO(){ return (new Date()).toISOString(); }
-function escapeHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
-/* ================== STATE (kept minimal for snippet) ================== */
-let me = { short: localStorage.getItem('tfchat.me.short') || null, tf17: localStorage.getItem('tfchat.me.17') || null, name: localStorage.getItem('tfchat.me.name') || 'Utilisateur', avatarDataUrl: localStorage.getItem('tfchat.me.avatar') || null };
-if(me.tf17) me.tf17 = (''+me.tf17).replace(/[^0-9]/g,'').padStart(17,'0');
-let contacts = JSON.parse(localStorage.getItem('tfchat.contacts') || '[]') || [];
-const conversationCache = {};
-
-/* ================== Persistence helpers ================== */
-function convStorageKeyForMe(tf17){ const k = (tf17 || me.tf17 || '').replace(/[^0-9]/g,'').padStart(17,'0'); return `tfchat.conversations.${k}`; }
-function saveConversationCacheForMe(){ const meN = (me.tf17||'').replace(/[^0-9]/g,'').padStart(17,'0'); if(!meN) return; const key = convStorageKeyForMe(meN); const out = {}; for(const k in conversationCache){ if(!conversationCache.hasOwnProperty(k)) continue; const parts = k.split('|'); if(parts.length !== 2) continue; const [a,b] = parts; if(a === meN){ out[b] = conversationCache[k]; } else if(b === meN){ out[a] = conversationCache[k]; } } try { localStorage.setItem(key, JSON.stringify(out)); } catch(e){ console.warn('save conv cache fail', e); } }
-function loadConversationCacheForMe(){ const meN = (me.tf17||'').replace(/[^0-9]/g,'').padStart(17,'0'); if(!meN) return; const key = convStorageKeyForMe(meN); try { const raw = localStorage.getItem(key); if(!raw) return; const obj = JSON.parse(raw || '{}'); for(const other in obj){ if(!obj.hasOwnProperty(other)) continue; const ck = meN + '|' + other; conversationCache[ck] = obj[other].slice(); } } catch(e){ console.warn('load conv cache fail', e); } }
-
-/* ================== Simple UI wiring (kept minimal) ================== */
-const chatTextEl = document.getElementById('chatText');
-const sendBtnEl = document.getElementById('sendBtn');
-const messagesEl = document.getElementById('messages');
-
-function appendMessageToUI(msg){ const div = document.createElement('div'); div.style.padding='6px 8px'; div.style.borderBottom='1px dashed #f0f4f8'; div.innerHTML = `<strong>${escapeHtml(msg.from||'')}</strong>: <span>${escapeHtml(msg.text||'')}</span>`; messagesEl.appendChild(div); messagesEl.scrollTop = messagesEl.scrollHeight; }
-
-/* ============== PUSH: fetch VAPID public key ============== */
-async function fetchVapidPublicKeyFromServer(){ try { const r = await fetch(API_BASE + '/push/vapid'); if(!r.ok) return null; const j = await r.json(); if(j && j.publicKey) { VAPID_PUBLIC_KEY = j.publicKey; return VAPID_PUBLIC_KEY; } } catch(e){ console.warn('fetchVapidPublicKeyFromServer fail', e); } return null; }
-
-/* ================== SERVICE WORKER REGISTRATION ================== */
-if('serviceWorker' in navigator){
-  navigator.serviceWorker.register('/sw.js', { scope: '/' }).then(async reg=>{
-    console.log('sw registered', reg.scope);
-    if(me.tf17){
-      try { await fetchVapidPublicKeyFromServer(); await askNotificationPermissionAndSubscribe(); } catch(e){ console.warn('push init after sw registration failed', e); }
+async function fetchVapidPublicKey() {
+  try {
+    const r = await fetch(VAPID_GET_ENDPOINT);
+    const j = await r.json();
+    if (j && j.ok && j.publicKey) {
+      VAPID_PUBLIC_KEY = j.publicKey;
+      return VAPID_PUBLIC_KEY;
+    } else {
+      console.warn('vapid key not available', j);
+      return null;
     }
-  }).catch(err=>{ console.warn('sw register failed', err); });
+  } catch (e) { console.warn('fetchVapidPublicKey err', e); return null; }
 }
 
-/* ================== PUSH subscription flow (client) ================== */
-async function askNotificationPermissionAndSubscribe(){ try {
-    if (!('Notification' in window) || !('serviceWorker' in navigator) || !('PushManager' in window)) {
-      console.warn('Notifications/Push not supported in this browser');
-      return;
-    }
-    const permission = await Notification.requestPermission();
-    if (permission !== 'granted') { console.log('Notification permission not granted:', permission); return; }
-    // ensure we have VAPID key (try server)
-    if(!VAPID_PUBLIC_KEY) await fetchVapidPublicKeyFromServer();
-    await subscribeToPush();
-  } catch (e) { console.warn('askNotificationPermissionAndSubscribe error', e); }
-}
+async function askNotificationPermissionAndSubscribe() {
+  if (!('serviceWorker' in navigator)) return;
+  // register service worker (if not yet)
+  try {
+    const reg = await navigator.serviceWorker.register('/sw.js', { scope: '/' });
+    console.log('sw registered', reg);
+  } catch (e) {
+    console.warn('sw register failed', e);
+  }
+  // fetch vapid key from server
+  await fetchVapidPublicKey();
+  if (!VAPID_PUBLIC_KEY) {
+    console.warn('no vapid key; cannot subscribe');
+    return;
+  }
 
-async function subscribeToPush(){
+  // request permission
+  if (Notification.permission === 'default') {
+    try { await Notification.requestPermission(); } catch(e){}
+  }
+  if (Notification.permission !== 'granted') {
+    console.warn('Notifications not granted');
+    return;
+  }
+  // do subscription
   try {
     const reg = await navigator.serviceWorker.ready;
-    const sub = await reg.pushManager.getSubscription();
-    if (sub) { await sendSubscriptionToServer(sub); return sub; }
-    if(!VAPID_PUBLIC_KEY){ console.warn('VAPID public key missing, cannot subscribe'); return null; }
-    const convertedVapidKey = urlBase64ToUint8Array(VAPID_PUBLIC_KEY);
-    const newSub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: convertedVapidKey });
-    await sendSubscriptionToServer(newSub);
-    return newSub;
-  } catch (e) { console.warn('subscribeToPush failed', e); return null; }
-}
-
-async function sendSubscriptionToServer(subscription){
-  try {
-    if(!subscription) return;
-    const body = { subscription, tfid: me.tf17 || null, name: FRONTEND_NAME };
-    await fetch(SUBSCRIBE_ENDPOINT, { method: 'POST', headers: { 'Content-Type':'application/json' }, body: JSON.stringify(body) }).catch(()=>{});
-  } catch(e){ console.warn('sendSubscriptionToServer fail', e); }
-}
-
-async function unsubscribeFromPush(){
-  try {
-    const reg = await navigator.serviceWorker.ready;
-    const sub = await reg.pushManager.getSubscription();
-    if(!sub) return;
-    // tell server to remove
-    await fetch(UNSUBSCRIBE_ENDPOINT, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ endpoint: sub.endpoint, tfid: me.tf17 || null }) }).catch(()=>{});
-    await sub.unsubscribe();
-  } catch(e){ console.warn('unsubscribeFromPush fail', e); }
-}
-
-/* ================== WebSocket connection & handling ================== */
-let ws = null; let reconnectTimer = null;
-function connectWS(){ if(!me.tf17) return; try { ws = new WebSocket(WS_URL); } catch(e){ scheduleReconnect(); return; }
-  ws.onopen = ()=>{ try{ ws.send(JSON.stringify({ type:'subscribe', tfid: me.tf17 })); }catch(e){} };
-  ws.onmessage = (ev)=>{ try { const data = JSON.parse(ev.data); if(data.type === 'subscribed') return; if(data.type === 'message'){ const payload = data; let parsed = null; try{ parsed = JSON.parse(payload.content); } catch(e){ parsed = null; }
-      if(!parsed || !parsed.from) return; const recipientRaw = payload.tfid || null; const fromRaw = parsed.from; const recipient = (recipientRaw||'').replace(/[^0-9]/g,'').padStart(17,'0'); const from = (fromRaw||'').replace(/[^0-9]/g,'').padStart(17,'0'); const other = (recipient === me.tf17) ? from : recipient; if(!other) return;
-      if(parsed.type === 'read'){ if(recipient === me.tf17){ /* applyReadReceipt(parsed.from, parsed); */ } return; }
-      const msgObj = { id: payload.id || null, cid: parsed.cid || null, from, text: parsed.text || parsed.message || '', parsed_time: parsed.time || null, _db_created_at: payload.created_at || null, created_at: parsed.time || payload.created_at || nowISO() };
-      // add/update cache
-      const ck = (me.tf17||'') + '|' + other; conversationCache[ck] = conversationCache[ck] || [];
-      conversationCache[ck].push(msgObj);
-      // save cache to localStorage so messages are persisted even if user was away
-      saveConversationCacheForMe();
-
-      // render if currently viewing
-      appendMessageToUI(msgObj);
-      // if page not visible -> show notification via service worker
-      if(document.visibilityState !== 'visible'){
-        try { navigator.serviceWorker.getRegistration().then(reg=>{ if(reg && reg.showNotification){ reg.showNotification(parsed.name || formatTFShort(from), { body: (parsed.text||msgObj.text||'Nouveau message').slice(0,160), data:{ url: '/' + encodeURIComponent(from), conversation: from, messageId: msgObj.id }, renotify:true, tag: 'tfchat-' + (from || 'msg'), icon: API_BASE + '/images/notification-128.png', badge: API_BASE + '/images/notification-badge.png' }); } else { if(Notification.permission === 'granted') new Notification(parsed.name || formatTFShort(from), { body: (parsed.text||msgObj.text||'Nouveau message').slice(0,160) }); } }); } catch(e){ console.warn('show notif fallback fail', e); }
-      }
-    } } catch(err){ console.warn('WS parse err', err); } };
-  ws.onclose = ()=>{ scheduleReconnect(); };
-  ws.onerror = ()=>{ if(ws) try{ ws.close(); }catch(e){} };
-}
-function scheduleReconnect(){ if(reconnectTimer) return; reconnectTimer = setTimeout(()=>{ reconnectTimer=null; connectWS(); }, 3000); }
-
-/* ================== Load conversation from server and persist locally ================== */
-async function apiList(tf17){ const url = `${API_BASE}/api/list?tfid=${encodeURIComponent(tf17)}&name=${encodeURIComponent(FRONTEND_NAME)}`; const r = await fetch(url); const txt = await r.text().catch(()=>null); let json=null; try{ json = JSON.parse(txt); }catch(e){} if(!r.ok) throw new Error(json?.error || txt || `HTTP ${r.status}`); return json.rows||[]; }
-
-async function loadConversation(me17, other17){ const meN = (me17||'').replace(/[^0-9]/g,'').padStart(17,'0'); const otherN = (other17||'').replace(/[^0-9]/g,'').padStart(17,'0'); loadConversationCacheForMe(); const key = meN + '|' + otherN; conversationCache[key] = conversationCache[key] || [];
-  const seen = new Set(); function pushRowFromServer(r){ let parsed=null; try{ parsed = JSON.parse(r.content); }catch(e){} const parsedFromRaw = parsed && parsed.from ? parsed.from : null; if(!parsedFromRaw) return; const parsedFrom = (parsedFromRaw||'').replace(/[^0-9]/g,'').padStart(17,'0'); if(parsedFrom !== meN && parsedFrom !== otherN) return; const parsedText = parsed && (parsed.text||parsed.message) ? (parsed.text||parsed.message) : (r.content||''); const m = { id: r.id || null, cid: parsed && parsed.cid || null, from: parsedFrom, text: parsedText, parsed_time: parsed && parsed.time || null, _db_created_at: r.created_at || null, created_at: parsed && parsed.time || r.created_at || nowISO(), read: parsed && parsed.type === 'read_ack' ? true : false }; const keyu = (m.cid||'') + '|' + (m.id||'') + '|' + (m.from||''); if(seen.has(keyu)) return; seen.add(keyu); conversationCache[key] = conversationCache[key] || []; conversationCache[key].push(m); }
-  try { const outRows = await apiList(otherN); for(const r of outRows) pushRowFromServer(r); } catch(e){ console.warn('LIST outgoing failed', e); }
-  try { if(meN) { const inRows = await apiList(meN); for(const r of inRows) pushRowFromServer(r); } } catch(e){ console.warn('LIST incoming failed', e); }
-  // render and persist
-  messagesEl.innerHTML = '';
-  const arr = (conversationCache[key]||[]).slice().sort((a,b)=>new Date(a.created_at)-new Date(b.created_at)); for(const m of arr) appendMessageToUI(m);
-  // save to localStorage so messages are retained
-  saveConversationCacheForMe();
-}
-
-/* ================== Send message flow (keeps optimistic UI + persists) ================== */
-sendBtnEl?.addEventListener('click', async ()=>{
-  const txt = (chatTextEl.value||'').trim(); if(!txt) return; if(!me.tf17){ alert('Set your TFID first in settings'); return; }
-  const recipient17 = prompt('Destinataire TF-17 (ex: TF-0000001) :'); if(!recipient17) return; const r17 = (recipient17||'').replace(/[^0-9]/g,'').padStart(17,'0'); const payload = { type:'text', from: me.tf17, text: txt, time: nowISO(), cid: String(Date.now()) + '-' + Math.floor(Math.random()*100000).toString(16), name: me.name || null };
-  // optimistic add
-  const key = (me.tf17||'') + '|' + r17; conversationCache[key] = conversationCache[key] || []; const msgObj = { id: null, cid: payload.cid, from: me.tf17, text: txt, created_at: payload.time, parsed_time: payload.time, _optimistic:true };
-  conversationCache[key].push(msgObj);
-  saveConversationCacheForMe();
-  appendMessageToUI(msgObj);
-  chatTextEl.value = '';
-  try { await fetch(API_BASE + '/api/add', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ tfid: r17, name: FRONTEND_NAME, content: JSON.stringify(payload), source_url: location.origin }) });
-    // brief poll to confirm message stored server-side and then refresh conv
-    setTimeout(()=>{ loadConversation(me.tf17, r17).catch(()=>{}); }, 1200);
-  } catch(e){ alert('Envoi échoué: '+ (e.message||e)); }
-});
-
-/* ============== BOOT ============== */
-renderInitial();
-async function renderInitial(){ if(me.tf17){ loadConversationCacheForMe(); connectWS(); try{ await fetchVapidPublicKeyFromServer(); await askNotificationPermissionAndSubscribe(); } catch(e){ console.warn('push init failed', e); } } }
-
-</script><!-- Below: provide a suggested service worker file (sw.js). Save this as /sw.js on the same origin as the page. --><!--
-SW.JS (copy this into a separate file named sw.js at the root of the site)
-
-self.addEventListener('push', function(event) {
-  let data = {};
-  try { data = event.data.json(); } catch(e){ data = { title: 'TF Chat', body: event.data ? event.data.text() : 'Nouveau message' }; }
-  const title = data.title || 'TF Chat';
-  const options = {
-    body: data.body || '',
-    icon: data.icon || '/images/notification-128.png',
-    badge: data.badge || '/images/notification-badge.png',
-    data: data.data || {},
-    tag: data.tag || 'tfchat'
-  };
-  event.waitUntil(self.registration.showNotification(title, options));
-});
-
-self.addEventListener('notificationclick', function(event) {
-  event.notification.close();
-  const openUrl = (event.notification.data && event.notification.data.url) ? event.notification.data.url : '/';
-  event.waitUntil(clients.matchAll({ type: 'window', includeUncontrolled: true }).then(windowClients => {
-    for (const client of windowClients) {
-      if (client.url.indexOf(openUrl) !== -1 && 'focus' in client) return client.focus();
+    // try to reuse existing subscription
+    let sub = await reg.pushManager.getSubscription();
+    if (!sub) {
+      sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+      });
     }
-    if (clients.openWindow) return clients.openWindow(openUrl);
-  }));
+    // send to server
+    if (sub && me.tf17) {
+      await fetch(SUBSCRIBE_ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tfid: me.tf17, subscription: sub })
+      });
+      console.log('push subscription saved to server');
+    } else {
+      console.warn('no subscription or no me.tf17');
+    }
+  } catch (e) {
+    console.warn('subscribe failed', e);
+  }
+}
+
+/* small helper: send WAKE push when incoming message arrives (server already attempts) */
+function showNotificationForIncoming(payload) {
+  // if page visible, optional: show in-UI; else show notification
+  const title = (payload.name && payload.name !== '') ? payload.name : 'TF-Chat';
+  const body = (typeof payload.content === 'string' ? (payload.content.length>200?payload.content.slice(0,200)+'...':payload.content) : '');
+  const data = payload;
+  // page visibility
+  if (document.visibilityState === 'visible') {
+    // optionally flash UI
+    try { navigator.vibrate && navigator.vibrate(100); } catch(e){}
+    return;
+  }
+  // otherwise trigger a notification via service worker
+  if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+    navigator.serviceWorker.controller.postMessage({ cmd: 'show-notif', title, body, data });
+  } else {
+    // fallback: use Notification API directly
+    if (Notification.permission === 'granted') {
+      new Notification(title, { body, data, icon: '/images/notification-128.png', badge: '/images/notification-badge.png' });
+    }
+  }
+}
+
+/* ------------------ Service Worker message relay (optional) ------------------ */
+navigator.serviceWorker?.addEventListener?.('message', (ev) => {
+  // handle messages from sw if needed
+  // console.log('from-sw', ev.data);
 });
---></body>
-</html>
+
+/* ------------------ Boot logic ------------------ */
+(async function boot(){
+  // render existing cached messages if any
+  if (me.tf17) {
+    try { await loadConversationCacheForMe(); } catch(e){ console.warn(e); }
+  }
+  // register WS
+  connectWS();
+  // register service worker and subscribe (if possible)
+  // do not block boot if vapid not available
+  try { await askNotificationPermissionAndSubscribe(); } catch(e){ console.warn(e); }
+
+  // wire send button
+  sendBtnEl.addEventListener('click', sendMessageFromModal);
+  chatTextEl.addEventListener('keydown', (ev)=>{ if(ev.key === 'Enter' && !ev.shiftKey){ ev.preventDefault(); sendMessageFromModal(); } });
+
+  // settings button open (or title click)
+  openSettingsBtn?.addEventListener('click', ()=>{ // open your settings modal (existing HTML) if present
+    // existing logic probably toggles #settingsModal
+    // fallback alert:
+    if(typeof updateSettingsUI === 'function'){ updateSettingsUI(); document.getElementById('settingsModal').style.display = 'flex'; } else { alert('Open settings'); }
+  });
+
+  // ensure WS reconnect on visibility change if needed
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+      // rehydrate messages & reconnect ws
+      if (!ws || ws.readyState !== WebSocket.OPEN) connectWS();
+      loadConversationCacheForMe().catch(()=>{});
+    }
+  });
+})();
+</script>
+
+</body>
+  </html>
